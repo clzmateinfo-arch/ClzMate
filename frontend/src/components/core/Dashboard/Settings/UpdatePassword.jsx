@@ -1,34 +1,33 @@
-import React, { useState } from "react"
-import { useForm } from "react-hook-form"
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"
-import { useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
-
-import { changePassword } from "../../../../services/operations/SettingsAPI"
-import IconBtn from "../../../common/IconBtn"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { changePassword } from "../../../../services/operations/SettingsAPI";
+import IconBtn from "../../../common/IconBtn";
 
 export default function UpdatePassword() {
-  const { token } = useSelector((state) => state.auth)
-  const navigate = useNavigate()
+  const { token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
-  const [showOldPassword, setShowOldPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm()
+  } = useForm();
 
   const submitPasswordForm = async (data) => {
-    console.log("password Data - ", data)
+    console.log("password Data - ", data);
     try {
-      await changePassword(token, data)
+      await changePassword(token, data);
     } catch (error) {
-      console.log("ERROR MESSAGE - ", error.message)
+      console.log("ERROR MESSAGE - ", error.message);
     }
-  }
+  };
 
   return (
     <>
@@ -37,7 +36,7 @@ export default function UpdatePassword() {
           <h2 className="text-lg font-semibold text-richblack-5">Password</h2>
 
           <div className="flex flex-col gap-5 lg:flex-row">
-          {/* Current Password */}
+            {/* Current Password */}
             <div className="relative flex flex-col gap-2 lg:w-[48%]">
               <label htmlFor="oldPassword" className="lable-style">
                 Current Password
@@ -133,21 +132,21 @@ export default function UpdatePassword() {
                 </span>
               )}
             </div>
-
           </div>
         </div>
 
         <div className="flex justify-end gap-2">
           <button
-            onClick={() => { navigate("/dashboard/my-profile") }}
+            onClick={() => {
+              navigate("/dashboard/my-profile");
+            }}
             className="cursor-pointer rounded-md bg-richblack-700 py-2 px-5 font-semibold text-richblack-50"
           >
             Cancel
           </button>
           <IconBtn type="submit" text="Update" />
         </div>
-
       </form>
     </>
-  )
+  );
 }

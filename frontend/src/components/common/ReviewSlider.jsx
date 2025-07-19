@@ -1,64 +1,45 @@
-import React, { useEffect, useState } from "react"
-import ReactStars from "react-rating-stars-component"
-import Img from './Img';
-
-// Import Swiper React components
-import { Swiper, SwiperSlide } from "swiper/react"
-// import SwiperCore, { Autoplay, FreeMode, Pagination } from 'swiper/core';
-// Import Swiper styles
-import "swiper/css"
-import "swiper/css/free-mode"
-import "swiper/css/pagination"
-
-// Icons
-import { FaStar } from "react-icons/fa"
-
-// Get apiFunction and the endpoint
+import "swiper/css";
+import "swiper/css/free-mode";
+import "swiper/css/pagination";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { useEffect, useState } from "react";
+import { FaStar } from "react-icons/fa";
+import Img from "./Img";
+import ReactStars from "react-rating-stars-component";
 import { apiConnector } from "../../services/apiConnector";
-import { ratingsEndpoints } from "../../services/apis"
-
-
-
-
-
+import { ratingsEndpoints } from "../../services/apis";
 
 function ReviewSlider() {
-  const [reviews, setReviews] = useState(null)
-  const truncateWords = 15
+  const [reviews, setReviews] = useState(null);
+  const truncateWords = 15;
 
   useEffect(() => {
-    ; (async () => {
+    (async () => {
       const { data } = await apiConnector(
         "GET",
         ratingsEndpoints.REVIEWS_DETAILS_API
-      )
+      );
       if (data?.success) {
-        setReviews(data?.data)
+        setReviews(data?.data);
       }
-    })()
-  }, [])
+    })();
+  }, []);
 
-  
-  // console.log('reviews= ', reviews)
-  if(!reviews) return;
-
+  if (!reviews) return;
 
   return (
     <div className="text-white">
       <div className="my-[50px] h-[184px] max-w-maxContentTab lg:max-w-maxContent">
         <Swiper
-          // slidesPerView={4}
-          // slidesPerView={1}
           breakpoints={{
-            // Configure the number of slides per view for different screen sizes
             640: {
-              slidesPerView: 1, // Show 1 slide at a time on smaller screens
+              slidesPerView: 1,
             },
             768: {
-              slidesPerView: 2, // Show 2 slides at a time on screens wider than 768px
+              slidesPerView: 2,
             },
             1024: {
-              slidesPerView: 4, // Show 4 slides at a time on screens wider than 1024px
+              slidesPerView: 4,
             },
           }}
           spaceBetween={25}
@@ -68,7 +49,6 @@ function ReviewSlider() {
             delay: 2500,
             disableOnInteraction: false,
           }}
-          // modules={[FreeMode, Pagination, Autoplay]}
           className="w-full "
         >
           {reviews.map((review, i) => {
@@ -96,20 +76,19 @@ function ReviewSlider() {
                   <p className="font-medium text-richblack-25">
                     {review?.review.split(" ").length > truncateWords
                       ? `${review?.review
-                        .split(" ")
-                        .slice(0, truncateWords)
-                        .join(" ")} ...`
+                          .split(" ")
+                          .slice(0, truncateWords)
+                          .join(" ")} ...`
                       : `${review?.review}`}
                   </p>
 
                   <div className="flex items-center gap-2 ">
                     <h3 className="font-semibold text-yellow-100">
-                      {/* {isNaN(review.rating) ? "N/A" : review.rating.toFixed(1)} */}
                       {review.rating}
                     </h3>
                     <ReactStars
                       count={5}
-                      value={parseInt(review.rating)} // Convert to a number
+                      value={parseInt(review.rating)}
                       size={20}
                       edit={false}
                       activeColor="#ffd700"
@@ -119,13 +98,12 @@ function ReviewSlider() {
                   </div>
                 </div>
               </SwiperSlide>
-            )
+            );
           })}
-          {/* <SwiperSlide>Slide 1</SwiperSlide> */}
         </Swiper>
       </div>
     </div>
-  )
+  );
 }
 
-export default ReviewSlider
+export default ReviewSlider;

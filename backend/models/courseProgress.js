@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const courseProgressSchema = new mongoose.Schema({
     courseID: {
@@ -15,9 +15,6 @@ const courseProgressSchema = new mongoose.Schema({
             ref: "SubSection",
         },
     ],
-})
+});
 
-
-
-module.exports = mongoose.model("CourseProgress", courseProgressSchema)
-
+module.exports = mongoose.model("CourseProgress", courseProgressSchema);

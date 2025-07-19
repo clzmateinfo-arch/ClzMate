@@ -1,4 +1,3 @@
-
 export const fadeIn = (direction, delay) => {
     return {
         hidden: {
@@ -21,8 +20,6 @@ export const fadeIn = (direction, delay) => {
     }
 }
 
-
-
 export const bounce = {
     hidden: { y: -10, opacity: 0 },
     show: {
@@ -36,9 +33,6 @@ export const bounce = {
         }
     }
 };
-
-
-
 
 export const scaleUp = {
     hidden: { scale: 0.1, opacity: 0 },

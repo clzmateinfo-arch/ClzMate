@@ -1,49 +1,43 @@
-import React from "react"
-
-import FoundingStory from "../assets/Images/FoundingStory.png"
-import BannerImage1 from "../assets/Images/aboutus1.webp"
-import BannerImage2 from "../assets/Images/aboutus2.webp"
-import BannerImage3 from "../assets/Images/aboutus3.webp"
-
-import Footer from "../components/common/Footer"
-import ContactFormSection from "../components/core/AboutPage/ContactFormSection"
-import LearningGrid from "../components/core/AboutPage/LearningGrid"
-import Quote from "../components/core/AboutPage/Quote"
-import StatsComponenet from "../components/core/AboutPage/Stats"
-import HighlightText from "../components/core/HomePage/HighlightText"
-import Img from "../components/common/Img"
-import ReviewSlider from './../components/common/ReviewSlider';
-
-import { motion } from 'framer-motion';
-import { fadeIn } from "../components/common/motionFrameVarients"
-
-
-
-
+/* eslint-disable react/no-unescaped-entities */
+import FoundingStory from "../assets/Images/FoundingStory.png";
+import BannerImage1 from "../assets/Images/aboutus1.webp";
+import BannerImage2 from "../assets/Images/aboutus2.webp";
+import BannerImage3 from "../assets/Images/aboutus3.webp";
+import Footer from "../components/common/Footer";
+import ContactFormSection from "../components/core/AboutPage/ContactFormSection";
+import LearningGrid from "../components/core/AboutPage/LearningGrid";
+import Quote from "../components/core/AboutPage/Quote";
+import StatsComponenet from "../components/core/AboutPage/Stats";
+import HighlightText from "../components/core/HomePage/HighlightText";
+import Img from "../components/common/Img";
+import ReviewSlider from "./../components/common/ReviewSlider";
+import { motion } from "framer-motion";
+import { fadeIn } from "../components/common/motionFrameVarients";
 
 const About = () => {
   return (
     <div>
       <section className="bg-richblack-700">
         <div className="relative mx-auto flex w-11/12 max-w-maxContent flex-col justify-between gap-10 text-center text-white">
-          <motion.header
-            className="mx-auto py-20 text-4xl font-semibold lg:w-[70%]"
-          >
+          <motion.header className="mx-auto py-20 text-4xl font-semibold lg:w-[70%]">
             <motion.p
-              variants={fadeIn('down', 0.1)}
-              initial='hidden'
-              whileInView={'show'}
+              variants={fadeIn("down", 0.1)}
+              initial="hidden"
+              whileInView={"show"}
               viewport={{ once: false, amount: 0.1 }}
-            > Driving Innovation in Online Education for a
+            >
+              {" "}
+              Driving Innovation in Online Education for a
               <HighlightText text={"Brighter Future"} />
             </motion.p>
 
             <motion.p
-              variants={fadeIn('up', 0.1)}
-              initial='hidden'
-              whileInView={'show'}
+              variants={fadeIn("up", 0.1)}
+              initial="hidden"
+              whileInView={"show"}
               viewport={{ once: false, amount: 0.1 }}
-              className="mx-auto mt-3 text-center text-base font-medium text-richblack-300 lg:w-[95%]">
+              className="mx-auto mt-3 text-center text-base font-medium text-richblack-300 lg:w-[95%]"
+            >
               Studynotion is at the forefront of driving innovation in online
               education. We're passionate about creating a brighter future by
               offering cutting-edge courses, leveraging emerging technologies,
@@ -72,11 +66,12 @@ const About = () => {
         <div className="mx-auto flex w-11/12 max-w-maxContent flex-col justify-between gap-10 text-richblack-500">
           <div className="flex flex-col items-center gap-10 lg:flex-row justify-between">
             <motion.div
-              variants={fadeIn('right', 0.1)}
-              initial='hidden'
-              whileInView={'show'}
+              variants={fadeIn("right", 0.1)}
+              initial="hidden"
+              whileInView={"show"}
               viewport={{ once: false, amount: 0.1 }}
-              className="my-24 flex lg:w-[50%] flex-col gap-10">
+              className="my-24 flex lg:w-[50%] flex-col gap-10"
+            >
               <h1 className="bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCB045] bg-clip-text text-4xl font-semibold text-transparent lg:w-[70%] ">
                 Our Founding Story
               </h1>
@@ -99,10 +94,10 @@ const About = () => {
             </motion.div>
 
             <motion.div
-             variants={fadeIn('left', 0.1)}
-             initial='hidden'
-             whileInView={'show'}
-             viewport={{ once: false, amount: 0.1 }}
+              variants={fadeIn("left", 0.1)}
+              initial="hidden"
+              whileInView={"show"}
+              viewport={{ once: false, amount: 0.1 }}
             >
               <Img
                 src={FoundingStory}
@@ -132,7 +127,12 @@ const About = () => {
                 Our Mission
               </h1>
               <p className="text-base font-medium text-richblack-300 lg:w-[95%]">
-                Our mission goes beyond just delivering courses online. We wanted to create a vibrant community of learners, where individuals can connect, collaborate, and learn from one another. We believe that knowledge thrives in an environment of sharing and dialogue, and we foster this spirit of collaboration through forums, live sessions, and networking opportunities.
+                Our mission goes beyond just delivering courses online. We
+                wanted to create a vibrant community of learners, where
+                individuals can connect, collaborate, and learn from one
+                another. We believe that knowledge thrives in an environment of
+                sharing and dialogue, and we foster this spirit of collaboration
+                through forums, live sessions, and networking opportunities.
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ const About = () => {
       {/* footer */}
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default About
+export default About;

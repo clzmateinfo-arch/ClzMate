@@ -1,27 +1,19 @@
-import React, { useEffect, useState } from "react"
-// Icons
-// import { FaRegStar, FaStar } from "react-icons/fa"
-// import ReactStars from "react-rating-stars-component"
-import { Link } from "react-router-dom"
-
-import GetAvgRating from "../../../utils/avgRating"
-import RatingStars from "../../common/RatingStars"
-import Img from './../../common/Img';
-
-
+/* eslint-disable react/prop-types */
+import { useEffect, useState } from "react";
+import GetAvgRating from "../../../utils/avgRating";
+import Img from "./../../common/Img";
+import { Link } from "react-router-dom";
+import RatingStars from "../../common/RatingStars";
 
 function Course_Card({ course, Height }) {
-  // const avgReviewCount = GetAvgRating(course.ratingAndReviews)
-  // console.log(course.ratingAndReviews)
-  const [avgReviewCount, setAvgReviewCount] = useState(0)
+  const [avgReviewCount, setAvgReviewCount] = useState(0);
   useEffect(() => {
-    const count = GetAvgRating(course.ratingAndReviews)
-    setAvgReviewCount(count)
-  }, [course])
-  // console.log("count............", avgReviewCount)
+    const count = GetAvgRating(course.ratingAndReviews);
+    setAvgReviewCount(count);
+  }, [course]);
 
   return (
-    <div className='hover:scale-[1.03] transition-all duration-200 z-50 '>
+    <div className="hover:scale-[1.03] transition-all duration-200 z-50 ">
       <Link to={`/courses/${course._id}`}>
         <div className="">
           <div className="rounded-lg">
@@ -38,15 +30,6 @@ function Course_Card({ course, Height }) {
             </p>
             <div className="flex items-center gap-2">
               <span className="text-yellow-5">{avgReviewCount || 0}</span>
-              {/* <ReactStars
-                count={5}
-                value={avgReviewCount || 0}
-                size={20}
-                edit={false}
-                activeColor="#ffd700"
-                emptyIcon={<FaRegStar />}
-                fullIcon={<FaStar />}
-              /> */}
               <RatingStars Review_Count={avgReviewCount} />
               <span className="text-richblack-400">
                 {course?.ratingAndReviews?.length} Ratings
@@ -57,7 +40,7 @@ function Course_Card({ course, Height }) {
         </div>
       </Link>
     </div>
-  )
+  );
 }
 
-export default Course_Card
+export default Course_Card;

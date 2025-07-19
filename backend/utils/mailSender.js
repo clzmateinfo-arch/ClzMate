@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 const mailSender = async (email, title, body) => {
     try {
@@ -6,23 +6,21 @@ const mailSender = async (email, title, body) => {
             host: process.env.MAIL_HOST,
             auth: {
                 user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASS
-            }
+                pass: process.env.MAIL_PASS,
+            },
         });
 
         const info = await transporter.sendMail({
-            from: 'ClzMate || by ClzMate Dev Team',
+            from: "ClzMate || by ClzMate Dev Team",
             to: email,
             subject: title,
-            html: body
+            html: body,
         });
 
-        // console.log('Info of sent mail - ', info);
         return info;
+    } catch (error) {
+        console.log("Error while sending mail (mailSender) - ", email);
     }
-    catch (error) {
-        console.log('Error while sending mail (mailSender) - ', email);
-    }
-}
+};
 
 module.exports = mailSender;

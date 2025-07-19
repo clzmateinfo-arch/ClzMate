@@ -1,12 +1,9 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { FiUploadCloud } from "react-icons/fi"
-import { useSelector } from "react-redux"
-
 import "video-react/dist/video-react.css"
 import { Player } from "video-react"
-
-
 
 export default function Upload({ name, label, register, setValue, errors, video = false, viewData = null, editData = null, }) {
   // const { course } = useSelector((state) => state.course)
@@ -30,7 +27,6 @@ export default function Upload({ name, label, register, setValue, errors, video 
   })
 
   const previewFile = (file) => {
-    // console.log(file)
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onloadend = () => {

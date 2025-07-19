@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import Course_Card from "../components/core/Catalog/Course_Card";
 import Course_Slider from "../components/core/Catalog/Course_Slider";
 import Footer from "../components/common/Footer";
@@ -15,7 +14,6 @@ function Catalog() {
   const [categoryId, setCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch All Categories
   useEffect(() => {
     (async () => {
       try {

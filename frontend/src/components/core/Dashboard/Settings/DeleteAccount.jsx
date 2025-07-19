@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { FiTrash2 } from "react-icons/fi"
-import { useDispatch, useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
-
-import ConfirmationModal from './../../../common/ConfirmationModal';
-import { deleteProfile } from "../../../../services/operations/SettingsAPI"
+import { FiTrash2 } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import ConfirmationModal from "./../../../common/ConfirmationModal";
+import { deleteProfile } from "../../../../services/operations/SettingsAPI";
 
 export default function DeleteAccount() {
-
   const [confirmationModal, setConfirmationModal] = useState(null);
   const [check, setCheck] = useState(false);
 
-  const { token } = useSelector((state) => state.auth)
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-
-
+  const { token } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -25,7 +21,10 @@ export default function DeleteAccount() {
         </div>
 
         <div className="flex flex-col ">
-          <h2 className="text-lg font-semibold text-richblack-5 "> Delete Account</h2>
+          <h2 className="text-lg font-semibold text-richblack-5 ">
+            {" "}
+            Delete Account
+          </h2>
 
           <div className="sm:w-3/5 text-pink-25 flex flex-col gap-3 mt-1">
             <p>Would you like to delete account ?</p>
@@ -35,37 +34,39 @@ export default function DeleteAccount() {
             </p>
           </div>
 
-
           <div className="flex items-center gap-3 mt-4">
             <input
               type="checkbox"
               className="form-checkbox h-4 w-4 text-indigo-600 rounded-full form-style cursor-pointer"
               checked={check}
-              onChange={() => setCheck(prev => !prev)}
+              onChange={() => setCheck((prev) => !prev)}
             />
 
             <button
               type="button"
               className="w-fit italic text-pink-300  "
-              onClick={() => check &&
+              onClick={() =>
+                check &&
                 setConfirmationModal({
                   text1: "Are you sure ?",
                   text2: "Delete my account...!",
                   btn1Text: "Delete",
                   btn2Text: "Cancel",
                   btn1Handler: () => dispatch(deleteProfile(token, navigate)),
-                  btn2Handler: () => { setConfirmationModal(null); setCheck(false) },
+                  btn2Handler: () => {
+                    setConfirmationModal(null);
+                    setCheck(false);
+                  },
                 })
               }
             >
               I want to delete my account.
             </button>
           </div>
-
         </div>
       </div>
 
       {confirmationModal && <ConfirmationModal modalData={confirmationModal} />}
     </>
-  )
+  );
 }

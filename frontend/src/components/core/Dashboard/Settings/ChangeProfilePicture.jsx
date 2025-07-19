@@ -1,66 +1,60 @@
-import { useEffect, useRef, useState } from "react"
-import { FiUpload } from "react-icons/fi"
-import { useDispatch, useSelector } from "react-redux"
-
-import { updateUserProfileImage } from "../../../../services/operations/SettingsAPI"
-import IconBtn from "../../../common/IconBtn"
-import Img from './../../../common/Img';
-
-
+import { useEffect, useRef, useState } from "react";
+import { FiUpload } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUserProfileImage } from "../../../../services/operations/SettingsAPI";
+import IconBtn from "../../../common/IconBtn";
+import Img from "./../../../common/Img";
 
 export default function ChangeProfilePicture() {
-  const { token } = useSelector((state) => state.auth)
-  const { user } = useSelector((state) => state.profile)
-  const dispatch = useDispatch()
+  const { token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.profile);
+  const dispatch = useDispatch();
 
-  const [loading, setLoading] = useState(false)
-  const [profileImage, setProfileImage] = useState(null)
-  const [previewSource, setPreviewSource] = useState(null)
+  const [loading, setLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [previewSource, setPreviewSource] = useState(null);
 
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef(null);
 
   const handleClick = () => {
-    fileInputRef.current.click()
-  }
+    fileInputRef.current.click();
+  };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    // console.log(file)
+    const file = e.target.files[0];
     if (file) {
-      setProfileImage(file)
-      previewFile(file)
+      setProfileImage(file);
+      previewFile(file);
     }
-  }
+  };
 
   const previewFile = (file) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
     reader.onloadend = () => {
-      setPreviewSource(reader.result)
-    }
-  }
+      setPreviewSource(reader.result);
+    };
+  };
 
   const handleFileUpload = () => {
     try {
-      // console.log("uploading...")
-      setLoading(true)
-      const formData = new FormData()
-      formData.append("profileImage", profileImage)
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("profileImage", profileImage);
 
       dispatch(updateUserProfileImage(token, formData)).then(() => {
-        setLoading(false)
-      })
+        setLoading(false);
+      });
     } catch (error) {
-      console.log("ERROR MESSAGE - ", error.message)
+      console.log("ERROR MESSAGE - ", error.message);
     }
-  }
+  };
 
   useEffect(() => {
     if (profileImage) {
-      previewFile(profileImage)
+      previewFile(profileImage);
     }
-  }, [profileImage])
-
+  }, [profileImage]);
 
   return (
     <>
@@ -95,15 +89,12 @@ export default function ChangeProfilePicture() {
                 text={loading ? "Uploading..." : "Upload"}
                 onclick={handleFileUpload}
               >
-                {!loading && (
-                  <FiUpload className="text-lg" />
-                )}
+                {!loading && <FiUpload className="text-lg" />}
               </IconBtn>
-              
             </div>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }

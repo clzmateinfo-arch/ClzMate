@@ -1,18 +1,14 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { Navigate } from 'react-router-dom';
+/* eslint-disable react/prop-types */
+import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const ProtectedRoute = ({ children }) => {
+  const { token } = useSelector((state) => state.auth);
+  if (token !== null) {
+    return children;
+  }
 
-    const { token } = useSelector(state => state.auth);
+  return <Navigate to="/" />;
+};
 
-    // user logged in
-    if (token !== null) {
-        return children;
-    }
-
-    return <Navigate to='/' />
-
-}
-
-export default ProtectedRoute
+export default ProtectedRoute;
