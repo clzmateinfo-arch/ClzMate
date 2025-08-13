@@ -15,6 +15,7 @@ export function getUserDetails(token, navigate) {
     const toastId = toast.loading("Loading...");
     dispatch(setLoading(true));
     try {
+      console.log("GET_USER_DETAILS_API ............", GET_USER_DETAILS_API);
       const response = await apiConnector("GET", GET_USER_DETAILS_API, null, {
         Authorization: `Bearer ${token}`,
       });
