@@ -19,7 +19,7 @@ const courseRoutes = require('./routes/course');
 
 
 // middleware 
-app.use(express.json()); // to parse json body
+app.use(express.json());
 app.use(cookieParser());
 app.use(
     cors({

@@ -59,7 +59,7 @@ const CodeBlocks = ({
 
         {/* Codes */}
         <div
-          className={`w-[90%] flex flex-col gap-2 font-bold font-mono ${codeColor} pr-1`}
+          className={`w-[90%] flex flex-col gap-2 font-mono ${codeColor} pr-1`}
         >
           <div className={`${backgroundGradient}`}></div>
           <TypeAnimation
