@@ -12,6 +12,11 @@ FOLDER_NAME=data
 JWT_SECRET=puncha
 API_URL=http://localhost:5000/api/v1
 
+
+#render
+bash ./scripts/deploy.sh
+npm run start:render
+
 #Frontend
 
 VITE_APP_BASE_URL=http://localhost:5000/api/v1
