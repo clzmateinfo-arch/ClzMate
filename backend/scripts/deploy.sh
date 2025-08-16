@@ -10,4 +10,5 @@ rm -rf node_modules package-lock.json
 
 echo "📦 Installing dependencies..."
 npm cache clean --force
+npm ci --include=dev
 npm install --legacy-peer-deps
