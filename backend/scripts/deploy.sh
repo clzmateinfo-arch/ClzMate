@@ -3,10 +3,10 @@ set -e
 
 echo "🚀 Starting deployment script..."
 
-cd "$(dirname "$0")"
+# cd "$(dirname "$0")"
 
-echo "🧹 Cleaning up..."
-rm -rf node_modules package-lock.json
+# echo "🧹 Cleaning up..."
+# rm -rf node_modules package-lock.json
 
-echo "📦 Installing dependencies..."
-npm install
+# echo "📦 Installing dependencies..."
+# npm install
