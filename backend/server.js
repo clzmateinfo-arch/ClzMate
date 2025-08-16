@@ -5,7 +5,7 @@ const app = express();
 const fileUpload = require('express-fileupload');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-require('dotenv-flow').config();
+require('dotenv-flow').config({ silent: true });
 
 // connection to DB and cloudinary
 const { connectDB } = require('./src/config/database');
