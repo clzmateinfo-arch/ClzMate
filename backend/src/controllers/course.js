@@ -272,53 +272,104 @@ exports.getFullCourseDetails = async (req, res) => {
 
 exports.editCourse = async (req, res) => {
     try {
-        const { courseId } = req.body;
-        const updates = req.body;
-        const course = await Course.findById(courseId);
+        const rawBody = req.body;
+        const { courseId } = rawBody;
 
+        // Normalize updates: if body is a JSON string (common with some multipart clients), parse it.
+        let updates = rawBody;
+        if (typeof updates === "string") {
+            try {
+                updates = JSON.parse(updates);
+            } catch (e) {
+                // leave as-is (we'll treat non-object below)
+            }
+        }
+
+        // Ensure updates is a plain object; otherwise make it an empty object
+        if (!updates || typeof updates !== "object") {
+            updates = {};
+        }
+
+        const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ error: "Course not found" });
         }
 
-        if (req.files) {
-            const thumbnail = req.files.thumbnailImage;
+        // Handle thumbnail upload (support req.file, req.files, req.files.thumbnailImage)
+        let thumbnailFile = null;
+        if (req.file) {
+            thumbnailFile = req.file;
+        } else if (req.files) {
+            // multer with fields can give req.files as object of arrays
+            if (req.files.thumbnailImage) {
+                thumbnailFile = Array.isArray(req.files.thumbnailImage)
+                    ? req.files.thumbnailImage[0]
+                    : req.files.thumbnailImage;
+            } else if (Array.isArray(req.files) && req.files.length > 0) {
+                thumbnailFile = req.files[0];
+            }
+        }
+
+        if (thumbnailFile) {
             const thumbnailImage = await uploadImageToCloudinary(
-                thumbnail,
+                thumbnailFile,
                 process.env.FOLDER_NAME
             );
             course.thumbnail = thumbnailImage.secure_url;
         }
 
-        for (const key in updates) {
-            if (updates.hasOwnProperty(key)) {
-                if (key === "tag" || key === "instructions") {
-                    course[key] = JSON.parse(updates[key]);
-                } else {
-                    course[key] = updates[key];
+        // Prevent accidental overwrite of courseId and file field names from updates
+        delete updates.courseId;
+        delete updates.thumbnailImage;
+        delete updates.thumbnail; // if client sent it
+
+        // Iterate entries and set course fields safely
+        for (const [key, rawVal] of Object.entries(updates)) {
+            // safe hasOwnProperty check (defensive)
+            if (!Object.prototype.hasOwnProperty.call(updates, key)) continue;
+
+            let value = rawVal;
+
+            // If the incoming value is a JSON-looking string, try to parse it.
+            if (typeof value === "string") {
+                const trimmed = value.trim();
+                if (
+                    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                    (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                ) {
+                    try {
+                        value = JSON.parse(trimmed);
+                    } catch (e) {
+                        // keep as string if parse fails
+                    }
                 }
             }
+
+            // explicit parsing for fields you expect as arrays/objects
+            if ((key === "tag" || key === "instructions") && typeof value === "string") {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    // keep original string if parsing fails
+                }
+            }
+
+            course[key] = value;
         }
 
         course.updatedAt = Date.now();
-
         await course.save();
 
-        const updatedCourse = await Course.findOne({
-            _id: courseId,
-        })
+        const updatedCourse = await Course.findById(courseId)
             .populate({
                 path: "instructor",
-                populate: {
-                    path: "additionalDetails",
-                },
+                populate: { path: "additionalDetails" },
             })
             .populate("category")
             .populate("ratingAndReviews")
             .populate({
                 path: "courseContent",
-                populate: {
-                    path: "subSection",
-                },
+                populate: { path: "subSection" },
             })
             .exec();
 
@@ -336,6 +387,7 @@ exports.editCourse = async (req, res) => {
         });
     }
 };
+
 
 exports.getInstructorCourses = async (req, res) => {
     try {
