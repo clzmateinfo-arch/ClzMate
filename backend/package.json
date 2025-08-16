@@ -17,7 +17,10 @@
     "nodemon": "^3.1.10",
     "nstall": "^0.2.0",
     "otp-generator": "^4.0.1",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "cross-env": "^10.0.0",
+    "fs-extra": "^11.3.1",
+    "path": "^0.12.7"
   },
   "name": "backend",
   "version": "1.0.0",
@@ -37,9 +40,6 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "cross-env": "^10.0.0",
-    "fs-extra": "^11.3.1",
-    "path": "^0.12.7",
     "pkg": "^5.8.1"
   }
 }
