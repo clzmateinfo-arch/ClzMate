@@ -32,6 +32,7 @@
     "dev": "cross-env NODE_ENV=development server.js --watch",
     "prod": "nodemon server.js --watch",
     "build": "node scripts/build.js",
+    "build:render": "",
     "test:prod": "nodemon dist/prod/server.js --watch",
     "build-exe": "node scripts/pkg-build.js"
   },
