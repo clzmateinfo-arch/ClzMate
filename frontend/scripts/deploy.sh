@@ -19,11 +19,6 @@ else
   npm install --include=dev --legacy-peer-deps
 fi
 
-echo "🔎 Verify vite is installed in node_modules/.bin"
-ls -la node_modules/.bin | sed -n '1,200p' || true
-echo "npm list vite (top-level)"
-npm list vite --depth=0 || true
-
 echo "⚡ Running build..."
 npm run build:render
 
