@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+require("dotenv-flow").config();
 
 exports.auth = (req, res, next) => {
     try {

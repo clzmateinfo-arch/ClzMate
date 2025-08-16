@@ -5,18 +5,17 @@ const app = express();
 const fileUpload = require('express-fileupload');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv-flow').config();
 
 // connection to DB and cloudinary
-const { connectDB } = require('./config/database');
-const { cloudinaryConnect } = require('./config/cloudinary');
+const { connectDB } = require('./src/config/database');
+const { cloudinaryConnect } = require('./src/config/cloudinary');
 
 // routes
-const userRoutes = require('./routes/user');
-const profileRoutes = require('./routes/profile');
-const paymentRoutes = require('./routes/payments');
-const courseRoutes = require('./routes/course');
-
+const userRoutes = require('./src/routes/user');
+const profileRoutes = require('./src/routes/profile');
+const paymentRoutes = require('./src/routes/payments');
+const courseRoutes = require('./src/routes/course');
 
 // middleware 
 app.use(express.json());
@@ -39,7 +38,7 @@ app.use(
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server Started on PORT ${PORT}`);
+    console.log(`Server Started on PORT ${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
 // connections

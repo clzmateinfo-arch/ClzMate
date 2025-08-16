@@ -5,7 +5,7 @@ const mailSender = require("../utils/mailSender");
 const {
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail");
-require("dotenv").config();
+require("dotenv-flow").config();
 
 const User = require("../models/user");
 const Course = require("../models/course");

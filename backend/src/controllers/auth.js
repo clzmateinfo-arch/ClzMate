@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv-flow").config();
 const User = require("./../models/user");
 const Profile = require("./../models/profile");
 const optGenerator = require("otp-generator");

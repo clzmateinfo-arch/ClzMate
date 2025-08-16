@@ -1,5 +1,5 @@
 // const Rajorpay = require('razorpay');
-require('dotenv').config();
+require('dotenv-flow').config();
 
 exports.instance = null;
 
