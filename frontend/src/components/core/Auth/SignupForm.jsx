@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { showToast } from "./../../common/CustomToast";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -33,7 +34,7 @@ function SignupForm() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords Do Not Match");
+      showToast("Passwords do not match", "error");
       return;
     }
     const signupData = {
