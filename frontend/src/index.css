@@ -17,6 +17,7 @@ body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   font-family: var(--font-inter);
+  letter-spacing: -.005em;
 }
 
 * {
