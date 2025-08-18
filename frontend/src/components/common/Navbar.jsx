@@ -19,8 +19,8 @@ const Navbar = () => {
   const [subLinks, setSubLinks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [centerDropdownOpen, setCenterDropdownOpen] = useState(null); // title of open center item
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false); // desktop profile menu
+  const [centerDropdownOpen, setCenterDropdownOpen] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const dropdownTimeoutRef = useRef(null);
   const profileRef = useRef(null);
 
@@ -41,13 +41,11 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    // Close mobile drawer when route changes
     setMobileOpen(false);
     setCenterDropdownOpen(null);
     setProfileMenuOpen(false);
   }, [pathname]);
 
-  // close profile menu if clicked outside
   useEffect(() => {
     const onClick = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -83,7 +81,6 @@ const Navbar = () => {
     }, 120);
   };
 
-  // Simple avatar (use image if available, else initials)
   const renderAvatar = () => {
     if (user?.avatar) {
       return (
@@ -104,10 +101,9 @@ const Navbar = () => {
   };
 
   return (
-    <header className="relative z-[500] w-full bg-transparent">
+    <header className="fixed top-0 left-0 right-0 z-[500] w-full bg-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-24">
-          {/* logo (left) — hidden while mobile drawer is open */}
           {!mobileOpen && (
             <nav aria-label="Logo menu" className="relative z-[60] flex">
               <Link
@@ -129,7 +125,7 @@ const Navbar = () => {
             </nav>
           )}
 
-          {/* MOBILE: menu toggle */}
+
           <button
             onClick={() => setMobileOpen((s) => !s)}
             aria-expanded={mobileOpen}
@@ -153,9 +149,7 @@ const Navbar = () => {
             </svg>
           </button>
 
-          {/* MAIN NAV (desktop) */}
           <div className="pointer-events-auto hidden lg:flex xl:w-full items-center justify-end relative">
-            {/* center links unchanged */}
             <div className="hidden xl:flex items-center absolute left-1/2 -translate-x-1/2 rounded-full bg-white/75 bg-gradient-to-r from-pink-200/40 via-violet-200/40 to-indigo-200/40 border border-white/50 px-3 text-sm font-medium text-gray-800 shadow-lg shadow-gray-800/5 ring-1 ring-gray-800/[.075] backdrop-blur-xl">
               {NavbarLinks.map((link, idx) => {
                 const isCatalog = link.title === "Catalog";
@@ -163,7 +157,7 @@ const Navbar = () => {
                 return (
                   <div
                     key={idx}
-                    className={`flex-none group relative px-3 py-1.5 cursor-pointer ${isCatalog ? "bubble-wrap" : ""}`}
+                    className={`flex-none group relative px-3 cursor-default text-center`}
                     onMouseEnter={() => {
                       if (isCatalog) openCenterDropdown(link.title);
                     }}
@@ -176,7 +170,7 @@ const Navbar = () => {
                         type="button"
                         aria-expanded={centerDropdownOpen === link.title}
                         onClick={() => setCenterDropdownOpen((s) => (s === link.title ? null : link.title))}
-                        className={`relative flex items-center whitespace-nowrap transition-colors duration-200 ${active ? "text-violet-600" : "text-gray-800 hover:text-violet-600"}`}
+                        className={`relative block transition duration-300 px-3 py-2.5 ${active ? "text-violet-600" : "text-gray-800 hover:text-violet-600"}`}
                       >
                         <span className="leading-none">{link.title}</span>
                       </button>
@@ -221,66 +215,83 @@ const Navbar = () => {
               })}
             </div>
 
-            {/* RIGHT: sign in / get started OR profile button when logged in */}
-            <div className="ml-3 flex-none flex items-center rounded-full bg-white/75 bg-gradient-to-r from-pink-200/40 via-violet-200/40 to-indigo-200/40 border border-white/50 px-3 text-sm font-medium text-gray-800 shadow-lg shadow-gray-800/5 ring-1 ring-gray-800/[.075] backdrop-blur-xl">
+
+            {/* --- logged-in / profile container (replace this block) --- */}
+            <div className="ml-1 flex-none flex items-center rounded-full bg-white/75 bg-gradient-to-r from-pink-200/40 via-violet-200/40 to-indigo-200/40 border border-white/50 text-sm font-medium text-gray-800 shadow-lg shadow-gray-800/5 ring-1 ring-gray-800/[.075] backdrop-blur-xl px-0">
               {!token || token == null ? (
                 <>
-                  <Link to="/login" className="mt-2 mb-2 flex-none group relative inline-flex items-center bg-clip-padding rounded-l-[20px] rounded-r-[8px] border h-8 pl-3 pr-3 bg-white/40 border-white/90 shadow hover:text-violet-600 hover:bg-violet-50/40 transition-colors duration-300">
+                  <Link to="/login" className="ml-1 mt-1 mb-1 flex-none group relative inline-flex items-center bg-clip-padding rounded-l-[20px] rounded-r-[8px] border h-8 pl-3 pr-3 bg-white/40 border-white/90 shadow hover:text-violet-600 hover:bg-violet-50/40 transition-colors duration-300">
                     <span className="text-sm leading-none">Sign In</span>
                     <span className="absolute left-4 right-1 -bottom-0.5 h-px bg-gradient-to-r from-violet-500/0 via-violet-400 to-violet-500/0 transition duration-300 opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100" />
                   </Link>
-                  <Link to="/signup" className="mt-2 mb-2 flex-none group relative inline-flex items-center ml-3 h-8 pr-3 pl-3 rounded-r-[20px] rounded-l-[8px] bg-violet-600 hover:bg-violet-700 text-white text-sm transition-colors">
+                  <Link to="/signup" className="mr-1 mt-1 mb-1 btn-purple flex-none group relative inline-flex items-center ml-1 h-8 pr-3 pl-3 rounded-r-[20px] rounded-l-[8px] bg-violet-600 hover:bg-violet-700 text-white text-sm transition-colors">
                     Get Started
                   </Link>
                 </>
               ) : (
-                // Profile button + dropdown (desktop)
                 <div ref={profileRef} className="relative">
                   <button
                     onClick={() => setProfileMenuOpen((s) => !s)}
                     aria-expanded={profileMenuOpen}
                     aria-haspopup="true"
-                    className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-violet-50 transition"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-violet-50 transition-colors duration-200 focus:outline-none"
                   >
                     {renderAvatar()}
                     <span className="hidden xl:inline text-sm font-medium text-gray-800">{user?.firstName || "Account"}</span>
                   </button>
 
-                  {/* simple profile dropdown */}
                   <div
-                    className={`absolute right-0 mt-2 w-44 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-50 transition-transform transform ${profileMenuOpen ? "opacity-100 scale-100 translate-y-0 visible" : "opacity-0 scale-95 -translate-y-2 invisible pointer-events-none"}`}
+                    className={`absolute right-0 mt-2 z-50 w-48 rounded-2xl bg-white p-2 text-navy shadow-lg transition-all duration-200 transform origin-top ${profileMenuOpen
+                        ? "opacity-100 scale-100 translate-y-0 visible pointer-events-auto"
+                        : "opacity-0 scale-95 -translate-y-2 invisible pointer-events-none"
+                      }`}
                   >
-                    <div className="py-2">
-                      <Link to="/dashboard" className="block px-3 py-2 text-sm hover:bg-violet-50">Dashboard</Link>
-                      <Link to="/dashboard/my-profile" className="block px-3 py-2 text-sm hover:bg-violet-50">Profile</Link>
-                      <Link to="/dashboard/settings" className="block px-3 py-2 text-sm hover:bg-violet-50">Settings</Link>
+                    <div className="rounded-tl w-3 h-3 absolute top-0 right-4 -mt-1.5 rotate-45 bg-white" />
+
+                    <div className="py-1">
+                      <Link to="/dashboard" className="relative block whitespace-nowrap px-3 py-2.5 text-sm rounded-lg hover:bg-violet-50/40 hover:text-violet-600 transition-colors">
+                        Dashboard
+                      </Link>
+                      <Link to="/dashboard/my-profile" className="relative block whitespace-nowrap px-3 py-2.5 text-sm rounded-lg hover:bg-violet-50/40 hover:text-violet-600 transition-colors">
+                        Profile
+                      </Link>
+                      <Link to="/dashboard/settings" className="relative block whitespace-nowrap px-3 py-2.5 text-sm rounded-lg hover:bg-violet-50/40 hover:text-violet-600 transition-colors">
+                        Settings
+                      </Link>
                     </div>
-                    <div className="py-2">
-                      <Link to="/login" className="block px-3 py-2 text-sm text-red-600 hover:bg-violet-50" onClick={() => { dispatch(logout(navigate)) }}>Sign Out</Link>
+
+                    <div className="py-1">
+                      <Link
+                        to="/login"
+                        className="relative block whitespace-nowrap px-3 py-2.5 text-sm rounded-lg text-red-600 hover:bg-violet-50/40 transition-colors"
+                        onClick={() => {
+                          dispatch(logout(navigate));
+                        }}
+                      >
+                        Sign Out
+                      </Link>
                     </div>
                   </div>
                 </div>
               )}
             </div>
+            {/* --- end replace --- */}
+
           </div>
         </div>
       </div>
 
-      {/* Mobile backdrop */}
       <div
         className={`xl:hidden fixed inset-0 z-40 transition-opacity duration-300 ${mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} bg-gray-500/25 backdrop-blur-sm`}
         onClick={() => setMobileOpen(false)}
         aria-hidden={!mobileOpen}
       />
 
-      {/* Mobile drawer (slide-in) */}
       <nav
         aria-label="Main menu"
         className={`xl:hidden transition-transform duration-300 ease-in-out text-sm fixed left-0 top-0 bottom-0 z-50 bg-white shadow-[1px_0_rgba(86,75,128,0.1)] overflow-hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"} w-[320px] sm:w-80`}
       >
-        {/* Top header inside drawer with spacer (logo removed as requested) + close */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          {/* spacer keeps alignment identical to previous layout (logo removed from dialog) */}
           <div className="w-[36px]" aria-hidden="true" />
 
           <button
@@ -288,7 +299,6 @@ const Navbar = () => {
             aria-label="Close menu"
             className="w-9 h-9 rounded-full flex items-center justify-center bg-white border border-gray-100 shadow-sm text-violet-600 hover:bg-violet-50 transition"
           >
-            {/* X icon */}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -296,7 +306,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Menu items scroller */}
         <div className="px-6 pt-6 pb-32 overflow-y-auto max-h-full scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-200">
           {NavbarLinks.map((link, i) => {
             const isCatalog = link.title === "Catalog";
@@ -354,7 +363,6 @@ const Navbar = () => {
           })}
         </div>
 
-        {/* Fixed bottom footer for mobile - only visible when mobile drawer is open */}
         <div className={mobileOpen ? "fixed bottom-0 left-0 right-0 z-50 px-6 py-4 bg-white border-t border-gray-100" : "hidden"}>
           <div className="flex flex-col gap-3 items-center">
             {!token || token == null ? (

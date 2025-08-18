@@ -1,4 +1,5 @@
 @theme {
+  --site-font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-inter: Fricolage Grotesque, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-heading: Mackinac, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-edu-sa: Edu SA Beginner, cursive;

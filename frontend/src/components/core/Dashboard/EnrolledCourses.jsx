@@ -54,7 +54,7 @@ export default function EnrolledCourses() {
 
   return (
     <>
-      <div className="text-4xl text-richblack-5 font-inter text-center sm:text-left">
+      <div className="text-4xl text-richblack-5 text-center sm:text-left">
         Enrolled Courses
       </div>
       {
