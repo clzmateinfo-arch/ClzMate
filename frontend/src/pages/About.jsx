@@ -1,18 +1,18 @@
 /* eslint-disable react/no-unescaped-entities */
-import FoundingStory from "../assets/Images/FoundingStory.png";
-import BannerImage1 from "../assets/Images/aboutus1.webp";
-import BannerImage2 from "../assets/Images/aboutus2.webp";
-import BannerImage3 from "../assets/Images/aboutus3.webp";
-import Footer from "../components/common/Footer";
-import ContactFormSection from "../components/core/AboutPage/ContactFormSection";
-import LearningGrid from "../components/core/AboutPage/LearningGrid";
-import Quote from "../components/core/AboutPage/Quote";
-import StatsComponenet from "../components/core/AboutPage/Stats";
-import HighlightText from "../components/core/HomePage/HighlightText";
-import Img from "../components/common/Img";
-import ReviewSlider from "./../components/common/ReviewSlider";
 import { motion } from "framer-motion";
-import { fadeIn } from "../components/common/motionFrameVarients";
+import FoundingStory from "@/shared/assets/images/FoundingStory.png";
+import BannerImage1 from "@/shared/assets/images/aboutus1.webp";
+import BannerImage2 from "@/shared/assets/images/aboutus2.webp";
+import BannerImage3 from "@/shared/assets/images/aboutus3.webp";
+import Footer from "@/widgets/Footer/Footer";
+import ContactFormSection from "@/features/about/ui/ContactFormSection";
+import LearningGrid from "@/features/about/ui/LearningGrid";
+import Quote from "@/features/about/ui/Quote";
+import StatsComponenet from "@/features/about/ui/Stats";
+import HighlightText from "@/shared/components/ui/HighlightText";
+import Img from "@/shared/components/ui/Img";
+import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
+import { fadeIn } from "@/shared/utils/motionFrameVarients";
 
 const About = () => {
   return (

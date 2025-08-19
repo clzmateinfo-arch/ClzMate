@@ -1,0 +1,11 @@
+I am working on a application where servers the purpose of learning academy and file management for a medium to large scale tutors and academies. 
+The application includes the functionalities of serving the purpose of managing the tutoring and learning materials. 
+The technologies that i am using is react for the presentation layer with microservices architecture where services build on to of NestJs and for the data management mongo db with cloudinary.
+
+The fatures that has been planned for now is as below.
+	1. User registration (student, instructor, guardian/parent)
+	2. Academy landing page and portfolio
+	3. Academy blog
+	4. Courses an Catalog
+	5. Monitoring
+	6. Calendar management

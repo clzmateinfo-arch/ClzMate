@@ -1,32 +1,32 @@
 import React, { useEffect, useState } from "react";
-import CTAButton from "../components/core/HomePage/Button";
-import CodeBlocks from "../components/core/HomePage/CodeBlocks";
-import Course_Slider from "../components/core/Catalog/Course_Slider";
-import ExploreMore from "../components/core/HomePage/ExploreMore";
-import { FaArrowRight } from "react-icons/fa";
-import Footer from "../components/common/Footer";
-import HighlightText from "../components/core/HomePage/HighlightText";
-import InstructorSection from "../components/core/HomePage/InstructorSection";
-import LearningLanguageSection from "../components/core/HomePage/LearningLanguageSection";
 import { Link } from "react-router-dom";
+import { FaArrowRight } from "react-icons/fa";
 import { MdOutlineRateReview } from "react-icons/md";
-import ReviewSlider from "../components/common/ReviewSlider";
-import TimelineSection from "../components/core/HomePage/TimelineSection";
-import backgroundImg1 from "../assets/Images/random bg img/coding bg1.jpg";
-import backgroundImg10 from "../assets/Images/random bg img/coding bg10.jpg";
-import backgroundImg111 from "../assets/Images/random bg img/coding bg11.jpg";
-import backgroundImg2 from "../assets/Images/random bg img/coding bg2.jpg";
-import backgroundImg3 from "../assets/Images/random bg img/coding bg3.jpg";
-import backgroundImg4 from "../assets/Images/random bg img/coding bg4.jpg";
-import backgroundImg5 from "../assets/Images/random bg img/coding bg5.jpg";
-import backgroundImg6 from "../assets/Images/random bg img/coding bg6.jpeg";
-import backgroundImg7 from "../assets/Images/random bg img/coding bg7.jpg";
-import backgroundImg8 from "../assets/Images/random bg img/coding bg8.jpeg";
-import backgroundImg9 from "../assets/Images/random bg img/coding bg9.jpg";
-import { fadeIn } from "./../components/common/motionFrameVarients";
-import { getCatalogPageData } from "../services/operations/pageAndComponentData";
 import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
+import CTAButton from "@/shared/components/ui/Button";
+import CodeBlocks from "@/shared/components/ui/CodeBlocks";
+import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
+import ExploreMore from "@/features/portfolio/ui/ExploreMore";
+import Footer from "@/widgets/Footer/Footer";
+import HighlightText from "@/shared/components/ui/HighlightText";
+import InstructorSection from "@/features/portfolio/ui/InstructorSection";
+import LearningLanguageSection from "@/features/portfolio/ui/LearningLanguageSection";
+import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
+import TimelineSection from "@/features/portfolio/ui/TimelineSection";
+import backgroundImg1 from "@/shared/assets/images/random bg img/coding bg1.jpg";
+import backgroundImg10 from "@/shared/assets/images/random bg img/coding bg10.jpg";
+import backgroundImg111 from "@/shared/assets/images/random bg img/coding bg11.jpg";
+import backgroundImg2 from "@/shared/assets/images/random bg img/coding bg2.jpg";
+import backgroundImg3 from "@/shared/assets/images/random bg img/coding bg3.jpg";
+import backgroundImg4 from "@/shared/assets/images/random bg img/coding bg4.jpg";
+import backgroundImg5 from "@/shared/assets/images/random bg img/coding bg5.jpg";
+import backgroundImg6 from "@/shared/assets/images/random bg img/coding bg6.jpeg";
+import backgroundImg7 from "@/shared/assets/images/random bg img/coding bg7.jpg";
+import backgroundImg8 from "@/shared/assets/images/random bg img/coding bg8.jpeg";
+import backgroundImg9 from "@/shared/assets/images/random bg img/coding bg9.jpg";
+import { fadeIn } from "@/shared/utils/motionFrameVarients";
+import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
 
 const randomImges = [
   backgroundImg1,
@@ -198,7 +198,7 @@ const Home = () => {
             <h2 className="text-white mb-6 text-2xl ">
               Popular Picks for You 🏆
             </h2>
-            <Course_Slider
+            <CourseSlider
               Courses={CatalogPageData?.selectedCategory?.courses}
             />
           </div>
@@ -206,7 +206,7 @@ const Home = () => {
             <h2 className="text-white mb-6 text-2xl ">
               Top Enrollments Today 🔥
             </h2>
-            <Course_Slider Courses={CatalogPageData?.mostSellingCourses} />
+            <CourseSlider Courses={CatalogPageData?.mostSellingCourses} />
           </div>
 
           <ExploreMore />

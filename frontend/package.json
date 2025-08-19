@@ -6,9 +6,10 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "clean": "rimraf dist && npm cache clean --f",
+    "build": "npm run clean && vite build",
     "build:render": "vite build",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "server": "cd server && npm run dev"
   },
@@ -51,6 +52,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "postcss": "^8.5.6",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.11",
     "vite": "^7.1.2"
   }

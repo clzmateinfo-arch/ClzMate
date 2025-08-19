@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/core/Dashboard/Sidebar";
-import Loading from "../components/common/Loading";
+import Sidebar from "@/shared/components/navigation/Sidebar";
+import Loading from "@/shared/components/navigation/Loading";
 
 const Dashboard = () => {
   const { loading: authLoading } = useSelector((state) => state.auth);

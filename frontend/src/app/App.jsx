@@ -1,8 +1,8 @@
 import React, { Suspense } from "react";
-import Navbar from "@/components/common/Navbar";
-import AppRoutes from "./router";
-import ScrollToTop from "@/components/common/ScrollToTop";
-import BackToTop from "@/components/common/BackToTop";
+import Navbar from "@/widgets/Navbar/Navbar";
+import AppRoutes from "@/app/routes/router";
+import ScrollToTop from "@/shared/components/navigation/ScrollToTop";
+import BackToTop from "@/shared/components/navigation/BackToTop";
 
 export default function App() {
     return (

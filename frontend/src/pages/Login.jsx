@@ -1,5 +1,5 @@
-import loginImg from "../assets/Images/login.png";
-import Template from "../components/core/Auth/Template";
+import loginImg from "@/shared/assets/images/logo/logo.png";
+import Template from "@/features/auth/ui/Template";
 
 function Login() {
   return (

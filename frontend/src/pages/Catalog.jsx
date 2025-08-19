@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import Course_Card from "../components/core/Catalog/Course_Card";
-import Course_Slider from "../components/core/Catalog/Course_Slider";
-import Footer from "../components/common/Footer";
-import Loading from "./../components/common/Loading";
-import { fetchCourseCategories } from "./../services/operations/courseDetailsAPI";
-import { getCatalogPageData } from "../services/operations/pageAndComponentData";
+import CourseCard from "@/shared/components/ui/CourseCard";
+import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
+import Footer from "@/widgets/Footer/Footer";
+import Loading from "@/shared/components/navigation/Loading";
+import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
+import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
 import { useParams } from "react-router-dom";
 
 function Catalog() {
@@ -104,7 +104,7 @@ function Catalog() {
           </p>
         </div>
         <div>
-          <Course_Slider Courses={catalogPageData?.selectedCategory?.courses} />
+          <CourseSlider Courses={catalogPageData?.selectedCategory?.courses} />
         </div>
       </div>
 
@@ -114,7 +114,7 @@ function Catalog() {
           Top courses in {catalogPageData?.differentCategory?.name}
         </div>
         <div>
-          <Course_Slider
+          <CourseSlider
             Courses={catalogPageData?.differentCategory?.courses}
           />
         </div>
@@ -128,7 +128,7 @@ function Catalog() {
             {catalogPageData?.mostSellingCourses
               ?.slice(0, 4)
               .map((course, i) => (
-                <Course_Card course={course} key={i} Height={"h-[300px]"} />
+                <CourseCard course={course} key={i} Height={"h-[300px]"} />
               ))}
           </div>
         </div>

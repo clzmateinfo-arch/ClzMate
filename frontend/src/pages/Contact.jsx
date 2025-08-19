@@ -1,7 +1,7 @@
-import Footer from "../components/common/Footer";
-import ContactDetails from "../components/core/ContactPage/ContactDetails";
-import ContactForm from "../components/core/ContactPage/ContactForm";
-import ReviewSlider from "./../components/common/ReviewSlider";
+import Footer from "@/widgets/Footer/Footer";
+import ContactDetails from "@/features/contact/ui/ContactDetails";
+import ContactForm from "@/features/contact/ui/ContactForm";
+import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
 
 const Contact = () => {
   return (

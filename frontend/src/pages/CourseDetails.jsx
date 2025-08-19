@@ -1,24 +1,24 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { BiInfoCircle } from "react-icons/bi";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import ConfirmationModal from "../components/common/ConfirmationModal";
-import Footer from "../components/common/Footer";
-import RatingStars from "../components/common/RatingStars";
-import CourseAccordionBar from "../components/core/Course/CourseAccordionBar";
-import CourseDetailsCard from "../components/core/Course/CourseDetailsCard";
-import { formatDate } from "../services/formatDate";
-import { fetchCourseDetails } from "../services/operations/courseDetailsAPI";
-import { buyCourse } from "../services/operations/studentFeaturesAPI";
-import GetAvgRating from "../utils/avgRating";
-import { ACCOUNT_TYPE } from "./../utils/constants";
-import { addToCart } from "../slices/cartSlice";
 import { GiReturnArrow } from "react-icons/gi";
 import { MdOutlineVerified } from "react-icons/md";
-import Img from "./../components/common/Img";
-import toast from "react-hot-toast";
+import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
+import Footer from "@/widgets/Footer/Footer";
+import RatingStars from "@/shared/components/feedback/RatingStars";
+import CourseAccordionBar from "@/features/courseCatalog/ui/CourseAccordionBar";
+import CourseDetailsCard from "@/features/courseCatalog/ui/CourseDetailsCard";
+import { formatDate } from "@/shared/utils/formatDate";
+import { fetchCourseDetails } from "@/entities/course/model/courseDetailsAPI";
+import { buyCourse } from "@/entities/student/model/studentFeaturesAPI";
+import GetAvgRating from "@/utils/avgRating";
+import { ACCOUNT_TYPE } from "@/utils/constants";
+import { addToCart } from "@/entities/cart/model/cartSlice";
+import Img from "@/shared/components/ui/Img";
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile);
