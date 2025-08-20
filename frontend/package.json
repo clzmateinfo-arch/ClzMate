@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite",
+    "dev": "npm run build && vite",
     "clean": "rimraf dist && npm cache clean --f",
     "build": "npm run clean && vite build",
     "build:render": "vite build",

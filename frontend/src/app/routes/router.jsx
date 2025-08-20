@@ -10,8 +10,8 @@ const Contact = lazy(() => import("@/pages/Contact"));
 const About = lazy(() => import("@/pages/About"));
 const Catalog = lazy(() => import("@/pages/Catalog"));
 const CourseDetails = lazy(() => import("@/pages/CourseDetails"));
-const Login = lazy(() => import("@/pages/Login"));
-const Signup = lazy(() => import("@/pages/Signup"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const SignUp = lazy(() => import("@/pages/SignUp"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("@/pages/UpdatePassword"));
 const VerifyEmail = lazy(() => import("@/pages/VerifyEmail"));
@@ -45,7 +45,7 @@ export default function AppRoutes() {
                 path="/signup"
                 element={
                     <OpenRoute>
-                        <Signup />
+                        <SignUp />
                     </OpenRoute>
                 }
             />
@@ -53,7 +53,7 @@ export default function AppRoutes() {
                 path="/login"
                 element={
                     <OpenRoute>
-                        <Login />
+                        <SignIn />
                     </OpenRoute>
                 }
             />

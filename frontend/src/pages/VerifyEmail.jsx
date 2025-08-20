@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { BiArrowBack } from "react-icons/bi";
 import { RxCountdownTimer } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
-import { sendOtp, signUp } from "@/entities/auth/model/authAPI";
+import { sendOtp, register } from "@/entities/auth/model/authAPI";
 import { useNavigate } from "react-router-dom";
 import Loading from "@/shared/components/navigation/Loading";
 
@@ -31,7 +31,7 @@ function VerifyEmail() {
       confirmPassword,
     } = signupData;
     dispatch(
-      signUp(
+      register(
         accountType,
         firstName,
         lastName,
@@ -90,7 +90,7 @@ function VerifyEmail() {
           <div className="mt-6 flex items-center justify-between">
             <Link to="/signup">
               <p className="text-richblack-5 flex items-center gap-x-2">
-                <BiArrowBack /> Back To Signup
+                <BiArrowBack /> Back To SignUp
               </p>
             </Link>
 
