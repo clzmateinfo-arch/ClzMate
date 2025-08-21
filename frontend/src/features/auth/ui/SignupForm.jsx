@@ -1,27 +1,42 @@
-// src/features/auth/ui/SignUpForm.jsx
 import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { register } from "@/entities/auth/model/authAPI"; // your existing signup action
+import { register } from "@/entities/auth/model/authAPI";
+import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
+import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
 
 export default function SignUpForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [preferredName, setPreferredName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("student");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({ role: "", password: "" });
+
+  const resetErrors = () => setErrors({ role: "", password: "" });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
+    resetErrors();
+
+    let hasError = false;
+    if (!role) {
+      setErrors((prev) => ({ ...prev, role: "Please select a role." }));
+      hasError = true;
     }
-    dispatch(register(email, password, navigate));
+    if (password !== confirmPassword) {
+      setErrors((prev) => ({ ...prev, password: "Passwords do not match." }));
+      hasError = true;
+    }
+    if (hasError) return;
+
+    dispatch(register({ email, password, preferredName, role }, navigate));
   };
 
   return (
@@ -30,23 +45,44 @@ export default function SignUpForm() {
         {/* Facebook signup */}
         <a
           href="/app/auth/facebook?state=phoenix"
-          className="flex items-center justify-center gap-2 border rounded-md py-3 px-4 sm:flex-1 hover:shadow-sm transition"
+          className="flex items-center justify-center gap-2 rounded-md py-3 px-4 sm:flex-1 hover:shadow-sm transition border border-[#E9EFF5]"
           aria-label="Sign up with Facebook"
+          style={{
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.90), inset 0 -1px 0 rgba(16,24,40,0.04)",
+          }}
         >
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
-            <path d="M22 12.07C22 6.48 17.52 2 11.93 2S2 6.48 2 12.07C2 17.09 5.66 21.13 10.44 21.95v-6.96H7.9v-2.99h2.54V9.77c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.25c-1.23 0-1.61.77-1.61 1.56v1.88h2.74l-.44 2.99h-2.3v6.96C18.34 21.13 22 17.09 22 12.07z" />
-          </svg>
+          <img
+            src={fbLogo}
+            alt="Facebook logo"
+            className="w-5 h-5 object-contain"
+            width="20"
+            height="20"
+            role="img"
+            loading="eager"
+          />
           <span>Sign up with Facebook</span>
         </a>
 
         {/* Google signup */}
         <a
           href="/app/auth/google?state=phoenix"
-          className="flex items-center justify-center gap-2 border rounded-md py-3 px-4 sm:flex-1 hover:shadow-sm transition"
+          className="flex items-center justify-center gap-2 rounded-md py-3 px-4 sm:flex-1 hover:shadow-sm transition border border-[#E9EFF5]"
+          aria-label="Sign up with Google"
+          style={{
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.90), inset 0 -1px 0 rgba(16,24,40,0.04)",
+          }}
         >
-          <svg viewBox="0 0 48 48" className="w-5 h-5" aria-hidden>
-            <path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" />
-          </svg>
+          <img
+            src={googleLogo}
+            alt="Google logo"
+            className="w-5 h-5 object-contain"
+            width="20"
+            height="20"
+            role="img"
+            loading="eager"
+          />
           <span>Sign up with Google</span>
         </a>
       </div>
@@ -62,7 +98,99 @@ export default function SignUpForm() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <form onSubmit={handleSubmit} className="space-y-6 mt-4" noValidate>
+
+        <fieldset className="mb-4">
+          <legend className="text-sm font-medium text-navy mb-2">I am a</legend>
+
+          <div role="radiogroup" aria-required="true" aria-label="Select role" className="flex gap-3">
+            <label
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "student" ? "border-violet-500 bg-violet-50" : "border-gray-200"
+                }`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={role === "student"}
+                onChange={(e) => setRole(e.target.value)}
+                className="sr-only"
+                aria-checked={role === "student"}
+              />
+              <span className="text-sm">Student</span>
+            </label>
+
+            <label
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "instructor" ? "border-violet-500 bg-violet-50" : "border-gray-200"
+                }`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="instructor"
+                checked={role === "instructor"}
+                onChange={(e) => setRole(e.target.value)}
+                className="sr-only"
+                aria-checked={role === "instructor"}
+              />
+              <span className="text-sm">Instructor</span>
+            </label>
+
+            <label
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "parent" ? "border-violet-500 bg-violet-50" : "border-gray-200"
+                }`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="parent"
+                checked={role === "parent"}
+                onChange={(e) => setRole(e.target.value)}
+                className="sr-only"
+                aria-checked={role === "parent"}
+              />
+              <span className="text-sm">Parent</span>
+            </label>
+
+            <label
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "guest" ? "border-violet-500 bg-violet-50" : "border-gray-200"
+                }`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value="guest"
+                checked={role === "guest"}
+                onChange={(e) => setRole(e.target.value)}
+                className="sr-only"
+                aria-checked={role === "guest"}
+              />
+              <span className="text-sm">Guest</span>
+            </label>
+          </div>
+
+          {errors.role && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {errors.role}
+            </p>
+          )}
+        </fieldset>
+        {/* Preferred Name */}
+        <label className="block text-sm font-medium text-navy">
+          Preferred Name
+          <input
+            autoCapitalize="off"
+            autoCorrect="off"
+            required
+            type="text"
+            value={preferredName}
+            onChange={(e) => setPreferredName(e.target.value)}
+            className="mt-2 mb-5 p-2.5 block w-full rounded-md border border-[#E9EFF5] bg-white text-gray-900 transition duration-150 focus:border-[#996bec] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(153,107,236,0.12)]"
+            placeholder="Sandeepa"
+            aria-label="Preferred name"
+          />
+        </label>
+
         {/* Email */}
         <label className="block text-sm font-medium text-navy">
           Email Address
@@ -73,8 +201,9 @@ export default function SignUpForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 mb-5 p-2.5 block w-full rounded-md border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            className="mt-2 mb-5 p-2.5 block w-full rounded-md border border-[#E9EFF5] bg-white text-gray-900 transition duration-150 focus:border-[#996bec] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(153,107,236,0.12)]"
             placeholder="you@example.com"
+            aria-label="Email address"
           />
         </label>
 
@@ -88,12 +217,13 @@ export default function SignUpForm() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="p-2.5 block w-full rounded-md border border-gray-300 placeholder-gray-400 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="mt-2 mb-5 p-2.5 block w-full rounded-md border border-[#E9EFF5] bg-white text-gray-900 transition duration-150 focus:border-[#996bec] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(153,107,236,0.12)]"
+                aria-label="Password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-4 top-5 -translate-y-1/2 text-2xl"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -112,39 +242,46 @@ export default function SignUpForm() {
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="p-2.5 block w-full rounded-md border border-gray-300 placeholder-gray-400 pr-10 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="mt-2 mb-5 p-2.5 block w-full rounded-md border border-[#E9EFF5] bg-white text-gray-900 transition duration-150 focus:border-[#996bec] focus:outline-none focus:[box-shadow:0_0_0_3px_rgba(153,107,236,0.12)]"
+                aria-label="Confirm password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((s) => !s)}
-                className="absolute right-4 top-5 -translate-y-1/2 text-2xl"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl"
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
                 {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
               </button>
             </div>
+
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {errors.password}
+              </p>
+            )}
           </label>
         </div>
 
         {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-[#ba7bf0] via-[#996bec] to-[#5046e4] text-white py-3 rounded-md font-medium"
+          className="btn-purple w-full bg-gradient-to-r from-[#ba7bf0] via-[#996bec] to-[#5046e4] text-white py-3 rounded-md font-medium bg-violet-600 hover:bg-violet-700 text-white text-sm transition-colors"
           style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
         >
           Create Account
         </button>
 
         {/* Terms + Redirect */}
-        <div className="text-center text-sm mt-5">
-          <span>By creating an account you agree to our </span>
+        <div className="text-center text-sm mt-2">
+          <span>Creating an account means you agree to our </span>
           <a
             className="text-navy underline underline-offset-2 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
             href="/legal/terms-of-service/"
             target="_blank"
             rel="noreferrer"
           >
-            terms of service
+            terms
           </a>
           <span> and </span>
           <a
@@ -153,13 +290,13 @@ export default function SignUpForm() {
             target="_blank"
             rel="noreferrer"
           >
-            privacy policy
+            privacy
           </a>
-          .
+          <span> policy </span>
         </div>
 
-        <a href="/app/signin" className="block text-center text-sm text-violet-600 mt-10">
-          Already have an account? Sign In
+        <a href="/login" className="block text-center text-sm text-violet-600 mt-2">
+          Already have an account?
         </a>
       </form>
     </>

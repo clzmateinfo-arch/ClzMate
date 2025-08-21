@@ -1,7 +1,7 @@
-import ChangeProfilePicture from "../features/settings/ui/ChangeProfilePicture";
-import DeleteAccount from "../features/settings/ui/DeleteAccount";
-import EditProfile from "../features/settings/ui/EditProfile";
-import UpdatePassword from "../features/settings/ui/UpdatePassword";
+import ChangeProfilePicture from "../../features/settings/ui/ChangeProfilePicture";
+import DeleteAccount from "../../features/settings/ui/DeleteAccount";
+import EditProfile from "../../features/settings/ui/EditProfile";
+import UpdatePassword from "../../features/settings/ui/UpdatePassword";
 
 export default function Settings() {
   return (

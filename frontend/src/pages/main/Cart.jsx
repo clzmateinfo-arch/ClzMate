@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
-import RenderCartCourses from "../features/cart/ui/RenderCartCourses";
-import RenderTotalAmount from "../features/cart/ui/RenderTotalAmount";
+import RenderCartCourses from "../../features/cart/ui/RenderCartCourses";
+import RenderTotalAmount from "../../features/cart/ui/RenderTotalAmount";
 
 export default function Cart() {
   const { total, totalItems } = useSelector((state) => state.cart);

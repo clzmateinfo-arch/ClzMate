@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchInstructorCourses } from "@/entities/course/model/courseDetailsAPI";
 import { getInstructorData } from "@/entities/user/model/userAPI";
-import InstructorChart from "../features/dashboard/ui/InstructorChart";
+import InstructorChart from "../../features/dashboard/ui/InstructorChart";
 import Img from "@/shared/components/ui/Img";
 
 export default function Instructor() {
