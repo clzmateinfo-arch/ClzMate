@@ -7,7 +7,7 @@ import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
 import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 
-export default function SignUpForm() {
+export default function SignupForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
