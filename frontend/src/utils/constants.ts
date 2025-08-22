@@ -1,7 +1,8 @@
 export const ACCOUNT_TYPE = {
   STUDENT: "Student",
+  PARENT: "Parent",
   INSTRUCTOR: "Instructor",
-  ADMIN: "Admin",
+  GUEST: "Guest",
 }
 
 export const COURSE_STATUS = {

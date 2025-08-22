@@ -73,7 +73,7 @@ exports.resetPassword = async (req, res) => {
 
         const userDetails = await User.findOne({ token: token });
 
-        if (token !== userDetails.token) {
+        if (userDetails?.token && token !== userDetails.token) {
             return res.status(401).json({
                 success: false,
                 message: "Password Reset token is not matched",

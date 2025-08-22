@@ -52,10 +52,6 @@ body {
   scrollbar-color: var(--color-richblack-100) var(--color-richblack-900);
 }
 
-/* Chrome, Edge, and Safari */
-*::-webkit-scrollbar {
-  width: 7px;
-}
 
 *::-webkit-scrollbar-track {
   background: var(--color-richblack-900);

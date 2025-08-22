@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { register } from "@/entities/auth/model/authAPI";
+import { register, sendOtp } from "@/entities/auth/model/authAPI";
 import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
 import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
+import { ACCOUNT_TYPE } from "@/utils/constants";
 
 export default function SignUpForm() {
   const dispatch = useDispatch();
@@ -14,30 +15,32 @@ export default function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("student");
+  const [accountType, setRole] = useState(ACCOUNT_TYPE.STUDENT);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState({ role: "", password: "" });
+  const [errors, setErrors] = useState({ accountType: "", password: "" });
 
-  const resetErrors = () => setErrors({ role: "", password: "" });
+  const resetErrors = () => setErrors({ accountType: "", password: "" });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     resetErrors();
 
     let hasError = false;
-    if (!role) {
-      setErrors((prev) => ({ ...prev, role: "Please select a role." }));
+    if (!accountType) {
+      setErrors((prev) => ({ ...prev, accountType: "Please select a accountType" }));
       hasError = true;
     }
     if (password !== confirmPassword) {
-      setErrors((prev) => ({ ...prev, password: "Passwords do not match." }));
+      setErrors((prev) => ({ ...prev, password: "Passwords do not match" }));
       hasError = true;
     }
     if (hasError) return;
 
-    dispatch(register({ email, password, preferredName, role }, navigate));
+    dispatch(register({ preferredName, firstName: '', lastName: '', email, password, confirmPassword, contactNumber: '', accountType, otp: 0 }, navigate));
   };
+
+  const roleOptions = Object.values(ACCOUNT_TYPE || {});
 
   return (
     <>
@@ -58,7 +61,7 @@ export default function SignUpForm() {
             className="w-5 h-5 object-contain"
             width="20"
             height="20"
-            role="img"
+            accountType="img"
             loading="eager"
           />
           <span>Sign up with Facebook</span>
@@ -80,7 +83,7 @@ export default function SignUpForm() {
             className="w-5 h-5 object-contain"
             width="20"
             height="20"
-            role="img"
+            accountType="img"
             loading="eager"
           />
           <span>Sign up with Google</span>
@@ -99,82 +102,45 @@ export default function SignUpForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6 mt-4" noValidate>
-
         <fieldset className="mb-4">
           <legend className="text-sm font-medium text-navy mb-2">I am a</legend>
 
-          <div role="radiogroup" aria-required="true" aria-label="Select role" className="flex gap-3">
-            <label
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "student" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                }`}
-            >
-              <input
-                type="radio"
-                name="role"
-                value="student"
-                checked={role === "student"}
-                onChange={(e) => setRole(e.target.value)}
-                className="sr-only"
-                aria-checked={role === "student"}
-              />
-              <span className="text-sm">Student</span>
-            </label>
-
-            <label
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "instructor" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                }`}
-            >
-              <input
-                type="radio"
-                name="role"
-                value="instructor"
-                checked={role === "instructor"}
-                onChange={(e) => setRole(e.target.value)}
-                className="sr-only"
-                aria-checked={role === "instructor"}
-              />
-              <span className="text-sm">Instructor</span>
-            </label>
-
-            <label
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "parent" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                }`}
-            >
-              <input
-                type="radio"
-                name="role"
-                value="parent"
-                checked={role === "parent"}
-                onChange={(e) => setRole(e.target.value)}
-                className="sr-only"
-                aria-checked={role === "parent"}
-              />
-              <span className="text-sm">Parent</span>
-            </label>
-
-            <label
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${role === "guest" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                }`}
-            >
-              <input
-                type="radio"
-                name="role"
-                value="guest"
-                checked={role === "guest"}
-                onChange={(e) => setRole(e.target.value)}
-                className="sr-only"
-                aria-checked={role === "guest"}
-              />
-              <span className="text-sm">Guest</span>
-            </label>
+          <div
+            accountType="radiogroup"
+            aria-required="true"
+            aria-label="Select accountType"
+            className="flex gap-3"
+          >
+            {roleOptions.map((opt) => {
+              const isActive = accountType === opt;
+              return (
+                <label
+                  key={opt}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-3xl cursor-pointer border hover:bg-violet-100 ${isActive ? "border-violet-500 bg-violet-50" : "border-gray-200"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value={opt}
+                    checked={isActive}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="sr-only"
+                    aria-checked={isActive}
+                  />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              );
+            })}
           </div>
 
-          {errors.role && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {errors.role}
+          {errors.accountType && (
+            <p className="mt-2 text-sm text-red-600" accountType="alert">
+              {errors.accountType}
             </p>
           )}
         </fieldset>
+
         {/* Preferred Name */}
         <label className="block text-sm font-medium text-navy">
           Preferred Name
@@ -256,7 +222,7 @@ export default function SignUpForm() {
             </div>
 
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
+              <p className="mt-1 text-sm text-red-600" accountType="alert">
                 {errors.password}
               </p>
             )}
@@ -272,7 +238,6 @@ export default function SignUpForm() {
           Create Account
         </button>
 
-        {/* Terms + Redirect */}
         <div className="text-center text-sm mt-2">
           <span>Creating an account means you agree to our </span>
           <a

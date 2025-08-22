@@ -149,7 +149,7 @@ const Footer = ({
                 Xelavon Dev Team
               </a>
             </div>
-            <span> © {new Date().getFullYear()} ClzMate</span>
+            <span> © {new Date().getFullYear()} Up™</span>
           </div>
 
           <div className="flex items-center">
