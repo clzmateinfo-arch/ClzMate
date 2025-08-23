@@ -2,14 +2,17 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
     {
-        firstName: {
+        preferredName: {
             type: String,
             required: true,
             trim: true,
         },
+        firstName: {
+            type: String,
+            trim: true,
+        },
         lastName: {
             type: String,
-            required: true,
             trim: true,
         },
         email: {
@@ -55,13 +58,17 @@ const userSchema = new mongoose.Schema(
         resetPasswordTokenExpires: {
             type: Date,
         },
+        verified: {
+            type: Boolean,
+            default: false,
+        },
         courseProgress: [
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "CourseProgress",
             },
         ],
-    }, // Add timestamps for when the document is created and last modified
+    },
     { timestamps: true }
 );
 
