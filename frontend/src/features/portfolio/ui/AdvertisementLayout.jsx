@@ -31,26 +31,22 @@ export function AdvertisementLayout() {
                     />
                     <div className="space-y-4">
                         <span className="inline-flex mb-1 rounded-full px-2.5 py-0.5 text-xs tracking-wide font-extrabold text-emerald-600 bg-gradient-to-br from-green-300/50 to-emerald-300/50 ring-1 ring-emerald-500/35">
-                            NEW!
+                            3 Steps
                         </span>
 
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0b1220]">
-                            Fly.io Managed Postgres
+                            How It Works
                         </h2>
 
                         <p className="text-lg text-[#374151] max-w-2xl">
-                            A fully-managed database service that handles all aspects of running
-                            production PostgreSQL. We take care of backups, high availability,
-                            monitoring, and scaling so you can focus on your app.
+                            A focused learning space that keeps students motivated and on schedule
                         </p>
 
                         <ul className="space-y-3 mt-4 text-base text-[#374151]">
                             {[
-                                "Automatic backups and recovery",
-                                "High availability with automatic failover",
-                                "Performance monitoring and metrics",
-                                "Resource scaling (CPU, RAM, storage)",
-                                "Automatic encryption of data at rest and in transit",
+                                "Set up your classroom, create course modules and upload resources",
+                                "Run live classes, assign homework and use engagement tools",
+                                "rack outcomes, get feedback and iterate.",
                             ].map((label, idx) => (
                                 <li key={idx} className="flex items-start gap-3">
                                     <svg
@@ -68,10 +64,10 @@ export function AdvertisementLayout() {
 
                         <div className="mt-6">
                             <LinkedButton
-                                to="/docs/mpg"
+                                to="/signup"
                                 className="btn-xl btn-purple group/btn btn-border-dark rounded-full"
                             >
-                                Learn More
+                                Start Now
                             </LinkedButton>
                         </div>
                     </div>

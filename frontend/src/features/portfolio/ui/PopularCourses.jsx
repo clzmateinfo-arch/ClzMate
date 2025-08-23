@@ -1,7 +1,6 @@
 import React from "react";
 import { LinkedButton } from "@/shared/components/ui/LinkButton";
-import adImg from "@/shared/assets/images/porfolio/advertisment.png";
-import CourseGrid from "../../courseCatalog/ui/CourseGrid";
+import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
 
 
 const cards = [

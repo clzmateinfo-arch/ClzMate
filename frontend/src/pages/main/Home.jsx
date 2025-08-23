@@ -3,21 +3,12 @@ import { Hero } from "@/features/portfolio/ui/Hero";
 import Features from "../../features/portfolio/ui/Features";
 import SpotlightCard from "../../features/portfolio/ui/SpotlightCard";
 import { Platforms } from "../../features/portfolio/ui/Platforms";
+import { LogosQueue } from "../../features/portfolio/ui/LogosQueue";
 import { AdvertisementLayout } from "../../features/portfolio/ui/AdvertisementLayout";
 import { PopularCourses } from "../../features/portfolio/ui/PopularCourses";
 import Footer from "../../widgets/Footer/Footer";
 
-const platforms = [
-  { name: "Phoenix", src: "/images/logo.png" },
-  { name: "SvelteKit", src: "/images/logo.png" },
-  { name: "Rails", src: "/images/logo.png" },
-  { name: "Docker", src: "/images/logo.png" },
-  { name: "Go", src: "/images/logo.png" },
-  { name: "Rust", src: "/images/logo.png" },
-  { name: "Django", src: "/images/logo.png" },
-  { name: "Laravel", src: "/images/logo.png" },
-  { name: "NextJS", src: "/images/logo.png" },
-];
+
 
 export default function Home() {
 
@@ -27,9 +18,8 @@ export default function Home() {
       <PopularCourses />
       <Features />
       <SpotlightCard />
-      <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
-        <Platforms platforms={platforms} />
-      </section>
+      <Platforms />
+      {/* <LogosQueue logos={["/logos/supabase.svg","/logos/tailscale.svg", "/logos/upstash.svg"]} speedSeconds={50} /> */}
       <AdvertisementLayout />
       <Footer />
     </main>

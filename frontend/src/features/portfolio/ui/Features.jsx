@@ -91,7 +91,7 @@ export default function Features() {
                         </h2>
 
                         <p className="text-lg text-[#374151]">
-                            Education is changing. <strong className="text-[#0b1220]"> Up</strong> simplifies modern learning with an elegant platform that empowers instructors and delights students
+                            Education is changing. <strong className="text-[#0b1220]"> 'Up'</strong> simplifies modern learning with an elegant platform that empowers instructors and delights students
                         </p>
 
                         <div

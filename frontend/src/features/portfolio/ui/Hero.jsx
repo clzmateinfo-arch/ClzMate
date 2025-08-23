@@ -53,7 +53,7 @@ export function Hero() {
                 <div className="relative container lg:max-w-4xl m-auto px-4 sm:px-6 lg:px-8 z-10 pt-[18px] sm:pt-[40px]">
                     <div className="relative flex flex-col items-start sm:items-center sm:text-center mt-10">
                         <h1 className="font-heading text-3xl xs:text-4.5xl sm:text-5xl md:text-5.5xl lg:text-6xl xl:text-6.5xl !tracking-[-.045em] relative text-navy mb-5 -mt-4 sm:-mt-5 lg:-mt-6 xl:mt-[-26px] leading-tight/[1.15]">
-                            A Smarter Classroom Built For <br className="hidden lg:block" /> Who
+                            A Smarter Classroom Built For <br className="hidden lg:block" /> Those
                             <em className="relative inline-block z-0">
                                 &nbsp;Wants To Fly
                                 <svg viewBox="0 0 1213 73" aria-hidden="true" preserveAspectRatio="none" height="12" className="absolute -bottom-1 sm:-bottom-0.5 lg:bottom-0 left-0 w-full h-3 text-purple-400 -z-1">
@@ -75,7 +75,7 @@ export function Hero() {
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             <LinkedButton to="/signup" className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
-                                Get started, it’s free
+                                Get started, It’s free
                             </LinkedButton>
                         </div>
                     </div>

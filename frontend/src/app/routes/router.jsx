@@ -6,7 +6,6 @@ import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
 import MainLayout from "@/app/layouts/MainLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
 import { ACCOUNT_TYPE } from "@/utils/constants";
-import Home2 from "../../pages/main/Home2";
 
 const SignIn = lazy(() => import("@/pages/auth/SignIn"));
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -51,14 +50,6 @@ export default function AppRoutes() {
                     }
                 />
                 <Route
-                    path="/home2"
-                    element={
-                        <OpenRoute>
-                            <Home2 />
-                        </OpenRoute>
-                    }
-                />
-                <Route
                     path="/login"
                     element={
                         <OpenRoute>
@@ -96,7 +87,6 @@ export default function AppRoutes() {
             <Route element={<MainLayout />}>
                 {/* Public */}
                 <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home2 />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/catalog/:catalogName" element={<Catalog />} />
