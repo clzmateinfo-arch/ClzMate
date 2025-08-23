@@ -112,7 +112,6 @@ export default function SignupForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          autoFocus
           required
           error={errors.email}
           inputClass="mt-2 mb-5 p-2.5"

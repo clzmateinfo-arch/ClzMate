@@ -13,7 +13,7 @@ export function Hero() {
 
             <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 z-10">
                 <div className="relative flex flex-col items-start sm:items-center sm:text-center max-w-3xl mx-auto">
-                    <h1 className="font-extrabold text-[34px] sm:text-[40px] md:text-[48px] lg:text-[64px] leading-[1.08] sm:leading-[1.12] tracking-[-0.025em] text-[#0b1220] mb-5 -mt-4">
+                    <h1 className="font-extrabold text-[34px] sm:text-[40px] md:text-[48px] lg:text-[64px] leading-[1.08] sm:leading-[1.12] tracking-[-0.025em] text-[#0b1220] mb-5 mt-4">
                         A Public Cloud Built For <br className="hidden lg:block" /> Developers Who <em className="relative inline-block">Ship</em>
                     </h1>
 

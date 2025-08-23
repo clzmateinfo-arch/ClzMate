@@ -1,11 +1,25 @@
 import React from "react";
-import { Hero } from "../../features/portfolio/ui/Hero";
-import { Features } from "../../features/portfolio/ui/Features";
-import { LogosQueue } from "../../features/portfolio/ui/LogosQueue";
-import { Platforms } from "../../features/portfolio/ui/Platforms";
-import { SpotlightCard } from "../../features/portfolio/ui/SpotlightCard";
-import { AdvertisementLayout } from "../../features/portfolio/ui/AdvertisementLayout";
-import Footer from "../../widgets/Footer/Footer";
+import { Hero } from "@/features/portfolio/ui/Hero";
+
+export default function Home() {
+
+  return (
+    <main className="bg-white text-[#0b1220]">
+      <section className="relative flex flex-col pt-[70px] mt-24 h-[720px] md:h-[820px] lg:h-[900px] pb-[200px] lg:pb-[268px] overflow-hidden">
+        <Hero />
+      </section>
+    </main>
+  );
+}
+
+
+
+
+
+
+{/* 
+  
+  
 
 const logos = [
   "/images/logo-supabase.png",
@@ -29,19 +43,8 @@ const platforms = [
   { name: "Laravel", src: "/images/logo-laravel.png" },
   { name: "NextJS", src: "/images/logo-next.png" },
 ];
-
-export default function Home() {
-  const heroBg = "/src/shared/assets/images/porfolio/cloud-city.png";
-  const heroAvif = "/src/shared/assets/images/porfolio/cloud-city.avif";
-  const spotlightImg = "/images/fireball.png";
-
-  return (
-    <main className="bg-white text-[#0b1220]">
-      <section className="relative flex flex-col pt-[70px] -mt-24 h-[720px] md:h-[820px] lg:h-[900px] pb-[200px] lg:pb-[268px] overflow-hidden">
-        <Hero />
-      </section>
-
-      {/* <section className="relative bg-white overflow-hidden">
+  
+  <section className="relative bg-white overflow-hidden">
         <Features />
       </section>
 
@@ -62,6 +65,3 @@ export default function Home() {
       </section>
 
       <Footer /> */}
-    </main>
-  );
-}
