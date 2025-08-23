@@ -1,278 +1,67 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { FaArrowRight } from "react-icons/fa";
-import { MdOutlineRateReview } from "react-icons/md";
-import { motion } from "framer-motion";
-import { useDispatch } from "react-redux";
-import CTAButton from "@/shared/components/ui/Button";
-import CodeBlocks from "@/shared/components/ui/CodeBlocks";
-import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
-import ExploreMore from "@/features/portfolio/ui/ExploreMore";
-import Footer from "@/widgets/Footer/Footer";
-import HighlightText from "@/shared/components/ui/HighlightText";
-import InstructorSection from "@/features/portfolio/ui/InstructorSection";
-import LearningLanguageSection from "@/features/portfolio/ui/LearningLanguageSection";
-import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
-import TimelineSection from "@/features/portfolio/ui/TimelineSection";
-import backgroundImg1 from "@/shared/assets/images/random bg img/coding bg1.jpg";
-import backgroundImg10 from "@/shared/assets/images/random bg img/coding bg10.jpg";
-import backgroundImg111 from "@/shared/assets/images/random bg img/coding bg11.jpg";
-import backgroundImg2 from "@/shared/assets/images/random bg img/coding bg2.jpg";
-import backgroundImg3 from "@/shared/assets/images/random bg img/coding bg3.jpg";
-import backgroundImg4 from "@/shared/assets/images/random bg img/coding bg4.jpg";
-import backgroundImg5 from "@/shared/assets/images/random bg img/coding bg5.jpg";
-import backgroundImg6 from "@/shared/assets/images/random bg img/coding bg6.jpeg";
-import backgroundImg7 from "@/shared/assets/images/random bg img/coding bg7.jpg";
-import backgroundImg8 from "@/shared/assets/images/random bg img/coding bg8.jpeg";
-import backgroundImg9 from "@/shared/assets/images/random bg img/coding bg9.jpg";
-import { fadeIn } from "@/shared/utils/motionFrameVarients";
-import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
+import React from "react";
+import { Hero } from "../../features/portfolio/ui/Hero";
+import { Features } from "../../features/portfolio/ui/Features";
+import { LogosQueue } from "../../features/portfolio/ui/LogosQueue";
+import { Platforms } from "../../features/portfolio/ui/Platforms";
+import { SpotlightCard } from "../../features/portfolio/ui/SpotlightCard";
+import { AdvertisementLayout } from "../../features/portfolio/ui/AdvertisementLayout";
+import Footer from "../../widgets/Footer/Footer";
 
-const randomImges = [
-  backgroundImg1,
-  backgroundImg2,
-  backgroundImg3,
-  backgroundImg4,
-  backgroundImg5,
-  backgroundImg6,
-  backgroundImg7,
-  backgroundImg8,
-  backgroundImg9,
-  backgroundImg10,
-  backgroundImg111,
+const logos = [
+  "/images/logo-supabase.png",
+  "/images/logo-tailscale.png",
+  "/images/logo-tigris.png",
+  "/images/logo-upstash.png",
+  "/images/logo-turso.png",
+  "/images/logo-mailgun.png",
+  "/images/logo-fanatics.png",
 ];
 
-const Home = () => {
-  const [backgroundImg, setBackgroundImg] = useState(null);
 
-  useEffect(() => {
-    const bg = randomImges[Math.floor(Math.random() * randomImges.length)];
-    setBackgroundImg(bg);
-  }, []);
+const platforms = [
+  { name: "Phoenix", src: "/images/logo-phoenix.png" },
+  { name: "SvelteKit", src: "/images/logo-svelte.png" },
+  { name: "Rails", src: "/images/logo-rails.png" },
+  { name: "Docker", src: "/images/logo-docker.png" },
+  { name: "Go", src: "/images/logo-go.png" },
+  { name: "Rust", src: "/images/logo-rust.png" },
+  { name: "Django", src: "/images/logo-django.png" },
+  { name: "Laravel", src: "/images/logo-laravel.png" },
+  { name: "NextJS", src: "/images/logo-next.png" },
+];
 
-  const [CatalogPageData, setCatalogPageData] = useState(null);
-  const categoryID = "6506c9dff191d7ffdb4a3fe2"; // hard coded
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const fetchCatalogPageData = async () => {
-      const result = await getCatalogPageData(categoryID, dispatch);
-      setCatalogPageData(result);
-    };
-    if (categoryID) {
-      fetchCatalogPageData();
-    }
-  }, [categoryID]);
+export default function Home() {
+  const heroBg = "/src/shared/assets/images/porfolio/cloud-city.png";
+  const heroAvif = "/src/shared/assets/images/porfolio/cloud-city.avif";
+  const spotlightImg = "/images/fireball.png";
 
   return (
-    <React.Fragment>
-      {/* background random image */}
-      <div>
-        <div className="w-full h-[450px] md:h-[650px] absolute top-0 left-0 opacity-[0.3] overflow-hidden object-cover ">
-          <img
-            src={backgroundImg}
-            alt="Background"
-            className="w-full h-full object-cover "
-          />
+    <main className="bg-white text-[#0b1220]">
+      <section className="relative flex flex-col pt-[70px] -mt-24 h-[720px] md:h-[820px] lg:h-[900px] pb-[200px] lg:pb-[268px] overflow-hidden">
+        <Hero />
+      </section>
 
-          <div className="absolute left-0 bottom-0 w-full h-[250px] opacity_layer_bg "></div>
-        </div>
-      </div>
+      {/* <section className="relative bg-white overflow-hidden">
+        <Features />
+      </section>
 
-      <div className=" ">
-        {/*Section1  */}
-        <div className="relative h-[450px] md:h-[550px] justify-center mx-auto flex flex-col w-11/12 max-w-maxContent items-center text-white ">
-          <Link to={"/signup"}>
-            <div
-              className="z-0 group p-1 mx-auto rounded-full bg-richblack-800 font-bold text-richblack-200
-                                        transition-all duration-200 hover:scale-95 w-fit"
-            >
-              <div
-                className="flex flex-row items-center gap-2 rounded-full px-10 py-[5px]
-                              transition-all duration-200 group-hover:bg-richblack-900"
-              >
-                <p>Become an Instructor</p>
-                <FaArrowRight />
-              </div>
-            </div>
-          </Link>
+      <section className="relative bg-white overflow-hidden">
+        <SpotlightCard img={spotlightImg} title={"Introducing Phoenix.new — The Remote AI Runtime for Phoenix"} text={"Describe your app, and watch it take shape. Prototype quickly, experiment freely, and share instantly."} ctaHref={'/phoenix.new'} />
+      </section>
 
-          <motion.div
-            variants={fadeIn("left", 0.1)}
-            initial="hidden"
-            whileInView={"show"}
-            viewport={{ once: false, amount: 0.1 }}
-            className="text-center text-3xl lg:text-4xl font-semibold mt-7  "
-          >
-            Empower Your Future with
-            <HighlightText text={"Coding Skills"} />
-          </motion.div>
+      <section className="relative bg-white">
+        <LogosQueue logos={logos} />
+      </section>
 
-          <motion.div
-            variants={fadeIn("right", 0.1)}
-            initial="hidden"
-            whileInView={"show"}
-            viewport={{ once: false, amount: 0.1 }}
-            className=" mt-4 w-[90%] text-center text-base lg:text-lg font-bold text-richblack-300"
-          >
-            With our online coding courses, you can learn at your own pace, from
-            anywhere in the world, and get access to a wealth of resources,
-            including hands-on projects, quizzes, and personalized feedback from
-            instructors.
-          </motion.div>
+      <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
+        <Platforms platforms={platforms} />
+      </section>
 
-          <div className="flex flex-row gap-7 mt-8">
-            <CTAButton active={true} linkto={"/signup"}>
-              Learn More
-            </CTAButton>
+      <section className="relative bg-white py-16 lg:py-24">
+        <AdvertisementLayout />
+      </section>
 
-            <CTAButton active={false} linkto={"/login"}>
-              Book a Demo
-            </CTAButton>
-          </div>
-        </div>
-
-        {/* animated code */}
-        <div className="relative mx-auto flex flex-col w-11/12 max-w-maxContent items-center text-white justify-between">
-          {/* Code block 1 */}
-          <div className="">
-            <CodeBlocks
-              position={"lg:flex-row"}
-              heading={
-                <div className="text-3xl lg:text-4xl font-semibold">
-                  Unlock Your
-                  <HighlightText text={"coding potential "} />
-                  with our online courses
-                </div>
-              }
-              subheading={
-                "Our courses are designed and taught by industry experts who have years of experience in coding and are passionate about sharing their knowledge with you."
-              }
-              ctabtn1={{
-                btnText: "try it yourself",
-                linkto: "/signup",
-                active: true,
-              }}
-              ctabtn2={{
-                btnText: "learn more",
-                linkto: "/login",
-                active: false,
-              }}
-              codeblock={`<<!DOCTYPE html>\n<html>\n<head><title>Example</title>\n</head>\n<body>\n<h1><ahref="/">Header</a>\n</h1>\n<nav><ahref="one/">One</a><ahref="two/">Two</a><ahref="three/">Three</a>\n</nav>`}
-              codeColor={"text-yellow-25"}
-              backgroundGradient={"code-block1-grad"}
-            />
-          </div>
-
-          {/* Code block 2 */}
-          <div>
-            <CodeBlocks
-              position={"lg:flex-row-reverse"}
-              heading={
-                <div className="w-[100%] text-3xl lg:text-4xl font-semibold lg:w-[50%]">
-                  Start
-                  <HighlightText text={"coding in seconds"} />
-                </div>
-              }
-              subheading={
-                "Go ahead, give it a try. Our hands-on learning environment means you'll be writing real code from your very first lesson."
-              }
-              ctabtn1={{
-                btnText: "Continue Lesson",
-                link: "/signup",
-                active: true,
-              }}
-              ctabtn2={{
-                btnText: "Learn More",
-                link: "/signup",
-                active: false,
-              }}
-              codeColor={"text-white"}
-              codeblock={`import React from "react";\n import CTAButton from "./Button";\nimport TypeAnimation from "react-type";\nimport { FaArrowRight } from "react-icons/fa";\n\nconst Home = () => {\nreturn (\n<div>Home</div>\n)\n}\nexport default Home;`}
-              backgroundGradient={"code-block2-grad"}
-            />
-          </div>
-
-          {/* course slider */}
-          <div className="mx-auto box-content w-full max-w-maxContentTab px- py-12 lg:max-w-maxContent">
-            <h2 className="text-white mb-6 text-2xl ">
-              Popular Picks for You 🏆
-            </h2>
-            <CourseSlider
-              Courses={CatalogPageData?.selectedCategory?.courses}
-            />
-          </div>
-          <div className=" mx-auto box-content w-full max-w-maxContentTab px- py-12 lg:max-w-maxContent">
-            <h2 className="text-white mb-6 text-2xl ">
-              Top Enrollments Today 🔥
-            </h2>
-            <CourseSlider Courses={CatalogPageData?.mostSellingCourses} />
-          </div>
-
-          <ExploreMore />
-        </div>
-
-        {/*Section 2  */}
-        <div className="bg-pure-greys-5 text-richblack-700 ">
-          <div className="homepage_bg h-[310px]">
-            <div className="w-11/12 max-w-maxContent flex flex-col items-center justify-between gap-5 mx-auto">
-              <div className="h-[150px]"></div>
-              <div className="flex flex-row gap-7 text-white ">
-                <CTAButton active={true} linkto={"/signup"}>
-                  <div className="flex items-center gap-3">
-                    Explore Full Catalog
-                    <FaArrowRight />
-                  </div>
-                </CTAButton>
-                <CTAButton active={false} linkto={"/signup"}>
-                  <div>Learn more</div>
-                </CTAButton>
-              </div>
-            </div>
-          </div>
-
-          <div className="mx-auto w-11/12 max-w-maxContent flex flex-col items-center justify-between gap-7">
-            <div className="flex flex-col lg:flex-row gap-5 mb-10 mt-[95px]">
-              <div className="text-3xl lg:text-4xl font-semibold w-full lg:w-[45%]">
-                Get the Skills you need for a
-                <HighlightText text={"Job that is in demand"} />
-              </div>
-
-              <div className="flex flex-col gap-10 w-full lg:w-[40%] items-start">
-                <div className="text-[16px]">
-                  The modern Up™ is the dictates its own terms. Today, to be
-                  a competitive specialist requires more than professional
-                  skills.
-                </div>
-                <CTAButton active={true} linkto={"/signup"}>
-                  <div>Learn more</div>
-                </CTAButton>
-              </div>
-            </div>
-
-            {/* leadership */}
-            <TimelineSection />
-            <LearningLanguageSection />
-          </div>
-        </div>
-
-        {/*Section 3 */}
-        <div className="mt-14 w-11/12 mx-auto max-w-maxContent flex-col items-center justify-between gap-8 first-letter bg-richblack-900 text-white">
-          <InstructorSection />
-
-          {/* Reviws from Other Learner */}
-          <h1 className="text-center text-3xl lg:text-4xl font-semibold mt-8 flex justify-center items-center gap-x-3">
-            Reviews from other learners{" "}
-            <MdOutlineRateReview className="text-yellow-25" />
-          </h1>
-          <ReviewSlider />
-        </div>
-
-        {/*Footer */}
-        <Footer />
-      </div>
-    </React.Fragment>
+      <Footer /> */}
+    </main>
   );
-};
-
-export default Home;
+}

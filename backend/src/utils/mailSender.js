@@ -11,7 +11,7 @@ const mailSender = async (email, title, body) => {
         });
 
         const info = await transporter.sendMail({
-            from: "Up™ || by Up™ Dev Team",
+            from: "ClzMate || by ClzMate Dev Team",
             to: email,
             subject: title,
             html: body,

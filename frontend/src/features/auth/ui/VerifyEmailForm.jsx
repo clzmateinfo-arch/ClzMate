@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input";
-import { verifyOtp } from "@/entities/auth/model/authAPI";
+import { verifyOtp, sendOtp } from "@/entities/auth/model/authAPI";
+import Button from "@/shared/components/ui/Button";
 
 export default function VerifyEmailForm() {
     const navigate = useNavigate();
@@ -15,6 +16,10 @@ export default function VerifyEmailForm() {
         e.preventDefault();
 
         dispatch(verifyOtp(signupData?.email, otp, navigate));
+    };
+
+    const resendOtp = () => {
+        dispatch(sendOtp(signupData?.email, navigate));
     };
 
     return (
@@ -44,15 +49,29 @@ export default function VerifyEmailForm() {
                     </label>
                 </div>
 
-                {/* Submit */}
-                <button
-                    type="submit"
-                    disabled={otp.length < 6}
-                    className="btn-purple w-full bg-gradient-to-r from-[#ba7bf0] via-[#996bec] to-[#5046e4] text-white py-3 rounded-md font-medium bg-violet-600 hover:bg-violet-700 text-white text-sm transition-colors"
-                    style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
-                >
+                <Button type="submit" classes="w-full" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}>
                     Verify Email
-                </button>
+                </Button>
+
+                <div className="text-right text-sm mt-2">
+                    <a
+                        className="inline-flex items-center gap-1 text-violet-600 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={resendOtp}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 512 512"
+                            className="w-4 h-4"
+                            fill="oklch(54.1% 0.281 293.009)"
+                        >
+                            <path d="M256 48c-68.38 0-129.9 31.06-170.8 80H48v80h128V80H125.4C157.2 52.57 204.6 32 256 32c114.9 0 208 93.13 208 208s-93.13 208-208 208c-78.19 0-146.5-43.43-182.4-108H48c37.14 83.09 120.5 140 208 140 132.5 0 240-107.5 240-240S388.5 48 256 48z" />
+                        </svg>
+                        Resend
+                    </a>
+                </div>
+
             </form>
         </>
     );
