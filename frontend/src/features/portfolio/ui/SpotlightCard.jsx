@@ -1,5 +1,5 @@
 import React from "react";
-import { CTA } from "@/shared/components/ui/LinkButton";
+import { LinkedButton } from "@/shared/components/ui/LinkButton";
 import spotlightImg from "@/shared/assets/images/porfolio/fireball.png";
 
 export default function SpotlightCard({
@@ -45,14 +45,14 @@ export default function SpotlightCard({
 
                         <p className="block text-lg mb-5 mt-1 text-white/80 pb-3">{text}</p>
 
-                        <CTA
+                        <LinkedButton
                             to={ctaHref}
                             className="gap-2 btn-xl group/btn btn-border-light rounded-full w-full sm:w-auto inline-flex items-center"
                             variant="primary"
                             aria-label={ctaText}
                         >
                             <span className="inline-block">{ctaText}</span>
-                        </CTA>
+                        </LinkedButton>
                     </div>
                 </div>
             </div>

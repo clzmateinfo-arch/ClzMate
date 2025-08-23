@@ -4,6 +4,8 @@ import Features from "../../features/portfolio/ui/Features";
 import SpotlightCard from "../../features/portfolio/ui/SpotlightCard";
 import { Platforms } from "../../features/portfolio/ui/Platforms";
 import { AdvertisementLayout } from "../../features/portfolio/ui/AdvertisementLayout";
+import { PopularCourses } from "../../features/portfolio/ui/PopularCourses";
+import Footer from "../../widgets/Footer/Footer";
 
 const platforms = [
   { name: "Phoenix", src: "/images/logo.png" },
@@ -22,14 +24,14 @@ export default function Home() {
   return (
     <main className="bg-white text-[#0b1220]">
       <Hero />
+      <PopularCourses />
       <Features />
       <SpotlightCard />
-      <section className="relative bg-white py-16 lg:py-24">
-        <AdvertisementLayout />
-      </section>
       <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
         <Platforms platforms={platforms} />
       </section>
+      <AdvertisementLayout />
+      <Footer />
     </main>
   );
 }

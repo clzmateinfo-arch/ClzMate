@@ -1,5 +1,5 @@
 import React from "react";
-import { CTA } from "@/shared/components/ui/LinkButton";
+import { LinkedButton } from "@/shared/components/ui/LinkButton";
 
 export function PlatformsGrid({ platforms = [] }) {
     return (
@@ -23,7 +23,7 @@ export function Platforms({ platforms = [] }) {
                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Use the Tech You Love</h2>
                     <p className="text-lg text-white/80">Build with your favorite framework. No Dockerfile? No problem: our CLI generates containers for most popular frameworks.</p>
                     <div className="flex gap-3 mt-4">
-                        <CTA to="/docs/speedrun" variant="light">Learn More</CTA>
+                        <LinkedButton to="/docs/speedrun" variant="light">Learn More</LinkedButton>
                     </div>
                 </div>
 

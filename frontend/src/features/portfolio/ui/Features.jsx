@@ -116,19 +116,19 @@ export default function Features() {
                 </div>
 
                 <ul className="grid lg:grid-cols-2 gap-y-16 gap-x-8 xl:gap-x-16">
-                    <FeatureItem title="Built for educators" color="emerald" icon={globeSVG}>
+                    <FeatureItem title="Built For Educators" color="emerald" icon={globeSVG}>
                         create courses, manage materials, and schedule sessions in minutes
                     </FeatureItem>
 
-                    <FeatureItem title="Learner first experience" color="blue" icon={nodesSVG}>
+                    <FeatureItem title="Learner First Experience" color="blue" icon={nodesSVG}>
                         intuitive UI, progress tracking, and personalised recommendations
                     </FeatureItem>
 
-                    <FeatureItem title="Scale with confidence" color="orange" icon={gpuSVG}>
+                    <FeatureItem title="Scale With Confidence" color="orange" icon={gpuSVG}>
                         Enterprise features, security, and analytics for all users
                     </FeatureItem>
 
-                    <FeatureItem title="Built for Distributed Systems" color="amber" icon={distributedSVG}>
+                    <FeatureItem title="Built For Distributed Systems" color="amber" icon={distributedSVG}>
                         Global classrooms need low latency and high availability
                     </FeatureItem>
                 </ul>

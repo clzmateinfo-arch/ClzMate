@@ -64,7 +64,7 @@ const Footer = ({
   const leftLinks = useMemo(() => left.links || [], [left]);
 
   return (
-    <footer className="bg-richblack-800 mx-7 rounded-3xl mb-10">
+    <footer className="bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
       <div className="flex lg:flex-row gap-8 items-center justify-between w-11/12 max-w-maxContent text-richblack-400 leading-6 mx-auto relative py-14">
         <div className="border-b w-[100%] flex flex-col lg:flex-row pb-5 border-richblack-700">
           {/* Section 1 */}
@@ -149,7 +149,7 @@ const Footer = ({
                 Xelavon Dev Team
               </a>
             </div>
-            <span> © {new Date().getFullYear()} ClzMate</span>
+            <span> © {new Date().getFullYear()} Up</span>
           </div>
 
           <div className="flex items-center">

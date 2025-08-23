@@ -26,8 +26,8 @@ import Logo4 from "@/shared/assets/images/Logo4.svg";
    Small presentational pieces
    ----------------------- */
 
-// Primary site CTA (keeps your gradient)
-export function CTA({ children, to = "/app/sign-up", className = "" }) {
+// Primary site LinkedButton (keeps your gradient)
+export function LinkedButton({ children, to = "/app/sign-up", className = "" }) {
   return (
     <Link
       to={to}
@@ -71,7 +71,7 @@ function Hero() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-8">
-          {/* Left: Headline + CTA + small brand band */}
+          {/* Left: Headline + LinkedButton + small brand band */}
           <div className="max-w-2xl">
             <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-tight tracking-[-0.02em] text-[#0b1220]">
               Develop your skills in a new &amp; <br className="hidden sm:inline" />
@@ -85,7 +85,7 @@ function Hero() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-              <CTA to="/signup">Enroll Now</CTA>
+              <LinkedButton to="/signup">Enroll Now</LinkedButton>
               <Link to="/catalog" className="inline-flex items-center px-4 py-2 rounded-full border border-[#e9e6f8] text-[#6b7280] hover:bg-[#faf7ff] transition">
                 Explore Courses
               </Link>
@@ -194,7 +194,7 @@ function PopularCourses() {
                 </div>
               </div>
               <div className="mt-4 flex gap-2">
-                <CTA to="/courses">View Course</CTA>
+                <LinkedButton to="/courses">View Course</LinkedButton>
                 <button className="ml-auto inline-flex items-center px-4 py-2 rounded-full border border-[#efe7ff] hover:bg-[#faf7ff]">Add to cart</button>
               </div>
             </div>
@@ -206,7 +206,7 @@ function PopularCourses() {
 }
 
 /* -----------------------
-   Instructor CTA block
+   Instructor LinkedButton block
    ----------------------- */
 function InstructorSection() {
   return (
@@ -238,7 +238,7 @@ function InstructorSection() {
 }
 
 /* -----------------------
-   Learning Language small showcase + CTA
+   Learning Language small showcase + LinkedButton
    ----------------------- */
 function LearningLanguageSection() {
   return (
@@ -258,7 +258,7 @@ function LearningLanguageSection() {
         </div>
 
         <div className="mt-8">
-          <CTA to="/signup">Learn more</CTA>
+          <LinkedButton to="/signup">Learn more</LinkedButton>
         </div>
       </div>
     </section>

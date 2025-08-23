@@ -24,7 +24,7 @@ import { fadeIn, scaleUp } from "@/shared/utils/motionFrameVarients";
  * the default Home component. All styling uses Tailwind utility classes only.
  *
  * Components included (exported for reuse):
- * - CTA
+ * - LinkedButton
  * - IconBox
  * - FeatureItem
  * - LogosMarquee
@@ -42,7 +42,7 @@ import { fadeIn, scaleUp } from "@/shared/utils/motionFrameVarients";
    Small UI primitives
    ------------------ */
 
-export function CTA({ children, to = "/app/sign-up", variant = "primary", className = "" }) {
+export function LinkedButton({ children, to = "/app/sign-up", variant = "primary", className = "" }) {
   const base = "inline-flex items-center gap-3 rounded-full px-6 py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition";
   const primary = "bg-gradient-to-r from-[#ba7bf0] via-[#996bec] to-[#5046e4] text-white shadow-md hover:opacity-95 focus:ring-[#996bec]";
   const light = "bg-white/6 text-white/95 border border-white/10 hover:bg-white/5 focus:ring-white/40";
@@ -158,7 +158,7 @@ export function SpotlightCard({ img, title, text, ctaText = "Learn More", ctaHre
         <h2 className="text-2xl md:text-3xl font-semibold text-white -mt-1">{title}</h2>
         <p className="text-lg text-white/80 pb-3">{text}</p>
         <div className="flex gap-4">
-          <CTA to={ctaHref} variant="primary">{ctaText}</CTA>
+          <LinkedButton to={ctaHref} variant="primary">{ctaText}</LinkedButton>
         </div>
       </div>
     </div>
@@ -184,7 +184,7 @@ export function ManagedPostgresSection({ img = "/images/managed-postgres.png" })
             <li className="flex items-start gap-3"><span className="text-emerald-500">•</span> Resource scaling (CPU, RAM, storage)</li>
           </ul>
           <div className="mt-6">
-            <CTA to="/docs/mpg" variant="primary">Learn More</CTA>
+            <LinkedButton to="/docs/mpg" variant="primary">Learn More</LinkedButton>
           </div>
         </div>
       </div>
@@ -234,7 +234,7 @@ export function FeaturesGrid() {
 }
 
 /* ------------------
-   Hero component (uses CTA)
+   Hero component (uses LinkedButton)
    ------------------ */
 export function Hero({ heroBg = "/images/cloud-city.png", heroAvif = "/images/cloud-city.avif", globeImg = "/images/fly-globe.png" }) {
   return (
@@ -257,7 +257,7 @@ export function Hero({ heroBg = "/images/cloud-city.png", heroAvif = "/images/cl
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <CTA to="/app/sign-up">Deploy Your App in 5 minutes</CTA>
+            <LinkedButton to="/app/sign-up">Deploy Your App in 5 minutes</LinkedButton>
           </div>
         </div>
       </div>
@@ -330,7 +330,7 @@ export function InstructorSection() {
               Become an <HighlightText text={"Instructor"} />
             </div>
 
-            <p className="font-medium text-[16px] text-[#374151] mb-8">Instructors from around the world teach millions of students on ClzMate. We provide the tools and skills to teach what you love.</p>
+            <p className="font-medium text-[16px] text-[#374151] mb-8">Instructors from around the world teach millions of students on Up. We provide the tools and skills to teach what you love.</p>
 
             <div className="w-fit">
               <CTAButton active={true} linkto={'/signup'}>
@@ -493,7 +493,7 @@ export function TimelineSection() {
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold">Use the Tech You Love</h2>
               <p className="text-lg text-white/80">Build with your favorite framework. No Dockerfile? No problem: our CLI generates containers for most popular frameworks.</p>
               <div className="flex gap-3 mt-4">
-                <CTA to="/docs/speedrun" variant="light">Learn More</CTA>
+                <LinkedButton to="/docs/speedrun" variant="light">Learn More</LinkedButton>
               </div>
             </div>
 
