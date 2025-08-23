@@ -8,9 +8,9 @@ export default function CourseGrid({ cards = [], onAddToCart = () => { } }) {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mr-5 ml-5">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {cards.map((c, i) => (
-                <CourseCard key={c.id ?? i} course={c} onAddToCart={onAddToCart} />
+                <CourseCard key={c._id ?? i} course={c} onAddToCart={onAddToCart} />
             ))}
         </div>
     );

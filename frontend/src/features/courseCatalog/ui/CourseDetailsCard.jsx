@@ -18,7 +18,6 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
   const {
     thumbnail: ThumbnailImage,
     price: CurrentPrice,
-    // eslint-disable-next-line no-unused-vars
     _id: courseId,
   } = course;
 
@@ -51,7 +50,6 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
       <div
         className={`flex flex-col gap-4 rounded-2xl bg-richblack-700 p-4 text-richblack-5 `}
       >
-        {/* Course Image */}
         <Img
           src={ThumbnailImage}
           alt={course?.courseName}

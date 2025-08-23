@@ -1,48 +1,64 @@
-import { useEffect, useState } from "react";
-import CourseCard from "@/shared/components/ui/CourseCard";
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
 import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
+import CatalogHeader from "@/features/courseCatalog/ui/CatalogHeader";
+import CatalogSidebar from "@/features/courseCatalog/ui/CatalogSidebar";
 import Footer from "@/widgets/Footer/Footer";
 import Loading from "@/shared/components/navigation/Loading";
 import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
 import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
-import { useParams } from "react-router-dom";
-import CatalogHeader from "../../features/courseCatalog/ui/CatalogHeader";
+import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 
-function Catalog() {
+export default function Catalog() {
   const { catalogName } = useParams();
-  const [active, setActive] = useState(1);
   const [catalogPageData, setCatalogPageData] = useState(null);
   const [categoryId, setCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({ price: "all", level: "all" });
 
   useEffect(() => {
     (async () => {
       try {
         const res = await fetchCourseCategories();
-        const category_id = res.filter(
+        const matched = res.find(
           (ct) => ct.name.split(" ").join("-").toLowerCase() === catalogName
-        )[0]._id;
-        setCategoryId(category_id);
+        );
+        if (matched) setCategoryId(matched._id);
       } catch (error) {
-        console.log("Could not fetch Categories.", error);
+        console.error("Could not fetch Categories.", error);
       }
     })();
   }, [catalogName]);
 
   useEffect(() => {
-    if (categoryId) {
-      (async () => {
-        setLoading(true);
-        try {
-          const res = await getCatalogPageData(categoryId);
-          setCatalogPageData(res);
-        } catch (error) {
-          console.log(error);
-        }
+    if (!categoryId) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await getCatalogPageData(categoryId);
+        setCatalogPageData(res);
+      } catch (error) {
+        console.error(error);
+      } finally {
         setLoading(false);
-      })();
-    }
+      }
+    })();
   }, [categoryId]);
+
+  const handleToggleSidebar = useCallback(() => {
+    setSidebarOpen((s) => !s);
+  }, []);
+
+  const handleSearch = useCallback((term) => {
+    setSearchTerm(term);
+  }, []);
+
+  const handleFiltersChange = useCallback((nextFilters) => {
+    setFilters((prev) => ({ ...prev, ...nextFilters }));
+  }, []);
 
   if (loading) {
     return (
@@ -51,6 +67,7 @@ function Catalog() {
       </div>
     );
   }
+
   if (!loading && !catalogPageData) {
     return (
       <div className="text-white text-4xl flex justify-center items-center mt-[20%]">
@@ -61,71 +78,34 @@ function Catalog() {
 
   return (
     <>
-      <CatalogHeader />
-      <div className=" box-content bg-richblack-800 px-4">
-        <div className="mx-auto flex min-h-[260px] max-w-maxContentTab flex-col justify-center gap-4 lg:max-w-maxContent ">
-          <p className="text-sm text-richblack-300">
-            {`Home / Catalog / `}
-            <span className="text-yellow-25">
-              {catalogPageData?.selectedCategory?.name}
-            </span>
-          </p>
-          <p className="text-3xl text-richblack-5">
-            {catalogPageData?.selectedCategory?.name}
-          </p>
-          <p className="max-w-[870px] text-richblack-200">
-            {catalogPageData?.selectedCategory?.description}
-          </p>
-        </div>
-      </div>
+      <CatalogHeader
+        title={catalogPageData?.selectedCategory?.name}
+        subtitle={catalogPageData?.selectedCategory?.name}
+        description={catalogPageData?.selectedCategory?.description}
+        background={backImg}
+        onSearch={handleSearch}
+      />
 
-      <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
-        <div className="section_heading">Courses to get you started</div>
-        <div className="my-4 flex border-b border-b-richblack-600 text-sm">
-          <p
-            className={`px-4 py-2 ${active === 1
-              ? "border-b border-b-yellow-25 text-yellow-25"
-              : "text-richblack-50"
-              } cursor-pointer`}
-            onClick={() => setActive(1)}
-          >
-            Most Populer
-          </p>
-          <p
-            className={`px-4 py-2 ${active === 2
-              ? "border-b border-b-yellow-25 text-yellow-25"
-              : "text-richblack-50"
-              } cursor-pointer`}
-            onClick={() => setActive(2)}
-          >
-            New
-          </p>
-        </div>
-        <div>
-          <CourseSlider Courses={catalogPageData?.selectedCategory?.courses} />
-        </div>
-      </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-6">
+          <div className={`${sidebarOpen ? "w-72" : "w-0"} transition-all duration-300 overflow-hidden`}>
+            <CatalogSidebar
+              categories={catalogPageData?.allCategories ?? []}
+              selectedCategoryId={categoryId}
+              onChange={handleFiltersChange}
+              onClose={() => setSidebarOpen(false)}
+              visible={sidebarOpen}
+            />
+          </div>
 
-      <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
-        <div className="section_heading">
-          Top courses in {catalogPageData?.differentCategory?.name}
-        </div>
-        <div>
-          <CourseSlider
-            Courses={catalogPageData?.differentCategory?.courses}
-          />
-        </div>
-      </div>
-
-      <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
-        <div className="section_heading">Frequently Bought</div>
-        <div className="py-8">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {catalogPageData?.mostSellingCourses
-              ?.slice(0, 4)
-              .map((course, i) => (
-                <CourseCard course={course} key={i} Height={"h-[300px]"} />
-              ))}
+          <div className="flex-1">
+            <CourseSlider
+              categoryId={categoryId}
+              initialFeatured={catalogPageData?.selectedCategory?.courses ?? []}
+              searchTerm={searchTerm}
+              filters={filters}
+              onToggleSidebar={handleToggleSidebar}
+            />
           </div>
         </div>
       </div>
@@ -134,5 +114,3 @@ function Catalog() {
     </>
   );
 }
-
-export default Catalog;

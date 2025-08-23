@@ -83,6 +83,71 @@ export const getAllCourses = async () => {
   return result;
 };
 
+
+export const fetchCourses = async ({
+  categoryId,
+  page = 1,
+  limit = 12,
+  search = "",
+  filters = {},
+}: {
+  categoryId?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  filters?: Record<string, any>;
+} = {}) => {
+  const toastId = toast.loading("Loading...");
+  let result: { data: any[]; total: number; success: boolean } = {
+    data: [],
+    total: 0,
+    success: false,
+  };
+
+  try {
+    const params = new URLSearchParams();
+
+    if (categoryId) params.append("categoryId", categoryId);
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+
+    if (search) params.append("search", search);
+
+    if (filters?.price) params.append("price", String(filters.price));
+    if (filters?.level) params.append("level", String(filters.level));
+    if (filters?.sort) params.append("sort", String(filters.sort));
+    if (filters?.instructorId) params.append("instructorId", String(filters.instructorId));
+
+    const url = `${GET_ALL_COURSE_API}?${params.toString()}`;
+
+    const response = await apiConnector("GET", url);
+
+    console.log("GET_ALL_COURSE_API (paginated) RESPONSE............", response);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not fetch courses");
+    }
+
+    const payload = response.data.data ?? [];
+    if (Array.isArray(payload)) {
+      result = { data: payload, total: payload.length, success: true };
+    } else {
+      result = {
+        data: payload.courses ?? payload.items ?? [],
+        total: Number(payload.total ?? payload.count ?? (payload.courses?.length ?? 0)),
+        success: true,
+      };
+    }
+  } catch (error: any) {
+    console.error("GET_ALL_COURSE_API PAGINATED ERROR............", error);
+    toast.error(error?.message ?? "Failed to load courses");
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+  return result;
+};
+
 export const fetchCourseDetails = async (courseId) => {
   let result = null;
 

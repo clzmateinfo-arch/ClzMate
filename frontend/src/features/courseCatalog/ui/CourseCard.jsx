@@ -22,34 +22,71 @@ function formatTimeAgo(dateLike) {
   return `${diffYears} year${diffYears === 1 ? "" : "s"} ago`;
 }
 
-export default function CourseCard({ course, onAddToCart = () => { } }) {
+export default function CourseCard({ course, onAddToCart = () => {} }) {
   const {
-    title,
+    courseName,
     instructor,
-    img,
-    price = "Free",
+    thumbnail,
+    price = 0,
     duration,
-    level,
-    rating = 0,
-    href = "/courses",
-    publishedAt,
-  } = course;
+    tag = [],
+    studentsEnrolled = [],
+    category,
+    __v = 0,
+    href,
+    updatedAt,
+    _id,
+    id,
+  } = course || {};
 
-  const timeAgo = formatTimeAgo(publishedAt);
+  // Defensive formatting
+  const instructorName =
+    typeof instructor === "string"
+      ? instructor
+      : instructor && (instructor.firstName || instructor.lastName)
+      ? `${instructor.firstName ?? ""} ${instructor.lastName ?? ""}`.trim()
+      : "";
 
-  const stars = Array.from({ length: 5 }).map((_, i) => i < Math.round(rating));
+  const categoryLabel =
+    typeof category === "string"
+      ? category
+      : category && (category.name || category.title)
+      ? category.name ?? category.title
+      : "";
+
+  const studentsCount = Array.isArray(studentsEnrolled)
+    ? studentsEnrolled.length
+    : typeof studentsEnrolled === "number"
+    ? studentsEnrolled
+    : 0;
+
+  const timeAgo = formatTimeAgo(updatedAt);
+
+  const numericRating = Number.isFinite(Number(__v)) ? Number(__v) : 0;
+  const stars = Array.from({ length: 5 }).map((_, i) => i < Math.round(numericRating));
+
+  const displayPrice = (p) => {
+    // If explicit numeric 0 => Free, otherwise show value (fallback to "Free" if falsy)
+    const num = Number(p);
+    if (!Number.isNaN(num) && num === 0) return "Free";
+    if (!Number.isNaN(num) && num > 0) return `$ ${num}`;
+    if (typeof p === "string" && p.toLowerCase() === "free") return "Free";
+    return p ?? "Free";
+  };
+
+  const safeHref = href ?? `/courses/${_id ?? id ?? ""}`;
 
   return (
     <article
       className="group bg-white rounded-2xl border border-[#efe7ff] shadow-md hover:shadow-2xl transition transform hover:-translate-y-1 will-change-transform overflow-hidden"
-      aria-labelledby={`course-title-${course.id}`}
+      aria-labelledby={`course-courseName-${_id ?? id}`}
       role="article"
     >
       <div className="relative w-full">
         <div className="h-44 sm:h-48 w-full overflow-hidden bg-gray-50">
           <img
-            src={img}
-            alt={title}
+            src={thumbnail}
+            alt={courseName}
             width={640}
             height={360}
             className="w-full h-full object-cover object-center"
@@ -58,9 +95,9 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
         </div>
 
         <div className="absolute left-3 top-3 flex items-center gap-2">
-          {level && (
+          {categoryLabel && (
             <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/90 text-[#4c1d95] ring-1 ring-[#e9e0ff] shadow-sm">
-              {level}
+              {categoryLabel}
             </span>
           )}
           {duration && (
@@ -75,19 +112,19 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <h3
-              id={`course-title-${course.id}`}
+              id={`course-courseName-${_id ?? id}`}
               className="text-base font-semibold text-[#0b1220] line-clamp-2"
             >
-              {title}
+              {courseName}
             </h3>
 
             <div className="mt-1 flex items-center gap-3 text-sm text-[#6b7280]">
-              <span className="truncate">{instructor}</span>
+              <span className="truncate">{instructorName}</span>
 
               {timeAgo && (
                 <>
                   <span aria-hidden="true"> </span>
-                  <time dateTime={new Date(publishedAt).toISOString()} className="whitespace-nowrap text-[#9890a7]">
+                  <time dateTime={new Date(updatedAt).toISOString()} className="whitespace-nowrap text-[#9890a7]">
                     Published {timeAgo}
                   </time>
                 </>
@@ -109,20 +146,20 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
                 ))}
               </div>
               <div className="text-xs text-[#6b7280]">
-                {rating?.toFixed?.(1) ?? rating} · {Math.floor(Math.random() * 1000) + 1} enrolled
+                {numericRating?.toFixed?.(1) ?? numericRating} &nbsp;&nbsp;&nbsp; {studentsCount} &nbsp;enrolled
               </div>
             </div>
           </div>
 
           <div className="flex-shrink-0 text-right">
             <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 ring-1 ring-[#e9defc] text-[#4c1d95] font-semibold">
-              <span className="text-sm">{price}</span>
+              <span className="text-sm">{displayPrice(price)}</span>
             </div>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <LinkedButton to={href} className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
+          <LinkedButton to={safeHref} className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
             View Course
           </LinkedButton>
 
@@ -130,7 +167,7 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
             type="button"
             onClick={() => onAddToCart(course)}
             className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-full border border-[#efe7ff] bg-white hover:bg-gradient-to-r hover:from-[#7e8694] hover:via-[#8e939e] hover:to-[#a5a9b1] hover:text-white text-sm transition-all duration-200 transform hover:-translate-y-0.5 hover:scale-[1.02] shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/40 group"
-            aria-label={`Add ${title} to cart`}
+            aria-label={`Add ${courseName} to cart`}
           >
             <svg
               viewBox="0 0 24 24"

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Course = require("../models/course");
 const User = require("../models/user");
 const Category = require("../models/category");
@@ -112,39 +113,100 @@ exports.createCourse = async (req, res) => {
 
 exports.getAllCourses = async (req, res) => {
     try {
-        const allCourses = await Course.find(
-            {},
-            {
-                courseName: true,
-                courseDescription: true,
-                price: true,
-                thumbnail: true,
-                instructor: true,
-                ratingAndReviews: true,
-                studentsEnrolled: true,
+        const {
+            categoryId,
+            category,
+            page = "1",
+            limit = "10",
+            search = "",
+            price = "all",
+            level = "all",
+            sort = "newest",
+            instructorId,
+        } = req.query;
+
+        const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+        const lim = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+        const skip = (pageNum - 1) * lim;
+
+        const match = {};
+
+        const cat = categoryId || category;
+        if (cat) {
+            if (mongoose.Types.ObjectId.isValid(cat)) {
+                match.category = new mongoose.Types.ObjectId(cat);
+            } else {
+                match.category = cat;
             }
-        )
+        }
+
+        if (instructorId && mongoose.Types.ObjectId.isValid(instructorId)) {
+            match.instructor = new mongoose.Types.ObjectId(instructorId);
+        }
+
+        if (price === "free") match.price = 0;
+        else if (price === "paid") match.price = { $gt: 0 };
+
+        if (level && level !== "all") {
+            match.level = level;
+        }
+
+        if (search.trim()) {
+            match.$or = [
+                { courseName: { $regex: search, $options: "i" } },
+                { courseDescription: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const total = await Course.countDocuments(match);
+
+        let sortOption = { createdAt: -1 };
+        if (sort === "oldest") sortOption = { createdAt: 1 };
+        else if (sort === "price_asc") sortOption = { price: 1 };
+        else if (sort === "price_desc") sortOption = { price: -1 };
+
+        const courses = await Course.find(match, {
+            courseName: 1,
+            courseDescription: 1,
+            price: 1,
+            thumbnail: 1,
+            instructor: 1,
+            ratingAndReviews: 1,
+            studentsEnrolled: 1,
+            level: 1,
+            category: 1,
+            createdAt: 1,
+        })
             .populate({
                 path: "instructor",
                 select: "firstName lastName email image",
             })
+            .sort(sortOption)
+            .skip(skip)
+            .limit(lim)
             .exec();
 
         return res.status(200).json({
             success: true,
-            data: allCourses,
-            message: "Data for all courses fetched successfully",
+            data: {
+                courses,
+                total,
+                page: pageNum,
+                limit: lim,
+                totalPages: Math.ceil(total / lim),
+            },
+            message: "Data for courses fetched successfully",
         });
     } catch (error) {
-        console.log("Error while fetching data of all courses");
-        console.log(error);
-        res.status(500).json({
+        console.error("Error while fetching courses:", error);
+        return res.status(500).json({
             success: false,
             error: error.message,
-            message: "Error while fetching data of all courses",
+            message: "Error while fetching courses",
         });
     }
 };
+
 
 exports.getCourseDetails = async (req, res) => {
     try {

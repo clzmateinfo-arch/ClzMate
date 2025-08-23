@@ -12,6 +12,6 @@ export const Logo = React.memo(({ onClick }) => (
                 loading="lazy"
             />
         </Link>
-        <span className="font-heading text-2xl xs:text-2xl ml-2 sm:text-2xl md:text-2xl lg:text-2xl xl:text-6.5xl !tracking-[-.045em] relative text-nav leading-tight/[1.15]"><strong>Up!</strong></span>
+        <span className="font-heading text-2xl xs:text-2xl ml-2 mr-4 -mt-1 sm:text-2xl md:text-2xl lg:text-2xl xl:text-6.5xl !tracking-[-.045em] relative text-nav leading-tight/[1.15]"><strong>Up!</strong></span>
     </>
 ));

@@ -1,48 +1,69 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LinkedButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
-
-
-const cards = [
-    {
-        id: "c1",
-        title: "Modern React with Hooks",
-        instructor: "Jane Doe",
-        img: "/src/shared/assets/images/porfolio/fly-globe.png",
-        price: "$39",
-        duration: "6h",
-        level: "Intermediate",
-        rating: 4.6,
-        href: "/courses/react-hooks",
-        publishedAt: "2025-08-20T12:00:00Z"
-    },
-    {
-        id: "c3",
-        title: "Modern React with Hooks",
-        instructor: "Jane Doe",
-        img: "/src/shared/assets/images/porfolio/fly-globe.png",
-        price: "$39",
-        duration: "6h",
-        level: "Intermediate",
-        rating: 4.6,
-        href: "/courses/react-hooks",
-        publishedAt: "2025-08-20T12:00:00Z"
-    },
-    {
-        id: "c4",
-        title: "Modern React with Hooks",
-        instructor: "Jane Doe",
-        img: "/src/shared/assets/images/porfolio/fly-globe.png",
-        price: "$39",
-        duration: "6h",
-        level: "Intermediate",
-        rating: 4.6,
-        href: "/courses/react-hooks",
-        publishedAt: "2025-08-20T12:00:00Z"
-    },
-];
+import Loading from "@/shared/components/navigation/Loading";
+import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
 
 export function PopularCourses() {
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    async function loadPopular() {
+        setLoading(true);
+        try {
+            // Attempt server-side popular sort first (recommended)
+            const res = await fetchCourses({ page: 1, limit: 3, sort: "popular" });
+
+            // Try to extract course array from common shapes
+            const received =
+                res?.data?.data?.courses ??
+                res?.data?.data ??
+                res?.data?.courses ??
+                res?.data ??
+                res?.courses ??
+                res?.items ??
+                [];
+
+            // If server returned 0 items for popular, fallback to fetch more and compute client-side
+            if (!received || received.length === 0) {
+                // fetch a larger set and pick top 3 by studentsEnrolled length
+                const fallback = await fetchCourses({ page: 1, limit: 200 });
+                const all =
+                    fallback?.data?.data?.courses ??
+                    fallback?.data?.data ??
+                    fallback?.data?.courses ??
+                    fallback?.data ??
+                    fallback?.courses ??
+                    fallback?.items ??
+                    [];
+
+                const sorted = Array.isArray(all)
+                    ? all
+                        .slice()
+                        .sort(
+                            (a, b) =>
+                                (b?.studentsEnrolled?.length ?? b?.studentsEnrolled ?? 0) -
+                                (a?.studentsEnrolled?.length ?? a?.studentsEnrolled ?? 0)
+                        )
+                        .slice(0, 3)
+                    : [];
+
+                setCourses(sorted);
+            } else {
+                setCourses(received.slice(0, 3));
+            }
+        } catch (err) {
+            console.error("Failed to load popular courses", err);
+            setCourses([]);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        loadPopular();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     function onAddToCart(course) {
         console.log("add", course);
@@ -55,21 +76,15 @@ export function PopularCourses() {
                 aria-hidden="true"
             />
             <div
-                className="absolute inset-0 bg-gradient-to-tr from-sky-300/10 via-indigo-300/10 to-pink-300/10 pointer-events-none"
+                className="-mt-[200px] absolute inset-0 bg-gradient-to-tr from-sky-300/10 via-indigo-300/10 to-pink-300/10 pointer-events-none"
                 aria-hidden="true"
-                style={{
-                    WebkitMaskImage:
-                        "linear-gradient(to top, rgba(0,0,0,1) 70%, rgba(0,0,0,0))",
-                    maskImage:
-                        "linear-gradient(to top, rgba(0,0,0,1) 70%, rgba(0,0,0,0))",
-                }}
             />
 
-            <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mt-20 relative container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="gap-x-8 xl:gap-x-16 items-center">
                     <div className="space-y-4">
-                        <span className="inline-flex mb-1 rounded-full px-2.5 py-0.5 text-xs tracking-wide font-extrabold text-emerald-600 bg-gradient-to-br from-green-300/50 to-emerald-300/50 ring-1 ring-emerald-500/35">
-                            NEW!
+                        <span className="inline-flex mb-1 rounded-full px-2.5 py-0.5 text-xs tracking-wide font-extrabold text-white bg-gradient-to-br from-purple-300/50 to-purple-300/50 ring-1 ring-purple-500/35">
+                            POPULAR!
                         </span>
 
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0b1220]">
@@ -77,10 +92,18 @@ export function PopularCourses() {
                         </h2>
 
                         <p className="text-lg text-[#374151] max-w-2xl mb-10">
-                            Discover top curated courses loved by our students—practical, hands-on, and instructor led
+                            Discover top curated courses loved by our students practical, hands-on, and instructor led
                         </p>
 
-                        <CourseGrid cards={cards} onAddToCart={onAddToCart} />
+                        {loading ? (
+                            <div className="py-8">
+                                <div className="flex justify-center">
+                                    <Loading />
+                                </div>
+                            </div>
+                        ) : (
+                            <CourseGrid cards={courses} onAddToCart={onAddToCart} />
+                        )}
 
                         <div className="mt-6 mr-5 flex justify-end">
                             <LinkedButton
