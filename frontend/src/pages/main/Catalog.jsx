@@ -6,6 +6,7 @@ import Loading from "@/shared/components/navigation/Loading";
 import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
 import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
 import { useParams } from "react-router-dom";
+import CatalogHeader from "../../features/courseCatalog/ui/CatalogHeader";
 
 function Catalog() {
   const { catalogName } = useParams();
@@ -60,7 +61,7 @@ function Catalog() {
 
   return (
     <>
-      {/* Hero Section */}
+      <CatalogHeader />
       <div className=" box-content bg-richblack-800 px-4">
         <div className="mx-auto flex min-h-[260px] max-w-maxContentTab flex-col justify-center gap-4 lg:max-w-maxContent ">
           <p className="text-sm text-richblack-300">
@@ -78,26 +79,23 @@ function Catalog() {
         </div>
       </div>
 
-      {/* Section 1 */}
       <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
         <div className="section_heading">Courses to get you started</div>
         <div className="my-4 flex border-b border-b-richblack-600 text-sm">
           <p
-            className={`px-4 py-2 ${
-              active === 1
-                ? "border-b border-b-yellow-25 text-yellow-25"
-                : "text-richblack-50"
-            } cursor-pointer`}
+            className={`px-4 py-2 ${active === 1
+              ? "border-b border-b-yellow-25 text-yellow-25"
+              : "text-richblack-50"
+              } cursor-pointer`}
             onClick={() => setActive(1)}
           >
             Most Populer
           </p>
           <p
-            className={`px-4 py-2 ${
-              active === 2
-                ? "border-b border-b-yellow-25 text-yellow-25"
-                : "text-richblack-50"
-            } cursor-pointer`}
+            className={`px-4 py-2 ${active === 2
+              ? "border-b border-b-yellow-25 text-yellow-25"
+              : "text-richblack-50"
+              } cursor-pointer`}
             onClick={() => setActive(2)}
           >
             New
@@ -108,7 +106,6 @@ function Catalog() {
         </div>
       </div>
 
-      {/* Section 2 */}
       <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
         <div className="section_heading">
           Top courses in {catalogPageData?.differentCategory?.name}
@@ -120,7 +117,6 @@ function Catalog() {
         </div>
       </div>
 
-      {/* Section 3 */}
       <div className=" mx-auto box-content w-full max-w-maxContentTab px-4 py-12 lg:max-w-maxContent">
         <div className="section_heading">Frequently Bought</div>
         <div className="py-8">
