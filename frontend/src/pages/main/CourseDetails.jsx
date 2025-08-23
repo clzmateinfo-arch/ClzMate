@@ -231,6 +231,7 @@ function CourseDetails() {
                 sections={courseContent}
                 totalLectures={totalNoOfLectures}
                 className="mx-auto w-full"
+                tags={tag}
               />
             </div>
 
