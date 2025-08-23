@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LinkedButton } from "@/shared/components/ui/LinkButton";
-import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
+import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
 
@@ -84,7 +84,7 @@ export function PopularCourses() {
                 <div className="gap-x-8 xl:gap-x-16 items-center">
                     <div className="space-y-4">
                         <span className="inline-flex mb-1 rounded-full px-2.5 py-0.5 text-xs tracking-wide font-extrabold text-white bg-gradient-to-br from-purple-300/50 to-purple-300/50 ring-1 ring-purple-500/35">
-                            POPULAR!
+                            HOT!
                         </span>
 
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0b1220]">

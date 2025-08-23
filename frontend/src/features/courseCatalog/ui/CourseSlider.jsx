@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
+import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
 

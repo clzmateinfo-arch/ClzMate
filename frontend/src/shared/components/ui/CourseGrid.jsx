@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import CourseCard from "@/features/courseCatalog/ui/CourseCard";
+import CourseCard from "@/shared/components/ui/CourseCard";
 
 export default function CourseGrid({ cards = [], onAddToCart = () => { } }) {
     if (!cards || cards.length === 0) {

@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import CourseGrid from "@/features/courseCatalog/ui/CourseGrid";
 import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
 import CatalogHeader from "@/features/courseCatalog/ui/CatalogHeader";
 import CatalogSidebar from "@/features/courseCatalog/ui/CatalogSidebar";
