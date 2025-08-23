@@ -7,14 +7,14 @@ export default function AuthContent({ title, subtitle, children, maxWidth = "max
       <div className={`w-full ${maxWidth} flex mb-auto self-start mb-1`}>
         <Link
           to="/"
-          className="inline-flex items-center text-sm font-medium text-violet-500 hover:text-violet-700 transition-colors"
+          className="inline-flex items-center text-sm font-medium text-violet-500 hover:text-violet-700 transition-colors mt-4 ml-4 sm:mt-0"
         >
           <BiArrowBack className="mr-2" />
           Home
         </Link>
       </div>
 
-      <div className={`w-full ${maxWidth} mt-2 pb-5 mb-auto`}>
+      <div className={`w-[85%] ${maxWidth} mt-2 pb-5 mb-auto`}>
         {title && <h1 className="text-2xl md:text-3xl mb-4 text-navy">{title}</h1>}
         {subtitle && <p className="text-sm text-gray-600 mb-6">{subtitle}</p>}
         {children}

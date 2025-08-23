@@ -1,12 +1,34 @@
 import React from "react";
 import { Hero } from "@/features/portfolio/ui/Hero";
+import Features from "../../features/portfolio/ui/Features";
+import SpotlightCard from "../../features/portfolio/ui/SpotlightCard";
+import { Platforms } from "../../features/portfolio/ui/Platforms";
+import { AdvertisementLayout } from "../../features/portfolio/ui/AdvertisementLayout";
+
+const platforms = [
+  { name: "Phoenix", src: "/images/logo.png" },
+  { name: "SvelteKit", src: "/images/logo.png" },
+  { name: "Rails", src: "/images/logo.png" },
+  { name: "Docker", src: "/images/logo.png" },
+  { name: "Go", src: "/images/logo.png" },
+  { name: "Rust", src: "/images/logo.png" },
+  { name: "Django", src: "/images/logo.png" },
+  { name: "Laravel", src: "/images/logo.png" },
+  { name: "NextJS", src: "/images/logo.png" },
+];
 
 export default function Home() {
 
   return (
     <main className="bg-white text-[#0b1220]">
-      <section className="relative flex flex-col pt-[70px] mt-24 h-[720px] md:h-[820px] lg:h-[900px] pb-[200px] lg:pb-[268px] overflow-hidden">
-        <Hero />
+      <Hero />
+      <Features />
+      <SpotlightCard />
+      <section className="relative bg-white py-16 lg:py-24">
+        <AdvertisementLayout />
+      </section>
+      <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
+        <Platforms platforms={platforms} />
       </section>
     </main>
   );

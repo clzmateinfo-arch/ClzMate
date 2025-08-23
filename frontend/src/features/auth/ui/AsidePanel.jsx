@@ -20,12 +20,12 @@ export default function AsidePanel({
             <div className={`relative z-10 text-purple-900`}>
                 <blockquote className="text-2xl font-heading leading-tight">
                     {lines.map((l, i) => (
-                        <p className="leading-tight text-white" key={i}>
+                        <p className="leading-tight text-[#f9d8ff]" key={i}>
                             {l}
                         </p>
                     ))}
                     {cite && (
-                        <cite className="block not-italic text-xl mt-6 text-white">
+                        <cite className="block not-italic text-xl mt-6 text-[#f9d8ff]">
                             <span className="opacity-40">—</span>
                             {cite}
                         </cite>
