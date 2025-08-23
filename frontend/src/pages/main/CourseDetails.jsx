@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
 import Footer from "@/widgets/Footer/Footer";
@@ -17,6 +17,7 @@ import { addToCart } from "@/entities/cart/model/cartSlice";
 import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHeader";
 import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPanel";
 import CourseAuthorCard from "../../features/courseDetails/ui/CourseAuthorCard";
+import { BiArrowBack } from "react-icons/bi";
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile);
@@ -209,6 +210,15 @@ function CourseDetails() {
     <>
       <div className="relative w-full bg-[#ffffff] mt-15">
         <div className="mx-auto px-4 lg:px-8 max-w-[1260px] pt-8">
+          <div className={`w-full flex self-start mt-10 -ml-3`}>
+            <Link
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center text-sm font-medium text-violet-500 hover:text-violet-700 transition-colors mt-4 ml-4 sm:mt-0"
+            >
+              <BiArrowBack className="mr-2" />
+              Back
+            </Link>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-h-[420px] py-8 mr-5">
             <div className="lg:col-span-8">
               <CourseDetailsHeader
