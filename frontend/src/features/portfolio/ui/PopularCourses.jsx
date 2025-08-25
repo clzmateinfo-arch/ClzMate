@@ -11,10 +11,8 @@ export function PopularCourses() {
     async function loadPopular() {
         setLoading(true);
         try {
-            // Attempt server-side popular sort first (recommended)
             const res = await fetchCourses({ page: 1, limit: 3, sort: "popular" });
 
-            // Try to extract course array from common shapes
             const received =
                 res?.data?.data?.courses ??
                 res?.data?.data ??
@@ -24,9 +22,7 @@ export function PopularCourses() {
                 res?.items ??
                 [];
 
-            // If server returned 0 items for popular, fallback to fetch more and compute client-side
             if (!received || received.length === 0) {
-                // fetch a larger set and pick top 3 by studentsEnrolled length
                 const fallback = await fetchCourses({ page: 1, limit: 200 });
                 const all =
                     fallback?.data?.data?.courses ??
@@ -62,7 +58,6 @@ export function PopularCourses() {
 
     useEffect(() => {
         loadPopular();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     function onAddToCart(course) {
@@ -72,11 +67,15 @@ export function PopularCourses() {
     return (
         <section className="relative bg-white py-10 xl:py-10 overflow-visible">
             <div
-                className="rotate-3 absolute -inset-x-12 -top-6 h-12 bg-gradient-to-r from-sky-300 via-indigo-300 to-pink-300 blur-3xl opacity-60 pointer-events-none"
+                className="rotate-3 absolute -inset-x-12 -top-6 h-12 bg-gradient-to-l from-pink-200 via-sky-300 to-pink-300 blur-3xl opacity-60 pointer-events-none"
                 aria-hidden="true"
             />
             <div
-                className="-mt-[200px] absolute inset-0 bg-gradient-to-tr from-sky-300/10 via-indigo-300/10 to-pink-300/10 pointer-events-none"
+                className="-mt-40 rotate-3 absolute -inset-x-12 -top-6 h-12 bg-gradient-to-l from-pink-200 via-sky-300 to-pink-300 blur-3xl opacity-60 pointer-events-none"
+                aria-hidden="true"
+            />
+            <div
+                className="-mt-[200px] absolute inset-0 bg-gradient-to-tb from-sky-300/10 via-indigo-300/10 to-pink-300/10 pointer-events-none"
                 aria-hidden="true"
             />
 

@@ -16,8 +16,8 @@ import { fadeIn } from "@/shared/utils/motionFrameVarients";
 
 const About = () => {
   return (
-    <div>
-      <section className="bg-richblack-700">
+    <div className="h-[500px]">
+      {/* <section className="bg-richblack-700">
         <div className="relative mx-auto flex w-11/12 max-w-maxContent flex-col justify-between gap-10 text-center text-white">
           <motion.header className="mx-auto py-20 text-4xl font-semibold lg:w-[70%]">
             <motion.p
@@ -146,7 +146,6 @@ const About = () => {
         <ContactFormSection />
       </section>
 
-      {/* Reviws from Other Learner */}
       <div className=" my-20 px-5 text-white ">
         <h1 className="text-center text-4xl font-semibold mt-8">
           Reviews from other learners
@@ -154,8 +153,7 @@ const About = () => {
         <ReviewSlider />
       </div>
 
-      {/* footer */}
-      <Footer />
+      <Footer /> */}
     </div>
   );
 };

@@ -22,7 +22,7 @@ export default function CourseDetailsHeader({
 
   return (
     <header className="mb-6">
-      <div className="bg-white rounded-2xl border border-[#efe7ff] shadow-md p-6 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#efe7ff] shadow-md p-6 overflow-hidden hover:shadow-2xl overflow-hiddens">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           {/* Left: Title + Description + meta */}
           <div className="md:col-span-8">
