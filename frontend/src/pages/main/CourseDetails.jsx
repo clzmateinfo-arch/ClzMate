@@ -18,6 +18,7 @@ import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHe
 import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPanel";
 import CourseAuthorCard from "../../features/courseDetails/ui/CourseAuthorCard";
 import { BiArrowBack } from "react-icons/bi";
+import NewCourses from "../../features/portfolio/ui/NewCourses";
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile);
@@ -246,6 +247,9 @@ function CourseDetails() {
                 <CourseAuthorCard instructor={instructor} />
               </div>
             </aside>
+          </div>
+          <div className="gap-8 items-start min-h-[420px] py-8 mr-5">
+            <NewCourses />
           </div>
         </div>
       </div>

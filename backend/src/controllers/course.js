@@ -165,6 +165,71 @@ exports.getAllCourses = async (req, res) => {
         else if (sort === "price_asc") sortOption = { price: 1 };
         else if (sort === "price_desc") sortOption = { price: -1 };
 
+        if (sort === "popular" || sort === "students_desc" || sort === "students_asc") {
+            const direction = sort === "students_asc" ? 1 : -1;
+
+            const pipeline = [
+                { $match: match },
+                {
+                    $addFields: {
+                        enrolledCount: {
+                            $cond: {
+                                if: { $isArray: "$studentsEnrolled" },
+                                then: { $size: "$studentsEnrolled" },
+                                else: { $ifNull: ["$studentsEnrolled", 0] }
+                            }
+                        }
+                    }
+                },
+                { $sort: { enrolledCount: direction, createdAt: -1 } },
+                { $skip: skip },
+                { $limit: lim },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "instructor",
+                        foreignField: "_id",
+                        as: "instructor"
+                    }
+                },
+                { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+                {
+                    $project: {
+                        courseName: 1,
+                        courseDescription: 1,
+                        price: 1,
+                        thumbnail: 1,
+                        instructor: {
+                            firstName: "$instructor.firstName",
+                            lastName: "$instructor.lastName",
+                            email: "$instructor.email",
+                            image: "$instructor.image"
+                        },
+                        ratingAndReviews: 1,
+                        studentsEnrolled: 1,
+                        level: 1,
+                        category: 1,
+                        createdAt: 1,
+                        enrolledCount: 1
+                    }
+                }
+            ];
+
+            const courses = await Course.aggregate(pipeline).exec();
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    courses,
+                    total,
+                    page: pageNum,
+                    limit: lim,
+                    totalPages: Math.ceil(total / lim),
+                },
+                message: "Data for courses fetched successfully",
+            });
+        }
+
         const courses = await Course.find(match, {
             courseName: 1,
             courseDescription: 1,
@@ -206,7 +271,6 @@ exports.getAllCourses = async (req, res) => {
         });
     }
 };
-
 
 exports.getCourseDetails = async (req, res) => {
     try {
@@ -449,7 +513,6 @@ exports.editCourse = async (req, res) => {
         });
     }
 };
-
 
 exports.getInstructorCourses = async (req, res) => {
     try {
