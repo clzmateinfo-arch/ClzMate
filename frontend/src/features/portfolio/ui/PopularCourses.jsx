@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LinkedButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
-import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
+import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
 
 export function PopularCourses() {
     const [courses, setCourses] = useState([]);
@@ -11,7 +11,7 @@ export function PopularCourses() {
     async function loadPopular() {
         setLoading(true);
         try {
-            const res = await fetchCourses({ page: 1, limit: 3, sort: "popular" });
+            const res = await getAllCourses({ page: 1, limit: 3, filters: { sort: "popular" } });
 
             const received =
                 res?.data?.data?.courses ??
@@ -23,7 +23,7 @@ export function PopularCourses() {
                 [];
 
             if (!received || received.length === 0) {
-                const fallback = await fetchCourses({ page: 1, limit: 200 });
+                const fallback = await getAllCourses({ page: 1, limit: 200 });
                 const all =
                     fallback?.data?.data?.courses ??
                     fallback?.data?.data ??

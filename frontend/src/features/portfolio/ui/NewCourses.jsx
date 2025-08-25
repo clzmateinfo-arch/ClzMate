@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { LinkedButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
-import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
+import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
 
 export function NewCourses() {
     const [courses, setCourses] = useState([]);
@@ -11,7 +11,7 @@ export function NewCourses() {
     async function loadPopular() {
         setLoading(true);
         try {
-            const res = await fetchCourses({ page: 1, limit: 3, sort: "" });
+            const res = await getAllCourses({ page: 1, limit: 3, sort: "" });
 
             const received =
                 res?.data?.data?.courses ??
@@ -23,7 +23,7 @@ export function NewCourses() {
                 [];
 
             if (!received || received.length === 0) {
-                const fallback = await fetchCourses({ page: 1, limit: 200 });
+                const fallback = await getAllCourses({ page: 1, limit: 200 });
                 const all =
                     fallback?.data?.data?.courses ??
                     fallback?.data?.data ??
@@ -66,19 +66,6 @@ export function NewCourses() {
 
     return (
         <section className="relative bg-white py-10 xl:py-10 overflow-visible">
-            <div
-                className="rotate-3 absolute -inset-x-12 -top-6 h-12 bg-gradient-to-l from-pink-200 via-sky-300 to-pink-300 blur-3xl opacity-60 pointer-events-none"
-                aria-hidden="true"
-            />
-            <div
-                className="-mt-40 rotate-3 absolute -inset-x-12 -top-6 h-12 bg-gradient-to-l from-pink-200 via-sky-300 to-pink-300 blur-3xl opacity-60 pointer-events-none"
-                aria-hidden="true"
-            />
-            <div
-                className="-mt-[200px] absolute inset-0 bg-gradient-to-tb from-sky-300/10 via-indigo-300/10 to-pink-300/10 pointer-events-none"
-                aria-hidden="true"
-            />
-
             <div className="mt-20 relative container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="gap-x-8 xl:gap-x-16 items-center">
                     <div className="space-y-4">

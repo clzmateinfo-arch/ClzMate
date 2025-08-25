@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
-import { fetchCourses } from "@/entities/course/model/courseDetailsAPI";
+import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
 
 export default function CourseSlider({
   categoryId,
@@ -41,7 +41,7 @@ export default function CourseSlider({
       if (!categoryId) return;
       setLoading(true);
       try {
-        const res = await fetchCourses({
+        const res = await getAllCourses({
           categoryId,
           page,
           limit: pageSize,

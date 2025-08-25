@@ -61,31 +61,9 @@ export const {
 
 export default viewCourseSlice.reducer;
 
-/* -------------------------
-   API functions
-   ------------------------- */
 
-export const getAllCourses = async () => {
-  const toastId = toast.loading("Loading...");
-  let result = [];
-
-  try {
-    const response = await apiConnector("GET", GET_ALL_COURSE_API);
-    if (!response?.data?.success) {
-      throw new Error("Could Not Fetch Course Categories");
-    }
-    result = response?.data?.data;
-  } catch (error) {
-    console.log("GET_ALL_COURSE_API API ERROR............", error);
-    toast.error(error.message);
-  }
-  toast.dismiss(toastId);
-  return result;
-};
-
-
-export const fetchCourses = async ({
-  categoryId,
+export const getAllCourses = async ({
+  categoryId = "",
   page = 1,
   limit = 12,
   search = "",
@@ -98,6 +76,7 @@ export const fetchCourses = async ({
   filters?: Record<string, any>;
 } = {}) => {
   const toastId = toast.loading("Loading...");
+  console.log("filter for API: ", filters);
   let result: { data: any[]; total: number; success: boolean } = {
     data: [],
     total: 0,
@@ -443,7 +422,7 @@ export const getFullDetailsOfCourse = async (courseId, token) => {
 };
 
 export const markLectureAsComplete = async (data, token) => {
-  let result = null;
+  let result = false;
   const toastId = toast.loading("Loading...");
   try {
     const response = await apiConnector("POST", LECTURE_COMPLETION_API, data, {

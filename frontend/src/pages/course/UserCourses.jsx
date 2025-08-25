@@ -13,7 +13,7 @@ export default function UserCourses() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const getAllCourses = async () => {
       setLoading(true);
       const result = await fetchInstructorCourses(token);
       setLoading(false);
@@ -21,7 +21,7 @@ export default function UserCourses() {
         setCourses(result);
       }
     };
-    fetchCourses();
+    getAllCourses();
   }, []);
 
   useEffect(() => {
