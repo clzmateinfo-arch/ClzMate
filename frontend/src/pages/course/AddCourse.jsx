@@ -19,7 +19,7 @@ export default function AddCourse() {
       </div>
 
       {/* Course Upload Tips */}
-      <div className="sticky top-10 hidden lg:block max-w-[400px] flex-1 rounded-md border-[1px] border-richblack-700  p-6 ">
+      <div className="sticky top-10 hidden lg:block max-w-[400px] flex-1 rounded-md border-[1px] border-black  p-6 ">
         <p className="mb-8 text-lg text-black">⚡ Course Upload Tips</p>
 
         <ul className="ml-5 list-item list-disc space-y-4 text-xs text-black">

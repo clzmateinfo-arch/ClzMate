@@ -39,7 +39,7 @@ export default function Instructor() {
   const skItem = () => {
     return (
       <div className="mt-5 w-full flex flex-col justify-between  rounded-xl ">
-        <div className="flex border p-4 border-richblack-600 ">
+        <div className="flex border p-4 border-black ">
           <div className="w-full">
             <p className="w-[100px] h-4 rounded-xl skeleton"></p>
             <div className="mt-3 flex gap-x-5">
@@ -86,7 +86,7 @@ export default function Instructor() {
         <h1 className="text-2xl font-bold text-black text-center sm:text-left">
           Hii {user?.firstName} 👋
         </h1>
-        <p className="font-medium text-richblack-200 text-center sm:text-left">
+        <p className="font-medium text-black text-center sm:text-left">
           Let's start something new
         </p>
       </div>
@@ -102,7 +102,7 @@ export default function Instructor() {
             ) : (
               <div className="flex-1 rounded-md  p-6">
                 <p className="text-lg font-bold text-black">Visualize</p>
-                <p className="mt-4 text-xl font-medium text-richblack-50">
+                <p className="mt-4 text-xl font-medium text-black">
                   Not Enough Data To Visualize
                 </p>
               </div>
@@ -114,20 +114,20 @@ export default function Instructor() {
               <p className="text-lg font-bold text-black">Statistics</p>
               <div className="mt-4 space-y-4">
                 <div>
-                  <p className="text-lg text-richblack-200">Total Courses</p>
-                  <p className="text-3xl font-semibold text-richblack-50">
+                  <p className="text-lg text-black">Total Courses</p>
+                  <p className="text-3xl font-semibold text-black">
                     {courses.length}
                   </p>
                 </div>
                 <div>
-                  <p className="text-lg text-richblack-200">Total Students</p>
-                  <p className="text-3xl font-semibold text-richblack-50">
+                  <p className="text-lg text-black">Total Students</p>
+                  <p className="text-3xl font-semibold text-black">
                     {totalStudents}
                   </p>
                 </div>
                 <div>
-                  <p className="text-lg text-richblack-200">Total Income</p>
-                  <p className="text-3xl font-semibold text-richblack-50">
+                  <p className="text-lg text-black">Total Income</p>
+                  <p className="text-3xl font-semibold text-black">
                     Rs. {totalAmount}
                   </p>
                 </div>
@@ -159,17 +159,17 @@ export default function Instructor() {
                   />
 
                   <div className="mt-3 w-full">
-                    <p className="text-sm font-medium text-richblack-50">
+                    <p className="text-sm font-medium text-black">
                       {course.courseName}
                     </p>
                     <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-xs font-medium text-richblack-300">
+                      <p className="text-xs font-medium text-black">
                         {course.studentsEnrolled.length} students
                       </p>
-                      <p className="text-xs font-medium text-richblack-300">
+                      <p className="text-xs font-medium text-black">
                         |
                       </p>
-                      <p className="text-xs font-medium text-richblack-300">
+                      <p className="text-xs font-medium text-black">
                         Rs. {course.price}
                       </p>
                     </div>

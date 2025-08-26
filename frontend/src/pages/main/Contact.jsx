@@ -7,7 +7,7 @@ import PageHeader from "@/shared/components/ui/PageHeader";
 
 const Contact = () => {
   return (
-    <div className="min-h-screen bg-richblack-900 text-white">
+    <div className="min-h-screen text-white">
       <PageHeader
         title="Contact Us"
         subtitle="We are always ready to assist you"

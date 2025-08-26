@@ -93,7 +93,7 @@ export default function CourseBuilderForm() {
   };
 
   return (
-    <div className="space-y-8 rounded-2xl border-[1px] border-richblack-700  p-6">
+    <div className="space-y-8 rounded-2xl border-[1px] border-black  p-6">
       <p className="text-2xl font-semibold text-black">Course Builder</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -131,7 +131,7 @@ export default function CourseBuilderForm() {
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-sm text-richblack-300 underline"
+              className="text-sm text-black underline"
             >
               Cancel Edit
             </button>
@@ -148,7 +148,7 @@ export default function CourseBuilderForm() {
       <div className="flex justify-end gap-x-3">
         <button
           onClick={goBack}
-          className={`rounded-md  py-[8px] px-[20px] font-semibold text-richblack-900`}
+          className={`rounded-md  py-[8px] px-[20px] font-semibold text-black`}
         >
           Back
         </button>

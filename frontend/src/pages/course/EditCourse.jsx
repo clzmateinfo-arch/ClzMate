@@ -46,7 +46,7 @@ export default function EditCourse() {
             {course ? (
               <RenderSteps />
             ) : (
-              <p className="mt-14 text-center text-3xl font-semibold text-richblack-100">
+              <p className="mt-14 text-center text-3xl font-semibold text-black">
                 Course not found
               </p>
             )}

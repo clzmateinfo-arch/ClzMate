@@ -13,7 +13,7 @@ export default function Tab({ tabData, field, setField }) {
                     onClick={() => setField(tab.type)}
                     className={`${field === tab.type
                         ? " text-black"
-                        : "bg-transparent text-richblack-200"
+                        : "bg-transparent text-black"
                         } py-2 px-5 rounded-full transition-all duration-200`}
                 >
                     {tab?.tabName}

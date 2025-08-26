@@ -26,7 +26,7 @@ export default function EnrolledCourses() {
 
   const sklItem = () => {
     return (
-      <div className="flex border border-richblack-700 px-5 py-3 w-full">
+      <div className="flex border border-black px-5 py-3 w-full">
         <div className="flex flex-1 gap-x-4 ">
           <div className="h-14 w-14 rounded-lg skeleton "></div>
 
@@ -80,7 +80,7 @@ export default function EnrolledCourses() {
           {/* Course Names */}
           {enrolledCourses?.map((course, i, arr) => (
             <div
-              className={`flex flex-col sm:flex-row sm:items-center border border-richblack-700 ${i === arr.length - 1 ? "rounded-b-2xl" : "rounded-none"
+              className={`flex flex-col sm:flex-row sm:items-center border border-black ${i === arr.length - 1 ? "rounded-b-2xl" : "rounded-none"
                 }`}
               key={i}
             >
@@ -100,7 +100,7 @@ export default function EnrolledCourses() {
 
                 <div className="flex max-w-xs flex-col gap-2">
                   <p className="font-semibold">{course.courseName}</p>
-                  <p className="text-xs text-richblack-300">
+                  <p className="text-xs text-black">
                     {course.courseDescription.length > 50
                       ? `${course.courseDescription.slice(0, 50)}...`
                       : course.courseDescription}

@@ -58,11 +58,11 @@ export default function NestedView({ handleChangeEditSectionName }) {
           // Section Dropdown
           <details key={section._id} open>
             {/* Section Dropdown Content */}
-            <summary className="flex cursor-pointer items-center justify-between border-b-2 border-b-richblack-600 py-2">
+            <summary className="flex cursor-pointer items-center justify-between border-b-2 border-b-black py-2">
               {/* sectionName */}
               <div className="flex items-center gap-x-3">
-                <RxDropdownMenu className="text-2xl text-richblack-50" />
-                <p className="font-semibold text-richblack-50">
+                <RxDropdownMenu className="text-2xl text-black" />
+                <p className="font-semibold text-black">
                   {section.sectionName}
                 </p>
               </div>
@@ -77,7 +77,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
                     )
                   }
                 >
-                  <MdEdit className="text-xl text-richblack-300" />
+                  <MdEdit className="text-xl text-black" />
                 </button>
 
                 <button
@@ -92,11 +92,11 @@ export default function NestedView({ handleChangeEditSectionName }) {
                     })
                   }
                 >
-                  <RiDeleteBin6Line className="text-xl text-richblack-300" />
+                  <RiDeleteBin6Line className="text-xl text-black" />
                 </button>
 
-                <span className="font-medium text-richblack-300">|</span>
-                <AiFillCaretDown className={`text-xl text-richblack-300`} />
+                <span className="font-medium text-black">|</span>
+                <AiFillCaretDown className={`text-xl text-black`} />
               </div>
             </summary>
             <div className="px-6 pb-4">
@@ -105,11 +105,11 @@ export default function NestedView({ handleChangeEditSectionName }) {
                 <div
                   key={data?._id}
                   onClick={() => setViewSubSection(data)}
-                  className="flex cursor-pointer items-center justify-between gap-x-3 border-b-2 border-b-richblack-600 py-2"
+                  className="flex cursor-pointer items-center justify-between gap-x-3 border-b-2 border-b-black py-2"
                 >
                   <div className="flex items-center gap-x-3 py-2 ">
-                    <RxDropdownMenu className="text-2xl text-richblack-50" />
-                    <p className="font-semibold text-richblack-50">
+                    <RxDropdownMenu className="text-2xl text-black" />
+                    <p className="font-semibold text-black">
                       {data.title}
                     </p>
                   </div>
@@ -122,7 +122,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
                         setEditSubSection({ ...data, sectionId: section._id })
                       }
                     >
-                      <MdEdit className="text-xl text-richblack-300" />
+                      <MdEdit className="text-xl text-black" />
                     </button>
                     <button
                       onClick={() =>
@@ -137,7 +137,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
                         })
                       }
                     >
-                      <RiDeleteBin6Line className="text-xl text-richblack-300" />
+                      <RiDeleteBin6Line className="text-xl text-black" />
                     </button>
                   </div>
                 </div>

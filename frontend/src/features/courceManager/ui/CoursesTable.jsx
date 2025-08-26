@@ -45,7 +45,7 @@ export default function CoursesTable({
 
   const skItem = () => {
     return (
-      <div className="flex border-b border-richblack-800 px-6 py-8 w-full">
+      <div className="flex border-b border-black px-6 py-8 w-full">
         <div className="flex flex-1 gap-x-4 ">
           <div className="h-[148px] min-w-[300px] rounded-xl skeleton "></div>
 
@@ -63,20 +63,20 @@ export default function CoursesTable({
 
   return (
     <>
-      <Table className="rounded-2xl border border-richblack-800 ">
+      <Table className="rounded-2xl border border-black ">
         {/* heading */}
         <Thead>
-          <Tr className="flex gap-x-10 rounded-t-3xl border-b border-b-richblack-800 px-6 py-2">
-            <Th className="flex-1 text-left text-sm font-medium uppercase text-richblack-100">
+          <Tr className="flex gap-x-10 rounded-t-3xl border-b border-b-black px-6 py-2">
+            <Th className="flex-1 text-left text-sm font-medium uppercase text-black">
               Courses
             </Th>
-            <Th className="text-left text-sm font-medium uppercase text-richblack-100">
+            <Th className="text-left text-sm font-medium uppercase text-black">
               Duration
             </Th>
-            <Th className="text-left text-sm font-medium uppercase text-richblack-100">
+            <Th className="text-left text-sm font-medium uppercase text-black">
               Price
             </Th>
-            <Th className="text-left text-sm font-medium uppercase text-richblack-100">
+            <Th className="text-left text-sm font-medium uppercase text-black">
               Actions
             </Th>
           </Tr>
@@ -94,7 +94,7 @@ export default function CoursesTable({
         <Tbody>
           {!loading && courses?.length === 0 ? (
             <Tr>
-              <Td className="py-10 text-center text-2xl font-medium text-richblack-100">
+              <Td className="py-10 text-center text-2xl font-medium text-black">
                 No courses found
               </Td>
             </Tr>
@@ -102,7 +102,7 @@ export default function CoursesTable({
             courses?.map((course) => (
               <Tr
                 key={course._id}
-                className="flex gap-x-10 border-b border-richblack-800 px-6 py-8"
+                className="flex gap-x-10 border-b border-black px-6 py-8"
               >
                 <Td className="flex flex-1 gap-x-4 relative">
                   {/* course Thumbnail */}
@@ -116,7 +116,7 @@ export default function CoursesTable({
                     <p className="text-lg font-semibold text-black capitalize">
                       {course.courseName}
                     </p>
-                    <p className="text-xs text-richblack-300 ">
+                    <p className="text-xs text-black ">
                       {course.courseDescription.split(" ").length >
                       TRUNCATE_LENGTH
                         ? course.courseDescription
@@ -127,12 +127,12 @@ export default function CoursesTable({
                     </p>
 
                     {/* created At */}
-                    <p className="text-[12px] text-richblack-100 mt-4">
+                    <p className="text-[12px] text-black mt-4">
                       Created: {formatDate(course?.createdAt)}
                     </p>
 
                     {/* updated At */}
-                    <p className="text-[12px] text-richblack-100 ">
+                    <p className="text-[12px] text-black ">
                       updated: {formatDate(course?.updatedAt)}
                     </p>
 
@@ -144,7 +144,7 @@ export default function CoursesTable({
                       </p>
                     ) : (
                       <div className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full  px-2 py-[2px] text-[12px] font-medium text-yellow-100">
-                        <p className="flex h-3 w-3 items-center justify-center rounded-full bg-yellow-100 text-richblack-700">
+                        <p className="flex h-3 w-3 items-center justify-center rounded-full bg-yellow-100 text-black">
                           <FaCheck size={8} />
                         </p>
                         Published
@@ -154,14 +154,14 @@ export default function CoursesTable({
                 </Td>
 
                 {/* course duration */}
-                <Td className="text-sm font-medium text-richblack-100">
+                <Td className="text-sm font-medium text-black">
                   2hr 30min
                 </Td>
-                <Td className="text-sm font-medium text-richblack-100">
+                <Td className="text-sm font-medium text-black">
                   ₹{course.price}
                 </Td>
 
-                <Td className="text-sm font-medium text-richblack-100 ">
+                <Td className="text-sm font-medium text-black ">
                   {/* Edit button */}
                   <button
                     disabled={loading}

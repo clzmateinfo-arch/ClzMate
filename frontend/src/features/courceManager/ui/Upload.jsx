@@ -51,7 +51,7 @@ export default function Upload({ name, label, register, setValue, errors, video 
 
       <div
         className={`${isDragActive ? "" : ""}
-         flex min-h-[250px] cursor-pointer items-center justify-center rounded-md border-2 border-dotted border-richblack-500`}
+         flex min-h-[250px] cursor-pointer items-center justify-center rounded-md border-2 border-dotted border-black`}
       >
         {previewSource ? (
           <div className="flex w-full flex-col p-6">
@@ -73,7 +73,7 @@ export default function Upload({ name, label, register, setValue, errors, video 
                   setSelectedFile(null)
                   setValue(name, null)
                 }}
-                className="mt-3 text-richblack-400 underline"
+                className="mt-3 text-black underline"
               >
                 Cancel
               </button>
@@ -88,12 +88,12 @@ export default function Upload({ name, label, register, setValue, errors, video 
             <div className="grid aspect-square w-14 place-items-center rounded-full bg-pure-greys-800">
               <FiUploadCloud className="text-2xl text-yellow-50" />
             </div>
-            <p className="mt-2 max-w-[200px] text-center text-sm text-richblack-200">
+            <p className="mt-2 max-w-[200px] text-center text-sm text-black">
               Drag and drop an {!video ? "image" : "video"}, or click to{" "}
               <span className="font-semibold text-yellow-50">Browse</span> a
               file
             </p>
-            <ul className="mt-10 flex list-disc justify-between space-x-12 text-center  text-xs text-richblack-200">
+            <ul className="mt-10 flex list-disc justify-between space-x-12 text-center  text-xs text-black">
               <li>Aspect ratio 16:9</li>
               <li>Recommended size 1024x576</li>
             </ul>

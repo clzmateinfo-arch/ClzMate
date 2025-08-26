@@ -19,7 +19,7 @@ const contactDetails = [
 
 const ContactDetails = () => {
   return (
-    <div className="flex flex-col gap-6 rounded-2xl  p-6 lg:p-8 border border-richblack-700">
+    <div className="flex flex-col gap-6 rounded-2xl  p-6 lg:p-8 border border-black">
       {contactDetails.map((ele, i) => {
         let Icon = Icon1[ele.icon] || Icon2[ele.icon] || Icon3[ele.icon];
         return (
@@ -34,7 +34,7 @@ const ContactDetails = () => {
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold text-white">{ele.heading}</h3>
               </div>
-              <p className="mt-1 text-sm text-richblack-300">{ele.description}</p>
+              <p className="mt-1 text-sm text-black">{ele.description}</p>
               <p className="mt-1 text-sm font-medium text-white">{ele.details}</p>
             </div>
           </div>

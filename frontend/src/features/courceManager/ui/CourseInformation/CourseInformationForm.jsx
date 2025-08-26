@@ -145,7 +145,7 @@ export default function CourseInformationForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-8 rounded-md border-[1px] border-richblack-700  p-6 "
+      className="space-y-8 rounded-md border-[1px] border-black  p-6 "
     >
       {/* Course Title */}
       <div className="flex flex-col space-y-2">
@@ -201,7 +201,7 @@ export default function CourseInformationForm() {
             })}
             className="form-style w-full !pl-12"
           />
-          <HiOutlineCurrencyRupee className="absolute left-3 top-1/2 inline-block -translate-y-1/2 text-2xl text-richblack-400" />
+          <HiOutlineCurrencyRupee className="absolute left-3 top-1/2 inline-block -translate-y-1/2 text-2xl text-black" />
         </div>
         {errors.coursePrice && (
           <span className="ml-2 text-xs tracking-wide text-pink-200">
@@ -292,7 +292,7 @@ export default function CourseInformationForm() {
             onClick={() => dispatch(setStep(2))}
             disabled={loading}
             className={`flex cursor-pointer items-center gap-x-2 rounded-md py-[8px] px-[20px] font-semibold
-              text-richblack-900  hover: hover:text-richblack-300 duration-300`}
+              text-black  hover: hover:text-black duration-300`}
           >
             Continue Wihout Saving
           </button>

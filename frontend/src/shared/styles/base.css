@@ -96,7 +96,7 @@ body {
       var(--color-caribbeangreen-100) 50.44%,
       var(--color-caribbeangreen-25) 104.51%
     ),
-    linear-gradient(0deg, var(--color-richblack-5), var(--color-richblack-5));
+    linear-gradient(0deg, var(--color-black), var(--color-black));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -106,21 +106,21 @@ body {
 /* Firefox */
 * {
   scrollbar-width: auto;
-  scrollbar-color: var(--color-richblack-100) var(--color-richblack-900);
+  scrollbar-color: var(--color-black) var(--color-black);
 }
 
 
 *::-webkit-scrollbar-track {
-  background: var(--color-richblack-900);
+  background: var(--color-black);
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: var(--color-richblack-100);
+  background-color: var(--color-black);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-richblack-300);
+  background-color: var(--color-black);
 }
 
 /* loading spinner */
@@ -141,22 +141,22 @@ body {
 
 .lable-style {
   @apply text-[14px];
-  color: var(--color-richblack-5);
+  color: var(--color-black);
 }
 
 .form-style {
   border-radius: 0.5rem;
-  background-color: var(--color-richblack-700);
+  background-color: var(--color-black);
   padding: 0.75rem;
   font-size: 16px;
   line-height: 24px;
-  color: var(--color-richblack-5);
+  color: var(--color-black);
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
 .section_heading {
   @apply text-2xl font-bold lg:text-4xl;
-  color: var(--color-richblack-5);
+  color: var(--color-black);
 }
 
 /* Buttons */
@@ -166,7 +166,7 @@ body {
   background-color: var(--color-yellow-50);
   padding: 8px 20px;
   font-weight: 600;
-  color: var(--color-richblack-900);
+  color: var(--color-black);
   transition: 0.3s;
 }
 
@@ -178,23 +178,23 @@ body {
 .blackButton {
   cursor: pointer;
   border-radius: 0.375rem;
-  background-color: var(--color-richblack-800);
+  background-color: var(--color-black);
   padding: 8px 20px;
   font-weight: 600;
-  color: var(--color-richblack-5);
+  color: var(--color-black);
   transition: 0.3s;
 }
 
 .blackButton:hover {
-  background-color: var(--color-richblack-5);
-  color: var(--color-richblack-800);
+  background-color: var(--color-black);
+  color: var(--color-black);
 }
 
 /* Loading skeleton */
 .skeleton {
   position: relative;
   overflow: hidden;
-  background-color: var(--color-richblack-700);
+  background-color: var(--color-black);
 }
 
 .skeleton::after {
@@ -226,7 +226,7 @@ body {
 }
 
 .show {
-  background-color: var(--color-richblack-900);
+  background-color: var(--color-black);
 }
 
 .hide {
@@ -298,7 +298,7 @@ body {
   background: linear-gradient(
     180deg,
     rgba(4, 21, 45, 0) 0%,
-    var(--color-richblack-900) 79.17%
+    var(--color-black) 79.17%
   );
 }
 

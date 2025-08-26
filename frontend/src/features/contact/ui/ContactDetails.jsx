@@ -47,7 +47,7 @@ const ContactDetails = () => {
     <aside className="space-y-8 text-black">
       {/* <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
         <h3 className="text-xl font-semibold mb-2 text-black">Get in Touch</h3>
-        <p className="text-sm text-richblack-300">
+        <p className="text-sm text-black">
           Whether you’ve got questions, feedback, or just want to say hi — we’re here for you.
           Expect replies within 24 hours on business days.
         </p>
@@ -84,7 +84,7 @@ const ContactDetails = () => {
                 >
                   {ele.heading}
                 </h4>
-                <p className="text-sm text-richblack-300 mt-1">{ele.description}</p>
+                <p className="text-sm text-black mt-1">{ele.description}</p>
                 <a
                   href={ele.href}
                   className="mt-2 inline-block text-sm font-medium text-navy-300 underline underline-offset-2 decoration-navy-300/30 hover:text-violet-500 transition truncate"
@@ -99,7 +99,7 @@ const ContactDetails = () => {
 
       <div className="rounded-2xl p-6 mt-3 bg-white/4 border border-white/10 shadow-sm">
         <h4 className="text-lg font-semibold text-black mb-3">Follow us</h4>
-        <p className="text-sm text-richblack-300 mb-4">
+        <p className="text-sm text-black mb-4">
           Stay connected for updates, tips, and events.
         </p>
         <div className="flex flex-wrap gap-4">
@@ -122,7 +122,7 @@ const ContactDetails = () => {
 
       <div className="rounded-2xl p-5 mt-3 bg-gradient-to-r from-[#ba7bf0]/10 to-[#996bec]/10 border border-[#efe7ff] shadow-sm">
         <h4 className="text-base font-semibold text-black mb-2">Partnerships & Press</h4>
-        <p className="text-sm text-richblack-300">
+        <p className="text-sm text-black">
           For collaboration, sponsorship, or press inquiries, email{" "}
           <a
             href="mailto:partnerships@clzmate.com"

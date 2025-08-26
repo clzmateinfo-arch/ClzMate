@@ -37,12 +37,12 @@ export default function RenderSteps() {
                 className={`grid  aspect-square w-[34px] place-items-center rounded-full border-[1px] 
                     ${step === item.id
                     ? "border-yellow-50 bg-yellow-900 text-yellow-50"
-                    : "border-richblack-700  text-richblack-300"
+                    : "border-black  text-black"
                   }
                     ${step > item.id && "bg-yellow-50 text-yellow-50"}} `}
               >
                 {step > item.id ? (
-                  <FaCheck className="font-bold text-richblack-900" />
+                  <FaCheck className="font-bold text-black" />
                 ) : (
                   item.id
                 )}
@@ -52,7 +52,7 @@ export default function RenderSteps() {
             {/* dashes  */}
             {item.id !== steps.length && (
               <div
-                className={`h-[calc(34px/2)] w-[33%] border-dashed border-b-2 ${step > item.id ? "border-yellow-50" : "border-richblack-500"
+                className={`h-[calc(34px/2)] w-[33%] border-dashed border-b-2 ${step > item.id ? "border-yellow-50" : "border-black"
                   } `}
               ></div>
             )}
@@ -68,7 +68,7 @@ export default function RenderSteps() {
             key={item.id}
           >
             <p
-              className={`text-sm ${step >= item.id ? "text-black" : "text-richblack-500"
+              className={`text-sm ${step >= item.id ? "text-black" : "text-black"
                 }`}
             >
               {item.title}

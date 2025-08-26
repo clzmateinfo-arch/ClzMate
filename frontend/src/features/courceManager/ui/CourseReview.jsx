@@ -43,7 +43,7 @@ export default function CourseReview({ setReviewModal }) {
 
   return (
     <div className="fixed inset-0 z-[1000] !mt-0 grid h-screen w-screen place-items-center overflow-auto bg-white bg-opacity-10 backdrop-blur-sm">
-      <div className="my-10 w-11/12 max-w-[700px] rounded-lg border border-richblack-400 ">
+      <div className="my-10 w-11/12 max-w-[700px] rounded-lg border border-black ">
         {/* Modal Header */}
         <div className="flex items-center justify-between rounded-t-lg  p-5">
           <p className="text-xl font-semibold text-black">Add Review</p>
@@ -103,7 +103,7 @@ export default function CourseReview({ setReviewModal }) {
               <button
                 onClick={() => setReviewModal(false)}
                 className={`flex cursor-pointer items-center gap-x-2 rounded-md  py-[8px] px-[20px] font-semibold
-                           text-richblack-900 hover: hover:text-richblack-300 duration-300`}
+                           text-black hover: hover:text-black duration-300`}
               >
                 Cancel
               </button>

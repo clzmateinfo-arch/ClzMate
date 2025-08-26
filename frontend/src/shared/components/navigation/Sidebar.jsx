@@ -61,7 +61,7 @@ export default function Sidebar() {
 
   if (profileLoading || authLoading) {
     return (
-      <div className="grid h-[calc(100vh-3.5rem)] min-w-[64px] items-center  border-r border-r-richblack-700">
+      <div className="grid h-[calc(100vh-3.5rem)] min-w-[64px] items-center  border-r border-r-black">
         <Loading />
       </div>
     );
