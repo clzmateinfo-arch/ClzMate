@@ -60,7 +60,7 @@ export default function Instructor() {
         {/* bottom row */}
         <div className="flex flex-col gap-y-6  mt-5">
           <div className="flex justify-between">
-            <p className="text-lg font-bold text-richblack-5 pl-5">
+            <p className="text-lg font-bold text-black pl-5">
               Your Courses
             </p>
             <Link to="/dashboard/my-courses">
@@ -83,7 +83,7 @@ export default function Instructor() {
   return (
     <div>
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-richblack-5 text-center sm:text-left">
+        <h1 className="text-2xl font-bold text-black text-center sm:text-left">
           Hii {user?.firstName} 👋
         </h1>
         <p className="font-medium text-richblack-200 text-center sm:text-left">
@@ -100,8 +100,8 @@ export default function Instructor() {
             {totalAmount > 0 || totalStudents > 0 ? (
               <InstructorChart courses={instructorData} />
             ) : (
-              <div className="flex-1 rounded-md bg-richblack-800 p-6">
-                <p className="text-lg font-bold text-richblack-5">Visualize</p>
+              <div className="flex-1 rounded-md  p-6">
+                <p className="text-lg font-bold text-black">Visualize</p>
                 <p className="mt-4 text-xl font-medium text-richblack-50">
                   Not Enough Data To Visualize
                 </p>
@@ -110,8 +110,8 @@ export default function Instructor() {
 
             {/* left column */}
             {/* Total Statistics */}
-            <div className="flex min-w-[250px] flex-col rounded-md bg-richblack-800 p-6">
-              <p className="text-lg font-bold text-richblack-5">Statistics</p>
+            <div className="flex min-w-[250px] flex-col rounded-md  p-6">
+              <p className="text-lg font-bold text-black">Statistics</p>
               <div className="mt-4 space-y-4">
                 <div>
                   <p className="text-lg text-richblack-200">Total Courses</p>
@@ -136,9 +136,9 @@ export default function Instructor() {
           </div>
 
           {/* Render 3 courses */}
-          <div className="rounded-md bg-richblack-800 p-6">
+          <div className="rounded-md  p-6">
             <div className="flex items-center justify-between">
-              <p className="text-lg font-bold text-richblack-5">Your Courses</p>
+              <p className="text-lg font-bold text-black">Your Courses</p>
               <Link to="/dashboard/my-courses">
                 <p className="text-xs font-semibold text-yellow-50 hover:underline">
                   View All
@@ -180,8 +180,8 @@ export default function Instructor() {
           </div>
         </div>
       ) : (
-        <div className="mt-20 rounded-md bg-richblack-800 p-6 py-20">
-          <p className="text-center text-2xl font-bold text-richblack-5">
+        <div className="mt-20 rounded-md  p-6 py-20">
+          <p className="text-center text-2xl font-bold text-black">
             You have not created any courses yet
           </p>
 

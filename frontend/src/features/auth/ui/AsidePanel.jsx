@@ -26,7 +26,7 @@ export default function AsidePanel({
                     ))}
                     {cite && (
                         <cite className="block not-italic text-xl mt-6 text-[#f9d8ff]">
-                            <span className="opacity-40">—</span>
+                            <span className="opacity-40">-</span>
                             {cite}
                         </cite>
                     )}

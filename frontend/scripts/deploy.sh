@@ -15,7 +15,7 @@ if [ -f package-lock.json ]; then
   echo "Using npm ci with dev deps and legacy-peer-deps..."
   npm ci --include=dev --legacy-peer-deps
 else
-  echo "No package-lock.json found — using npm install with dev deps..."
+  echo "No package-lock.json found, using npm install with dev deps..."
   npm install --include=dev --legacy-peer-deps
 fi
 

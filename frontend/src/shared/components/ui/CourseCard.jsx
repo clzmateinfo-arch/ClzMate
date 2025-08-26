@@ -49,7 +49,6 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
   const stars = Array.from({ length: 5 }).map((_, i) => i < Math.round(numericRating));
 
   const displayPrice = (p) => {
-    // If explicit numeric 0 => Free, otherwise show value (fallback to "Free" if falsy)
     const num = Number(p);
     if (!Number.isNaN(num) && num === 0) return "Free";
     if (!Number.isNaN(num) && num > 0) return `$ ${num}`;

@@ -51,7 +51,7 @@ export default function NestedView({ handleChangeEditSectionName }) {
   return (
     <>
       <div
-        className="rounded-2xl bg-richblack-700 p-6 px-8"
+        className="rounded-2xl  p-6 px-8"
         id="nestedViewContainer"
       >
         {course?.courseContent?.map((section) => (

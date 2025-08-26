@@ -3,14 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import CourseSubSectionAccordion from "./CourseSubSectionAccordion";
 import { IoMdArrowDropdown } from "react-icons/io";
 
-/**
- * CourseAccordionBar — visually aligned with CourseCard / CourseDetails styles
- *
- * Props:
- *  - course: { _id, sectionName, subSection: [] }
- *  - isActive: array of active ids
- *  - handleActive: function(courseId) => toggles open state
- */
 export default function CourseAccordionBar({ course, isActive = [], handleActive }) {
   const contentEl = useRef(null);
   const [sectionHeight, setSectionHeight] = useState(0);

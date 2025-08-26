@@ -113,7 +113,7 @@ export default function CoursesTable({
                   />
 
                   <div className="flex flex-col">
-                    <p className="text-lg font-semibold text-richblack-5 capitalize">
+                    <p className="text-lg font-semibold text-black capitalize">
                       {course.courseName}
                     </p>
                     <p className="text-xs text-richblack-300 ">
@@ -138,12 +138,12 @@ export default function CoursesTable({
 
                     {/* course status */}
                     {course.status === COURSE_STATUS.DRAFT ? (
-                      <p className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full bg-richblack-700 px-2 py-[2px] text-[12px] font-medium text-pink-100">
+                      <p className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full  px-2 py-[2px] text-[12px] font-medium text-pink-100">
                         <HiClock size={14} />
                         Drafted
                       </p>
                     ) : (
-                      <div className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full bg-richblack-700 px-2 py-[2px] text-[12px] font-medium text-yellow-100">
+                      <div className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full  px-2 py-[2px] text-[12px] font-medium text-yellow-100">
                         <p className="flex h-3 w-3 items-center justify-center rounded-full bg-yellow-100 text-richblack-700">
                           <FaCheck size={8} />
                         </p>

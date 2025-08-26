@@ -45,12 +45,12 @@ export default function Upload({ name, label, register, setValue, errors, video 
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="text-sm text-richblack-5" htmlFor={name}>
+      <label className="text-sm text-black" htmlFor={name}>
         {label} {!viewData && <sup className="text-pink-200">*</sup>}
       </label>
 
       <div
-        className={`${isDragActive ? "bg-richblack-600" : "bg-richblack-700"}
+        className={`${isDragActive ? "" : ""}
          flex min-h-[250px] cursor-pointer items-center justify-center rounded-md border-2 border-dotted border-richblack-500`}
       >
         {previewSource ? (

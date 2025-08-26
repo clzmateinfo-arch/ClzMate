@@ -2,26 +2,14 @@
 import React, { useMemo, useState } from "react";
 import { HiOutlineTag } from "react-icons/hi";
 
-/**
- * CourseTags
- * Props:
- *  - tags: array of strings (or objects with { name })
- *  - onTagClick: optional callback(tag) when a tag is clicked
- *  - maxVisible: how many tags to show before collapsing (+N)
- *  - className: optional extra classes for the wrapper
- *
- * Example:
- *  <CourseTags tags={tag} onTagClick={(t) => console.log(t)} />
- */
 export default function CourseTags({
     tags = [],
-    onTagClick = () => {},
+    onTagClick = () => { },
     maxVisible = 6,
     className = "",
 }) {
     const [expanded, setExpanded] = useState(false);
 
-    // normalize tag values to strings
     const normalized = useMemo(
         () =>
             Array.isArray(tags)
@@ -30,7 +18,6 @@ export default function CourseTags({
         [tags]
     );
 
-    // simple palette of gradients — cycles by index
     const gradients = [
         "from-[#ba7bf0] to-[#996bec]",
         "from-[#34d399] to-[#10b981]",
@@ -91,7 +78,6 @@ export default function CourseTags({
                     );
                 })}
 
-                {/* optional collapsed counter (shown only when not expanded and there are hidden tags) */}
                 {!expanded && hiddenCount > 0 && (
                     <div className="flex items-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm text-[#6b7280] bg-white/6">

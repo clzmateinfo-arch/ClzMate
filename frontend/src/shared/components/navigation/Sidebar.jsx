@@ -61,7 +61,7 @@ export default function Sidebar() {
 
   if (profileLoading || authLoading) {
     return (
-      <div className="grid h-[calc(100vh-3.5rem)] min-w-[64px] items-center bg-richblack-800 border-r border-r-richblack-700">
+      <div className="grid h-[calc(100vh-3.5rem)] min-w-[64px] items-center  border-r border-r-richblack-700">
         <Loading />
       </div>
     );
@@ -139,13 +139,13 @@ export default function Sidebar() {
                     "linear-gradient(135deg, #ba7bf0, #996bec 50%, #5046e4)",
                 }}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-richblack-900/85 text-white">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full /85 text-white">
                   {renderIcon(link.icon, { size: 18 })}
                 </span>
               </span>
 
               {/* subtle label on hover (desktop) */}
-              <span className="pointer-events-none absolute left-full ml-3 hidden rounded-md bg-richblack-900/90 px-3 py-1 text-sm text-white group-hover:block">
+              <span className="pointer-events-none absolute left-full ml-3 hidden rounded-md /90 px-3 py-1 text-sm text-white group-hover:block">
                 {link.name}
               </span>
             </button>
@@ -187,7 +187,7 @@ export default function Sidebar() {
                 "linear-gradient(135deg, #ff6a88, #ff9472 50%, #fcb045)",
             }}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-richblack-900/85 text-white">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full /85 text-white">
               <VscSignOut size={18} />
             </span>
           </span>

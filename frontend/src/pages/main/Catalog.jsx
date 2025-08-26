@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
-import CatalogHeader from "@/features/courseCatalog/ui/CatalogHeader";
 import CatalogSidebar from "@/features/courseCatalog/ui/CatalogSidebar";
 import Footer from "@/widgets/Footer/Footer";
 import Loading from "@/shared/components/navigation/Loading";
 import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
 import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
+import PageHeader from "@/shared/components/ui/PageHeader";
 
 export default function Catalog() {
   const { catalogName } = useParams();
@@ -77,11 +77,12 @@ export default function Catalog() {
 
   return (
     <>
-      <CatalogHeader
+      <PageHeader
         title={catalogPageData?.selectedCategory?.name}
         subtitle={catalogPageData?.selectedCategory?.name}
         description={catalogPageData?.selectedCategory?.description}
         background={backImg}
+        showSearch={true}
         onSearch={handleSearch}
       />
 

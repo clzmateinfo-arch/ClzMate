@@ -21,7 +21,7 @@ export default function DeleteAccount() {
         </div>
 
         <div className="flex flex-col ">
-          <h2 className="text-lg font-semibold text-richblack-5 ">
+          <h2 className="text-lg font-semibold text-black ">
             {" "}
             Delete Account
           </h2>

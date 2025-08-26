@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { AiOutlineCheck } from "react-icons/ai";
 import { register } from "@/entities/auth/model/authAPI";
 import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
 import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
@@ -20,8 +19,6 @@ export default function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accountType, setRole] = useState(ACCOUNT_TYPE.STUDENT);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   const resetErrors = () => setErrors({ accountType: "", password: "" });

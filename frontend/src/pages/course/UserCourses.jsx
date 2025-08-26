@@ -31,7 +31,7 @@ export default function UserCourses() {
   return (
     <div>
       <div className="mb-14 flex justify-between">
-        <h1 className="text-4xl font-medium text-richblack-5 text-center lg:text-left">
+        <h1 className="text-4xl font-medium text-black text-center lg:text-left">
           My Courses
         </h1>
         <IconBtn

@@ -1,5 +1,9 @@
 [
     {
+        "country": "Sri Lanka",
+        "code": "+94"
+    },
+    {
         "country": "Afghanistan",
         "code": "+93"
     },
@@ -650,10 +654,6 @@
     {
         "country": "Spain",
         "code": "+34"
-    },
-    {
-        "country": "Sri Lanka",
-        "code": "+94"
     },
     {
         "country": "Sudan",

@@ -37,7 +37,7 @@ export default function RenderSteps() {
                 className={`grid  aspect-square w-[34px] place-items-center rounded-full border-[1px] 
                     ${step === item.id
                     ? "border-yellow-50 bg-yellow-900 text-yellow-50"
-                    : "border-richblack-700 bg-richblack-800 text-richblack-300"
+                    : "border-richblack-700  text-richblack-300"
                   }
                     ${step > item.id && "bg-yellow-50 text-yellow-50"}} `}
               >
@@ -68,7 +68,7 @@ export default function RenderSteps() {
             key={item.id}
           >
             <p
-              className={`text-sm ${step >= item.id ? "text-richblack-5" : "text-richblack-500"
+              className={`text-sm ${step >= item.id ? "text-black" : "text-richblack-500"
                 }`}
             >
               {item.title}

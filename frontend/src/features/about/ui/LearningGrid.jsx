@@ -52,9 +52,9 @@ const LearningGrid = () => {
             key={i}
             className={`${i === 0 && "lg:col-span-2 lg:h-[294px]"}  ${
               card.order % 2 === 1
-                ? "bg-richblack-700 h-[294px]"
+                ? " h-[294px]"
                 : card.order % 2 === 0
-                ? "bg-richblack-800 h-[294px]"
+                ? " h-[294px]"
                 : "bg-transparent"
             } ${card.order === 3 && "lg:col-start-2"}  `}
           >
@@ -76,7 +76,7 @@ const LearningGrid = () => {
               </div>
             ) : (
               <div className="p-8 flex flex-col gap-8">
-                <h1 className="text-richblack-5 text-lg">{card.heading}</h1>
+                <h1 className="text-black text-lg">{card.heading}</h1>
 
                 <p className="text-richblack-300 font-medium">
                   {card.description}
