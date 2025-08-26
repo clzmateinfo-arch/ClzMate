@@ -177,7 +177,7 @@ export default function ContactUsForm() {
             </Button>
 
             <span className="text-sm text-black text-right">
-              {sent ? "Message sent — we'll be in touch shortly." : "We’ll reply as soon as possible."}
+              {sent ? "Message sent — we'll be in touch shortly" : "We’ll reply as soon as possible"}
             </span>
           </div>
         </form>

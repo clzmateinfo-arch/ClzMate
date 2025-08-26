@@ -1,4 +1,4 @@
-import CTAButton from "@/shared/components/ui/Button";
+import { LinkedButton } from "@/shared/components/ui/LinkButton";
 import HighlightText from "@/shared/components/ui/HighlightText";
 
 const LearningGridArray = [
@@ -69,9 +69,12 @@ const LearningGrid = () => {
                 </p>
 
                 <div className="w-fit mt-2">
-                  <CTAButton active={true} linkto={card.BtnLink}>
-                    {card.BtnText}
-                  </CTAButton>
+                  <LinkedButton
+                                to={card.BtnLink}
+                                className="btn-xl btn-purple group/btn btn-border-dark rounded-full"
+                            >
+                                 {card.BtnText}
+                            </LinkedButton>
                 </div>
               </div>
             ) : (

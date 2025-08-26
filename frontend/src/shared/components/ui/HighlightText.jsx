@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 const HighlightText = ({ text }) => {
   return (
-    <span className="font-bold text-richblue-200 gradient_color"> {text}</span>
+    <span className="font-bold text-fuchsia-950 gradient_color"> {text}</span>
   );
 };
 

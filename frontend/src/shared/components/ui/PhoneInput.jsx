@@ -140,7 +140,7 @@ export default function PhoneInput({
     <div className={`w-full ${className}`}>
       {label && (
         <label className="block text-sm font-semibold text-[#0b1220]">
-          {label} {required && <span aria-hidden className="text-red-500"> *</span>}
+          {label} {required && <span aria-hidden className="text-red-500">&nbsp;*</span>}
         </label>
       )}
       <div className="flex gap-3 items-start">

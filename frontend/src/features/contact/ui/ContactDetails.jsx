@@ -4,14 +4,6 @@ import * as IconIo from "react-icons/io5";
 import * as IconHi from "react-icons/hi2";
 import * as IconFa from "react-icons/fa";
 
-/**
- * Enhanced ContactDetails
- *
- * Responsive behavior:
- * - 1 column on mobile & tablet
- * - 2 columns on large screens (lg and above)
- */
-
 const contactDetails = [
   {
     icon: "BiMessageRounded",

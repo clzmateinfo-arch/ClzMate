@@ -13,27 +13,9 @@ import BannerImage3 from "@/shared/assets/images/aboutus3.webp";
 
 import LearningGrid from "@/features/about/ui/LearningGrid";
 import ContactFormSection from "@/features/about/ui/ContactFormSection";
-import Quote from "@/features/about/ui/Quote";
 import StatsComponenet from "@/features/about/ui/Stats";
 import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
-
-/**
- * About (static, no animations)
- *
- * - Removed framer-motion & animations
- * - Uses glass-card style consistent with the rest of the app
- * - Keeps same structure and content blocks, with enhanced visual consistency
- */
-
-const HeroMediaRow = () => (
-  <div className="absolute inset-x-0 -bottom-10 flex justify-center px-6 pointer-events-none">
-    <div className="grid grid-cols-3 gap-4 max-w-[1100px] w-full transform translate-y-1/2">
-      <Img src={BannerImage1} alt="team image 1" className="rounded-2xl h-32 w-full object-cover shadow-lg" />
-      <Img src={BannerImage2} alt="team image 2" className="rounded-2xl h-32 w-full object-cover shadow-lg" />
-      <Img src={BannerImage3} alt="team image 3" className="rounded-2xl h-32 w-full object-cover shadow-lg" />
-    </div>
-  </div>
-);
+import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 
 const Pill = ({ children }) => (
   <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-white/8 text-richblack-5 ring-1 ring-white/6">
@@ -57,82 +39,27 @@ const TeamMember = ({ name, role, avatar, bio }) => (
 const About = () => {
   return (
     <div className="bg-transparent text-richblack-500">
-      {/* Hero / Page Header (static) */}
       <PageHeader
-        title={
-          <>
-            Driving innovation in online education for a{" "}
-            <HighlightText text="brighter future" />
-          </>
-        }
-        subtitle="Discover, enroll and grow — world-class courses, mentors and community."
-        description="We build experiences and communities that help learners transform their careers and lives."
-        background={BannerImage1}
-        className="relative overflow-visible"
-      >
-        <HeroMediaRow />
-      </PageHeader>
+        title="About Us"
+        subtitle="Who are we?"
+        description="'Up' is a new, student focused online tutoring platform. Simple to start with, powerful 
+        to grow on. We've been building and refining it since 2024, and we think it's pretty amazing. We are passionate 
+        about revolutionizing the way we learn. Our innovative platform combines technology expertise, and community to create an unparalleled educational experience"
+        background={backImg}
+        showSearch={false}
+      />
 
-      <main className="mx-auto w-11/12 max-w-maxContent py-14 space-y-12">
-        {/* Quick Quote (glass card) */}
-        <section>
-          <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-            <Quote />
-          </div>
-        </section>
+      <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
+        <h3 className="text-2xl font-semibold text-richblack-5 mb-4">What you'll learn</h3>
+        <LearningGrid />
+      </div>
 
-        {/* Founding story & image (glass cards) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div className="space-y-6 rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-            <h2 className="text-3xl font-semibold text-richblack-5">Our Founding Story</h2>
 
-            <p className="text-base text-richblack-300">
-              We started with a simple conviction: education should be accessible,
-              hands-on and career-focused. From small beginnings to a global learning
-              community — our journey was built by educators and technologists working together.
-            </p>
+      <div className="mx-auto w-11/12 max-w-maxContent py-14 space-y-12">
 
-            <div className="space-y-3">
-              <p className="text-base text-richblack-300">
-                Today we deliver industry-vetted curricula, mentor-led cohorts and
-                real projects that help learners build meaningful careers.
-              </p>
 
-              <div className="flex flex-wrap gap-3 mt-2">
-                <Pill>Hands-on courses</Pill>
-                <Pill>Mentor-led cohorts</Pill>
-                <Pill>Real-world projects</Pill>
-              </div>
-            </div>
-          </div>
 
-          <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-            <Img
-              src={FoundingStory}
-              alt="Founding Story"
-              className="w-full rounded-xl object-cover shadow-lg"
-            />
-          </div>
-        </section>
 
-        {/* Vision / Mission (glass cards) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-            <h3 className="text-2xl font-semibold text-richblack-5">Our Vision</h3>
-            <p className="mt-3 text-richblack-300">
-              Unlock human potential through accessible, high-quality learning —
-              one project, one mentor, one community at a time.
-            </p>
-          </div>
-
-          <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-            <h3 className="text-2xl font-semibold text-richblack-5">Our Mission</h3>
-            <p className="mt-3 text-richblack-300">
-              Create real-world learning pathways that prepare learners for meaningful
-              careers. We partner with industry to keep curriculum practical and relevant.
-            </p>
-          </div>
-        </section>
 
         {/* Stats (glass wrapper) */}
         <section className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
@@ -140,42 +67,20 @@ const About = () => {
         </section>
 
         {/* What you'll learn - reusing LearningGrid inside glass card */}
-        <section className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-          <h3 className="text-2xl font-semibold text-richblack-5 mb-4">What you'll learn</h3>
-          <LearningGrid />
-        </section>
 
-        {/* Team (glass cards) */}
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-semibold text-richblack-5">Meet the team</h3>
-            <p className="text-sm text-richblack-300">Small, focused and hands-on.</p>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <TeamMember
-              name="Sandeepa Perera"
-              role="Co-founder & CEO"
+              name="Sachini Kumarathunga"
+              role="Founder"
               avatar={BannerImage1}
-              bio="Product-minded engineer focused on platform experience and curriculum partnerships."
+              bio="ICT Lecture, Software Engineer, BSc (Hons) Information Technology & Management - University of Moratuwa"
             />
             <TeamMember
-              name="Anjali Silva"
-              role="Head of Curriculum"
+              name="Nimantha Hennayake"
+              role="Developer"
               avatar={BannerImage2}
-              bio="Educator and curriculum designer who turns industry needs into hands-on projects."
-            />
-            <TeamMember
-              name="Ravi Kumar"
-              role="Head of Engineering"
-              avatar={BannerImage3}
-              bio="Builds resilient systems and mentor tooling — keeps the platform humming."
-            />
-            <TeamMember
-              name="Priya Fernando"
-              role="Community Lead"
-              avatar={BannerImage1}
-              bio="Supports learners via mentorship, cohort ops and community programs."
+              bio="Web developer who support to maintain this"
             />
           </div>
         </section>
@@ -202,7 +107,7 @@ const About = () => {
           <h3 className="text-xl font-semibold text-richblack-5">Ready to start?</h3>
           <p className="mt-2 text-richblack-300">Join a cohort, build projects, and level up your career today.</p>
         </section>
-      </main>
+      </div>
 
       <Footer />
     </div>
