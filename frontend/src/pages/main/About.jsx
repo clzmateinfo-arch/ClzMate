@@ -137,7 +137,7 @@ const About = () => {
             Learners Reviews
           </h2>
           <p className="mt-2 text-sm text-black">
-            Feedback Always Matters
+            Feedback always matters
           </p>
         </header>
         <ReviewSlider />
