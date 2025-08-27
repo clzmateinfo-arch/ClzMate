@@ -211,7 +211,7 @@ export default function Sidebar() {
         <button
           aria-hidden
           onClick={() => dispatch(setOpenSideMenu(false))}
-          className="fixed inset-0 z-40 bg-black/40"
+          className="fixed inset-0 z-40 bg-white/40"
         />
       )}
 

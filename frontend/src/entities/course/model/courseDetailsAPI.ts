@@ -75,7 +75,7 @@ export const getAllCourses = async ({
   search?: string;
   filters?: Record<string, any>;
 } = {}) => {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   console.log("filter for API: ", filters);
   let result: { data: any[]; total: number; success: boolean } = {
     data: [],
@@ -165,7 +165,7 @@ export const fetchCourseCategories = async () => {
 };
 
 export const addCourseDetails = async (data, token) => {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   let result = null;
 
   try {
@@ -191,7 +191,7 @@ export const addCourseDetails = async (data, token) => {
 
 export const editCourseDetails = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", EDIT_COURSE_API, data, {
@@ -216,7 +216,7 @@ export const editCourseDetails = async (data, token) => {
 
 export const createSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", CREATE_SECTION_API, data, {
@@ -240,7 +240,7 @@ export const createSection = async (data, token) => {
 
 export const createSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", CREATE_SUBSECTION_API, data, {
@@ -264,7 +264,7 @@ export const createSubSection = async (data, token) => {
 
 export const updateSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", UPDATE_SECTION_API, data, {
@@ -288,7 +288,7 @@ export const updateSection = async (data, token) => {
 
 export const updateSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", UPDATE_SUBSECTION_API, data, {
@@ -312,7 +312,7 @@ export const updateSubSection = async (data, token) => {
 
 export const deleteSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", DELETE_SECTION_API, data, {
@@ -336,7 +336,7 @@ export const deleteSection = async (data, token) => {
 
 export const deleteSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   try {
     const response = await apiConnector("POST", DELETE_SUBSECTION_API, data, {
       Authorization: `Bearer ${token}`,
@@ -423,7 +423,7 @@ export const getFullDetailsOfCourse = async (courseId, token) => {
 
 export const markLectureAsComplete = async (data, token) => {
   let result = false;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   try {
     const response = await apiConnector("POST", LECTURE_COMPLETION_API, data, {
       Authorization: `Bearer ${token}`,
@@ -448,7 +448,7 @@ export const markLectureAsComplete = async (data, token) => {
 };
 
 export const createRating = async (data, token) => {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   let success = false;
   try {
     const response = await apiConnector("POST", CREATE_RATING_API, data, {

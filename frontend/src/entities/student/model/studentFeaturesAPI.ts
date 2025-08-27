@@ -34,7 +34,7 @@ export async function buyCourse(
   navigate,
   dispatch
 ) {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   //Fix Before Deploy
   //send successful mail
   sendPaymentSuccessEmail(

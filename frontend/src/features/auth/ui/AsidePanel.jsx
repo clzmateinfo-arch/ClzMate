@@ -5,7 +5,7 @@ export default function AsidePanel({
     overlay = true,
     className = "",
 }) {
-    const overlayStyles = overlay ? "before:content-[''] before:absolute before:inset-0 before:bg-black before:opacity-20" : "";
+    const overlayStyles = overlay ? "before:content-[''] before:absolute before:inset-0 before:bg-white before:opacity-20" : "";
 
     return (
         <aside
@@ -33,7 +33,7 @@ export default function AsidePanel({
                 </blockquote>
             </div>
 
-            {overlay && <div className="absolute inset-0 bg-black opacity-20 pointer-events-none" />}
+            {overlay && <div className="absolute inset-0 bg-white opacity-20 pointer-events-none" />}
         </aside>
     );
 }

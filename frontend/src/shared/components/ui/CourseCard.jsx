@@ -22,7 +22,6 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
     id,
   } = course || {};
 
-  // Defensive formatting
   const instructorName =
     typeof instructor === "string"
       ? instructor

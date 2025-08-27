@@ -70,55 +70,53 @@ function CourseDetails() {
 
   if (paymentLoading || loading || !response) {
     return (
-      <div className="relative w-full bg-white  mt-15">
+      <div className="relative w-full bg-white mt-15">
         <div className="mx-auto px-4 lg:px-8 max-w-[1260px] pt-8">
+          <div className="w-full flex self-start mt-6 -ml-3">
+            <div className="inline-flex items-center text-sm font-medium text-violet-500 transition-colors mt-4 ml-4 sm:mt-0">
+              <BiArrowBack className="mr-2 opacity-40" />
+              <span className="opacity-40">Back</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-8">
             <div className="lg:col-span-8 space-y-6">
-              <div className="bg-white rounded border-[#efe7ff] -2xl border border-[#efe7ff] shadow-md p-6">
-                <div className="h-44 sm:h-56 rounded border-[#efe7ff] -lg skeleton bg-gray-100" />
-                <div className="mt-4 space-y-2">
-                  <div className="h-8 w-3/4 rounded border-[#efe7ff]  skeleton" />
-                  <div className="h-4 w-1/2 rounded border-[#efe7ff]  skeleton" />
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <div className="h-8 w-20 rounded border-[#efe7ff] -full skeleton" />
-                    <div className="h-8 w-16 rounded border-[#efe7ff] -full skeleton" />
-                    <div className="h-8 w-24 rounded border-[#efe7ff] -full skeleton" />
+              <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm animate-pulse">
+                <div className="h-48 w-full rounded-lg bg-white/8" />
+                <div className="mt-6 space-y-3">
+                  <div className="h-7 w-3/4 rounded bg-white/8" />
+                  <div className="h-4 w-1/2 rounded bg-white/8" />
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    <div className="h-8 w-20 rounded-full bg-white/8" />
+                    <div className="h-8 w-16 rounded-full bg-white/8" />
+                    <div className="h-8 w-24 rounded-full bg-white/8" />
                   </div>
                 </div>
               </div>
 
-              <div className="w-full max-w-[830px] mx-auto bg-white rounded border-[#efe7ff] -2xl border border-[#efe7ff] p-6 shadow-md">
+              <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm animate-pulse">
                 <div className="mb-4">
-                  <div className="h-7 w-40 rounded border-[#efe7ff]  skeleton mb-3" />
-                  <div className="flex flex-wrap gap-2">
-                    <div className="h-8 w-20 rounded border-[#efe7ff] -full skeleton" />
-                    <div className="h-8 w-16 rounded border-[#efe7ff] -full skeleton" />
-                    <div className="h-8 w-24 rounded border-[#efe7ff] -full skeleton" />
+                  <div className="h-6 w-40 rounded bg-white/8 mb-3" />
+                  <div className="flex flex-wrap gap-3">
+                    <div className="h-8 w-20 rounded-full bg-white/8" />
+                    <div className="h-8 w-16 rounded-full bg-white/8" />
+                    <div className="h-8 w-24 rounded-full bg-white/8" />
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
-                  <div className="h-8 w-52 rounded border-[#efe7ff]  skeleton" />
-                  <div className="flex items-center gap-4">
-                    <div className="h-5 w-20 rounded border-[#efe7ff]  skeleton" />
-                    <div className="h-5 w-20 rounded border-[#efe7ff]  skeleton" />
-                    <div className="h-8 w-28 rounded border-[#efe7ff] -full skeleton" />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="border rounded border-[#efe7ff] -2xl p-4">
+                    <div key={i} className="border border-white/8 rounded-2xl p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded border-[#efe7ff] -full skeleton" />
-                          <div className="h-5 w-64 rounded border-[#efe7ff]  skeleton" />
+                          <div className="h-9 w-9 rounded-full bg-white/8" />
+                          <div className="h-5 w-64 rounded bg-white/8" />
                         </div>
-                        <div className="h-5 w-14 rounded border-[#efe7ff]  skeleton" />
+                        <div className="h-5 w-14 rounded bg-white/8" />
                       </div>
                       <div className="mt-3 space-y-2">
-                        <div className="h-4 w-3/4 rounded border-[#efe7ff]  skeleton" />
-                        <div className="h-4 w-1/2 rounded border-[#efe7ff]  skeleton" />
+                        <div className="h-4 w-3/4 rounded bg-white/8" />
+                        <div className="h-4 w-1/2 rounded bg-white/8" />
                       </div>
                     </div>
                   ))}
@@ -128,34 +126,44 @@ function CourseDetails() {
 
             <aside className="lg:col-span-4">
               <div className="space-y-6">
-                <div className="bg-white rounded border-[#efe7ff] -2xl border border-[#efe7ff] shadow-md p-4">
-                  <div className="h-44 md:h-56 w-full rounded border-[#efe7ff] -lg skeleton" />
+                <div className="rounded-2xl p-4 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm animate-pulse">
+                  <div className="h-44 md:h-56 w-full rounded-lg bg-white/8" />
                   <div className="mt-4 space-y-3">
-                    <div className="h-8 w-1/2 rounded border-[#efe7ff]  skeleton" />
-                    <div className="h-10 w-full rounded border-[#efe7ff]  skeleton" />
-                    <div className="h-10 w-full rounded border-[#efe7ff]  skeleton" />
-                    <div className="h-4 w-3/4 rounded border-[#efe7ff]  skeleton mt-2" />
+                    <div className="h-8 w-1/2 rounded bg-white/8" />
+                    <div className="h-10 w-full rounded bg-white/8" />
+                    <div className="h-10 w-full rounded bg-white/8" />
+                    <div className="h-4 w-3/4 rounded bg-white/8 mt-2" />
                   </div>
                 </div>
 
-                <div className="bg-white rounded border-[#efe7ff] -2xl border border-[#efe7ff] shadow-md p-4">
+                <div className="rounded-2xl p-4 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm animate-pulse">
                   <div className="flex items-start gap-4">
-                    <div className="h-16 w-16 rounded border-[#efe7ff] -full skeleton" />
+                    <div className="h-16 w-16 rounded-full bg-white/8" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-6 w-3/4 rounded border-[#efe7ff]  skeleton" />
-                      <div className="h-4 w-1/2 rounded border-[#efe7ff]  skeleton" />
-                      <div className="h-4 w-full rounded border-[#efe7ff]  skeleton" />
+                      <div className="h-6 w-3/4 rounded bg-white/8" />
+                      <div className="h-4 w-1/2 rounded bg-white/8" />
+                      <div className="h-4 w-full rounded bg-white/8" />
                     </div>
                   </div>
                 </div>
               </div>
             </aside>
           </div>
+
+          <div className="gap-8 items-start min-h-[180px] py-8 mr-5">
+            <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm animate-pulse">
+              <div className="h-6 w-48 rounded bg-white/8 mb-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="h-40 rounded-2xl bg-white/8" />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
-
 
   const {
     courseName,
@@ -209,9 +217,9 @@ function CourseDetails() {
 
   return (
     <>
-      <div className="relative w-full bg-[#ffffff] mt-15">
+      <div className="relative w-full bg-white mt-15">
         <div className="mx-auto px-4 lg:px-8 max-w-[1260px] pt-8">
-          <div className={`w-full flex self-start mt-10 -ml-3`}>
+          <div className="w-full flex self-start mt-10 -ml-3">
             <Link
               onClick={() => navigate(-1)}
               className="inline-flex items-center text-sm font-medium text-violet-500 hover:text-violet-700 transition-colors mt-4 ml-4 sm:mt-0"
@@ -220,6 +228,7 @@ function CourseDetails() {
               Back
             </Link>
           </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-h-[420px] py-8 mr-5">
             <div className="lg:col-span-8">
               <CourseDetailsHeader
@@ -248,6 +257,7 @@ function CourseDetails() {
               </div>
             </aside>
           </div>
+
           <div className="gap-8 items-start min-h-[420px] py-8 mr-5">
             <NewCourses />
           </div>

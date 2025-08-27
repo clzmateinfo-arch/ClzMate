@@ -12,7 +12,7 @@ const {
 
 export function getUserDetails(token, navigate) {
   return async (dispatch) => {
-    const toastId = toast.loading("Loading...");
+    const toastId = toast.loading("Loading");
     dispatch(setLoading(true));
     try {
       console.log("GET_USER_DETAILS_API ............", GET_USER_DETAILS_API);

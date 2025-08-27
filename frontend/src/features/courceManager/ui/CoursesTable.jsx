@@ -64,7 +64,6 @@ export default function CoursesTable({
   return (
     <>
       <Table className="rounded-2xl border border-black ">
-        {/* heading */}
         <Thead>
           <Tr className="flex gap-x-10 rounded-t-3xl border-b border-b-black px-6 py-2">
             <Th className="flex-1 text-left text-sm font-medium uppercase text-black">
@@ -82,7 +81,6 @@ export default function CoursesTable({
           </Tr>
         </Thead>
 
-        {/* loading Skeleton */}
         {loading && (
           <div>
             {skItem()}
@@ -105,7 +103,6 @@ export default function CoursesTable({
                 className="flex gap-x-10 border-b border-black px-6 py-8"
               >
                 <Td className="flex flex-1 gap-x-4 relative">
-                  {/* course Thumbnail */}
                   <Img
                     src={course?.thumbnail}
                     alt={course?.courseName}
@@ -126,17 +123,14 @@ export default function CoursesTable({
                         : course.courseDescription}
                     </p>
 
-                    {/* created At */}
                     <p className="text-[12px] text-black mt-4">
                       Created: {formatDate(course?.createdAt)}
                     </p>
 
-                    {/* updated At */}
                     <p className="text-[12px] text-black ">
                       updated: {formatDate(course?.updatedAt)}
                     </p>
 
-                    {/* course status */}
                     {course.status === COURSE_STATUS.DRAFT ? (
                       <p className="mt-2 flex w-fit flex-row items-center gap-2 rounded-full  px-2 py-[2px] text-[12px] font-medium text-pink-100">
                         <HiClock size={14} />
@@ -153,7 +147,6 @@ export default function CoursesTable({
                   </div>
                 </Td>
 
-                {/* course duration */}
                 <Td className="text-sm font-medium text-black">
                   2hr 30min
                 </Td>
@@ -174,7 +167,6 @@ export default function CoursesTable({
                     <FiEdit2 size={20} />
                   </button>
 
-                  {/* Delete button */}
                   <button
                     disabled={loading}
                     onClick={() => {
@@ -182,7 +174,7 @@ export default function CoursesTable({
                         text1: "Do you want to delete this course?",
                         text2:
                           "All the data related to this course will be deleted",
-                        btn1Text: !loading ? "Delete" : "Loading...  ",
+                        btn1Text: !loading ? "Delete" : "Loading  ",
                         btn2Text: "Cancel",
                         btn1Handler: !loading
                           ? () => handleCourseDelete(course._id)

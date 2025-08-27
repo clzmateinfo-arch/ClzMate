@@ -10,7 +10,7 @@ import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import PageHeader from "@/shared/components/ui/PageHeader";
 
 export default function Catalog() {
-  const { catalogName } = useParams();
+  const { catalogId } = useParams();
   const [catalogPageData, setCatalogPageData] = useState(null);
   const [categoryId, setCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,14 +23,14 @@ export default function Catalog() {
       try {
         const res = await fetchCourseCategories();
         const matched = res.find(
-          (ct) => ct.name.split(" ").join("-").toLowerCase() === catalogName
+          (ct) => ct._id.split(" ").join("").toLowerCase() === catalogId
         );
         if (matched) setCategoryId(matched._id);
       } catch (error) {
         console.error("Could not fetch Categories.", error);
       }
     })();
-  }, [catalogName]);
+  }, [catalogId]);
 
   useEffect(() => {
     if (!categoryId) return;

@@ -89,7 +89,7 @@ export default function AppRoutes() {
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/catalog/:catalogName" element={<Catalog />} />
+                <Route path="/catalog/:catalogId" element={<Catalog />} />
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
 
                 {/* Protected */}
