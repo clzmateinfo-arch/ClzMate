@@ -97,7 +97,7 @@ export default function SignupForm() {
           placeholder="Sandeepa"
           autoFocus
           required
-          error={errors.preferredName}
+          error={errors?.preferredName}
           inputClass="mt-2 mb-5 p-2.5"
         />
 
