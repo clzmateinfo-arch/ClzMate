@@ -13,7 +13,6 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
   const [activeStatus, setActiveStatus] = useState("");
   const [videoBarActive, setVideoBarActive] = useState("");
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const { sectionId, subSectionId } = useParams();
   const {
@@ -40,7 +39,7 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
       setActiveStatus(courseSectionData?.[currentSectionIndx]?._id);
       setVideoBarActive(activeSubSectionId);
     })();
-  }, [courseSectionData, courseEntireData, location.pathname]);
+  }, [courseSectionData, courseEntireData, useLocation().pathname]);
 
   return (
     <>

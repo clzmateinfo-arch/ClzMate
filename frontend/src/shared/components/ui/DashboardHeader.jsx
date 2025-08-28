@@ -11,7 +11,7 @@ export default function DashboardHeader({
   onSearch = () => { },
 }) {
   return (
-    <header className="relative -mt-24 pt-20 md:py-35 pb-10 text-white text-center overflow-hidden">
+    <header className="relative py-10 text-white text-center overflow-hidden">
       <img
         src={background}
         alt=""
@@ -19,7 +19,7 @@ export default function DashboardHeader({
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#150731] via-[#331342] to-[#340e24] opacity-60" />
 
-      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 mt-35">
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         <h1 className="font-heading text-3xl xs:text-3.5xl sm:text-4xl md:text-4.5xl lg:text-5xl xl:text-5.5xl !tracking-[-.045em] relative text-navy mb-5 -mt-4 sm:-mt-5 lg:-mt-6 xl:mt-[-26px] leading-tight/[1.15]">
           {title}
         </h1>

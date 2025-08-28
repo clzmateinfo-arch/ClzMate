@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 export default function useOnClickOutside(ref, handler) {
   useEffect(() => {
@@ -16,5 +17,5 @@ export default function useOnClickOutside(ref, handler) {
       document.removeEventListener("mousedown", listener);
       document.removeEventListener("touchstart", listener);
     };
-  }, [ref, handler]);
+  }, [ref, handler, useLocation().pathname]);
 }

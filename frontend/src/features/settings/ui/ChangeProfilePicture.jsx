@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateUserProfileImage } from "@/entities/settings/model/SettingsAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
+import { useLocation } from "react-router-dom";
 
 export default function ChangeProfilePicture() {
   const { token } = useSelector((state) => state.auth);
@@ -49,7 +50,7 @@ export default function ChangeProfilePicture() {
 
   useEffect(() => {
     if (profileImage) previewFile(profileImage);
-  }, [profileImage]);
+  }, [profileImage, useLocation().pathname]);
 
   return (
     <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 mb-3 mt-3 sm:p-8 text-black">

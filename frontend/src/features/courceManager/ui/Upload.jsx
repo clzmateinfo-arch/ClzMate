@@ -4,6 +4,7 @@ import { useDropzone } from "react-dropzone"
 import { FiUploadCloud } from "react-icons/fi"
 import "video-react/dist/video-react.css"
 import { Player } from "video-react"
+import { useLocation } from "react-router-dom"
 
 export default function Upload({ name, label, register, setValue, errors, video = false, viewData = null, editData = null, }) {
   // const { course } = useSelector((state) => state.course)
@@ -36,12 +37,12 @@ export default function Upload({ name, label, register, setValue, errors, video 
 
   useEffect(() => {
     register(name, { required: true })
-  }, [register])
+  }, [register, useLocation().pathname])
 
 
   useEffect(() => {
     setValue(name, selectedFile)
-  }, [selectedFile, setValue])
+  }, [selectedFile, setValue, useLocation().pathname])
 
   return (
     <div className="flex flex-col space-y-2">

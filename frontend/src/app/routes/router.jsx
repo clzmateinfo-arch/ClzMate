@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import OpenRoute from "@/features/auth/ui/OpenRoute";
 import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
 import MainLayout from "@/app/layouts/MainLayout";
+import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 
@@ -91,8 +92,10 @@ export default function AppRoutes() {
                 <Route path="/about" element={<About />} />
                 <Route path="/catalog/:catalogId" element={<Catalog />} />
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
+            </Route>
 
-                {/* Protected */}
+            {/* UserLayout */}
+            <Route element={<UserLayout />}>
                 <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
@@ -117,10 +120,10 @@ export default function AppRoutes() {
                         <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<VideoDetails />} />
                     )}
                 </Route>
-
-                {/* Errors */}
-                <Route path="*" element={<PageNotFound />} />
             </Route>
+
+            {/* Errors */}
+            <Route path="*" element={<PageNotFound />} />
 
         </Routes>
     );

@@ -13,7 +13,6 @@ import { HiMenuAlt1 } from "react-icons/hi";
 const VideoDetails = () => {
   const { courseId, sectionId, subSectionId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const playerRef = useRef(null);
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
@@ -41,7 +40,7 @@ const VideoDetails = () => {
         setVideoEnded(false);
       }
     })();
-  }, [courseSectionData, courseEntireData, location.pathname]);
+  }, [courseSectionData, courseEntireData, useLocation().pathname]);
 
   const isFirstVideo = () => {
     const currentSectionIndx = courseSectionData.findIndex(

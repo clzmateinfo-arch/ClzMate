@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { MdClose } from "react-icons/md";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 export default function ChipInput({
   label,
@@ -25,11 +26,11 @@ export default function ChipInput({
       { required: true, validate: (value) => value.length > 0 },
       chips
     );
-  }, []);
+  }, [useLocation().pathname]);
 
   useEffect(() => {
     setValue(name, chips);
-  }, [chips]);
+  }, [chips, useLocation().pathname]);
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" || event.key === ",") {

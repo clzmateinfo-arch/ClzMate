@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-
+import { useLocation, useNavigate } from "react-router-dom";
 import { updateProfile } from "@/entities/settings/model/SettingsAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Button from "@/shared/components/ui/Button";
@@ -41,7 +40,7 @@ export default function EditProfile() {
         about: user?.additionalDetails?.about || "",
       });
     }
-  }, [user]);
+  }, [user, useLocation().pathname]);
 
   const handleChange = (field) => (e) => {
     const value = e?.target ? e.target.value : e;

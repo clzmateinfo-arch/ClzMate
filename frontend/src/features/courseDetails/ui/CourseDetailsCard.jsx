@@ -8,10 +8,10 @@ import { FaShareSquare, FaCheck } from "react-icons/fa";
 import { addToCart } from "@/entities/cart/model/cartSlice";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import Img from "@/shared/components/ui/Img";
-import { LinkButton } from "@/shared/components/ui/LinkButton";
+import Button from "@/shared/components/ui/Button";
 import { formatTimeAgo } from "@/shared/utils/formatDate";
 
-export default function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
+export default function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse = () => { } }) {
   const { user } = useSelector((state) => state.profile);
   const { token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -65,7 +65,6 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
   };
 
   const safeHref = `/courses/${_id ?? id ?? ""}`;
-
 
   const timeAgo = formatTimeAgo(updatedAt === null ? createdAt : updatedAt);
 
@@ -173,20 +172,20 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <LinkButton onClick={
+          <Button onClick={
             user && course?.studentsEnrolled?.includes(user?._id)
-              ? () => navigate("/dashboard/enrolled-courses")
+              ? () => navigate(`/view-course/${course?._id}`)
               : handleBuyCourse
           } className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
             {user && course?.studentsEnrolled?.includes(user?._id) ? (
-              <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 w-[150px]">
                 <FaCheck />
                 Go To Course
               </span>
             ) : (
-              user && CurrentPrice === 0 ? "Enroll" : "Buy Now"
+              <span className="w-[150px]">{user && CurrentPrice === 0 ? "Enroll" : "Buy Now"}</span>
             )}
-          </LinkButton>
+          </Button>
 
           {(!user || !course?.studentsEnrolled?.includes(user?._id)) && (
             <button

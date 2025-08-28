@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState, useId } from "react";
 import CountryCode from "@/shared/data/countrycode.json";
 import Select from "@/shared/components/ui/Select";
 import Input from "@/shared/components/ui/Input";
+import { useLocation } from "react-router-dom";
 
 export default function PhoneInput({
   name = "phone",
@@ -57,7 +58,7 @@ export default function PhoneInput({
     }
     setCountry(matched);
     setDigits(foundDigits);
-  }, [value, codes, defaultCode]);
+  }, [value, codes, defaultCode, useLocation().pathname]);
 
   const finalNumber = useMemo(() => {
     const cleanDigits = (digits || "").replace(/\D/g, "");
@@ -67,7 +68,7 @@ export default function PhoneInput({
   useEffect(() => {
     if (value !== undefined) return;
     onChange(finalNumber);
-  }, [finalNumber, onChange, value]);
+  }, [finalNumber, onChange, value, useLocation().pathname]);
 
   const handlePhoneInput = (e) => {
     let raw = String(e?.target?.value ?? "");
@@ -134,7 +135,7 @@ export default function PhoneInput({
     if (value !== undefined && typeof onChange === "function") {
       onChange(value || "");
     }
-  }, []);
+  }, [useLocation().pathname]);
 
   return (
     <div className={`w-full ${className}`}>

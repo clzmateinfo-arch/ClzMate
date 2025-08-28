@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import RenderSteps from "@/features/courceManager/ui/RenderSteps";
+import { useLocation } from "react-router-dom";
 
 export default function AddCourse() {
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   return (
     <div className="flex w-full items-start gap-x-6">

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
 import Footer from "@/widgets/Footer/Footer";
@@ -42,13 +42,13 @@ function CourseDetails() {
       }
     };
     fectchCourseDetailsData();
-  }, [courseId]);
+  }, [courseId, useLocation().pathname]);
 
   const [avgReviewCount, setAvgReviewCount] = useState(0);
   useEffect(() => {
     const count = GetAvgRating(response?.data?.courseDetails.ratingAndReviews);
     setAvgReviewCount(count);
-  }, [response]);
+  }, [response, useLocation().pathname]);
 
   const [isActive, setIsActive] = useState([]);
   const handleActive = (id) => {
@@ -62,11 +62,11 @@ function CourseDetails() {
       lectures += sec.subSection?.length || 0;
     });
     setTotalNoOfLectures(lectures);
-  }, [response]);
+  }, [response, useLocation().pathname]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   if (paymentLoading || loading || !response) {
     return (
@@ -180,6 +180,7 @@ function CourseDetails() {
   } = response?.data?.courseDetails || {};
 
   const handleBuyCourse = () => {
+    console.log("Buy");
     if (token) {
       const coursesId = [courseId];
       buyCourse(token, coursesId, user, navigate, dispatch);

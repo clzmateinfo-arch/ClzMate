@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
+import { useLocation } from "react-router-dom";
 
 export default function CourseSlider({
   categoryId,
@@ -25,14 +26,14 @@ export default function CourseSlider({
     setPage(1);
     setHasMore(true);
     setTotal(null);
-  }, [categoryId, initialFeatured]);
+  }, [categoryId, initialFeatured, useLocation().pathname]);
 
   useEffect(() => {
     setCourses([]);
     setPage(1);
     setHasMore(true);
     setTotal(null);
-  }, [searchTerm, filters, categoryId]);
+  }, [searchTerm, filters, categoryId, useLocation().pathname]);
 
   useEffect(() => {
     let mounted = true;
@@ -91,7 +92,7 @@ export default function CourseSlider({
     return () => {
       mounted = false;
     };
-  }, [page, categoryId, searchTerm, filters, pageSize]);
+  }, [page, categoryId, searchTerm, filters, pageSize, useLocation().pathname]);
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -110,7 +111,7 @@ export default function CourseSlider({
     if (current) observerRef.current.observe(current);
 
     return () => observerRef.current?.disconnect();
-  }, [hasMore, loading]);
+  }, [hasMore, loading, useLocation().pathname]);
 
   return (
     <section className="mb-8">
@@ -136,7 +137,7 @@ export default function CourseSlider({
       {loading && courses.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-56 rounded-xl skeleton" />
+            <div key={i} className="h-85 rounded-xl bg-gray-300/50" />
           ))}
         </div>
       ) : (

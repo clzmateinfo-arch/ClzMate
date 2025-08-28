@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { fetchInstructorCourses } from "@/entities/course/model/courseDetailsAPI";
 import { getInstructorData } from "@/entities/user/model/userAPI";
 import InstructorChart from "../../features/dashboard/ui/InstructorChart";
@@ -25,7 +25,7 @@ export default function Instructor() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [useLocation().pathname]]);
 
   const totalAmount = instructorData?.reduce(
     (acc, curr) => acc + curr.totalAmountGenerated,

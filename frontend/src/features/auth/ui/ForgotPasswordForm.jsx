@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getPasswordResetToken } from "@/entities/auth/model/authAPI";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
+import { useLocation } from "react-router-dom";
 
 export default function ForgotPasswordForm() {
     const dispatch = useDispatch();
@@ -14,7 +15,7 @@ export default function ForgotPasswordForm() {
 
     useEffect(() => {
         if (!loading) setBusy(false);
-    }, [loading]);
+    }, [loading, useLocation().pathname]);
 
     const handleOnSubmit = async (e) => {
         e.preventDefault();

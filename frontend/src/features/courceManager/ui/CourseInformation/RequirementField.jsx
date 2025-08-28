@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { useLocation } from "react-router-dom";
 
 export default function RequirementsField({
   name,
@@ -23,11 +24,11 @@ export default function RequirementsField({
       { required: true, validate: (value) => value.length > 0 },
       requirementsList
     );
-  }, []);
+  }, [useLocation().pathname]);
 
   useEffect(() => {
     setValue(name, requirementsList);
-  }, [requirementsList]);
+  }, [requirementsList, useLocation().pathname]);
 
   const handleAddRequirement = () => {
     if (requirement && !requirementsList.includes(requirement)) {

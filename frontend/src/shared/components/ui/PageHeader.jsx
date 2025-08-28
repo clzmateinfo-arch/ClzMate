@@ -39,7 +39,7 @@ export default function PageHeader({
       </div>
 
       {showSearch && (
-        <div className="relative z-10">
+        <div className="relative z-10 mb-10">
           <SearchInput onSearch={onSearch} />
         </div>
       )}

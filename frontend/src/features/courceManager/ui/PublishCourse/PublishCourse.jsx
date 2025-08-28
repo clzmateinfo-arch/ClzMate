@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { editCourseDetails } from "@/entities/course/model/courseDetailsAPI";
 import { resetCourseState, setStep } from "@/entities/course/model/courseSlice";
 import { COURSE_STATUS } from "../../../../utils/constants";
@@ -20,7 +20,7 @@ export default function PublishCourse() {
     if (course?.status === COURSE_STATUS.PUBLISHED) {
       setValue("public", true);
     }
-  }, []);
+  }, [useLocation().pathname]);
 
   const goBack = () => {
     dispatch(setStep(2));

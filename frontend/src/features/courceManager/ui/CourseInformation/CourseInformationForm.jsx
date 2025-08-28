@@ -16,6 +16,7 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import Upload from "../Upload";
 import ChipInput from "./ChipInput";
 import RequirementsField from "./RequirementField";
+import { useLocation } from "react-router-dom";
 
 export default function CourseInformationForm() {
   const {
@@ -53,7 +54,7 @@ export default function CourseInformationForm() {
     }
 
     getCategories();
-  }, []);
+  }, [useLocation().pathname]);
 
   const isFormUpdated = () => {
     const currentValues = getValues();

@@ -9,7 +9,7 @@ import DesktopCenterNav from "./components/DesktopCenterNav";
 import MobileNav from "./components/MobileNav";
 import ProfileMenu from "./components/ProfileMenu";
 
-const Navbar = () => {
+const MainNavbar = () => {
   const { token } = useSelector((state) => state.auth);
   const { user } = useSelector((state) => state.profile);
   const location = useLocation();
@@ -30,7 +30,7 @@ const Navbar = () => {
 
   const handleSignOut = useCallback(() => {
     dispatch(logout(navigate));
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[500] w-full bg-transparent">
@@ -43,7 +43,7 @@ const Navbar = () => {
             onClick={() => setMobileOpen((s) => !s)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? "Close main menu" : "Open main menu"}
-            className="ml-auto xl:hidden relative z-[60] rounded-full flex-none flex items-center justify-center w-11.5 h-11.5 mr-2 transition-colors bg-white/75 bg-gradient-to-r from-pink-200/40 via-violet-200/40 to-indigo-200/40 border border-white/50 px-2 text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-400/5"
+            className="ml-auto xl:hidden relative z-[60] rounded-full flex-none flex items-center justify-center w-11 h-11 mr-2 transition-colors bg-white/75 bg-gradient-to-r from-pink-200/40 via-violet-200/40 to-indigo-200/40 border border-white/50 px-2 text-sm shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-violet-400/5"
           >
             {!mobileOpen ? (
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -113,4 +113,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default MainNavbar;

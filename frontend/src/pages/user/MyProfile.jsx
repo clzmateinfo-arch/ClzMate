@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { RiEditBoxLine } from "react-icons/ri";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { formattedDate } from "@/utils/dateFormatter";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
@@ -17,7 +17,7 @@ export default function MyProfile() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   const displayName =
     user?.preferredName ||

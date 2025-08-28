@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useLocation, useParams } from "react-router-dom";
 import CourseReview from "@/features/courceManager/ui/CourseReview";
 import VideoDetailsSidebar from "@/features/courceManager/ui/CourseViewer/VideoDetailsSidebar";
 import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
@@ -30,7 +30,7 @@ export default function ViewCourse() {
       });
       dispatch(setTotalNoOfLectures(lectures));
     })();
-  }, []);
+  }, [useLocation().pathname]);
 
   const { courseViewSidebar } = useSelector((state) => state.sidebar);
   const [screenSize, setScreenSize] = useState(undefined);
@@ -41,18 +41,17 @@ export default function ViewCourse() {
     window.addEventListener("resize", handleScreenSize);
     handleScreenSize();
     return () => window.removeEventListener("resize", handleScreenSize);
-  });
+  }, [useLocation().pathname]);
 
   useEffect(() => {
     if (screenSize <= 640) {
       dispatch(setCourseViewSidebar(false));
     } else dispatch(setCourseViewSidebar(true));
-  }, [screenSize]);
+  }, [screenSize, useLocation().pathname]);
 
   return (
     <>
       <div className="relative flex min-h-[calc(100vh-3.5rem)] ">
-        {/* view course side bar */}
         {courseViewSidebar && (
           <VideoDetailsSidebar setReviewModal={setReviewModal} />
         )}

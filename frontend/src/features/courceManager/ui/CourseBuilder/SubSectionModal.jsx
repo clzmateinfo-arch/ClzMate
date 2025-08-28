@@ -11,6 +11,7 @@ import {
 import { setCourse } from "@/entities/course/model/courseSlice";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Upload from "../Upload";
+import { useLocation } from "react-router-dom";
 
 export default function SubSectionModal({
   modalData,
@@ -38,7 +39,7 @@ export default function SubSectionModal({
       setValue("lectureDesc", modalData.description);
       setValue("lectureVideo", modalData.videoUrl);
     }
-  }, []);
+  }, [useLocation().pathname]);
 
   const isFormUpdated = () => {
     const currentValues = getValues();

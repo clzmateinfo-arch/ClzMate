@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ProgressBar from "@ramonak/react-progress-bar";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getUserEnrolledCourses } from "@/entities/user/model/userAPI";
 import Img from "@/shared/components/ui/Img";
 
@@ -22,7 +22,7 @@ export default function EnrolledCourses() {
 
   useEffect(() => {
     getEnrolledCourses();
-  }, []);
+  }, [useLocation().pathname]);
 
   const sklItem = () => {
     return (

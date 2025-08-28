@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { VscSignOut } from "react-icons/vsc"
 import { HiMenuAlt1 } from "react-icons/hi"
@@ -13,8 +13,10 @@ import { logout } from "@/entities/auth/model/authAPI"
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
+import ProfileMenu from "./components/ProfileMenu"
+import { HiHome } from "react-icons/hi2"
 
-export default function Sidebar() {
+export default function UserSidebar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
@@ -27,7 +29,7 @@ export default function Sidebar() {
     window.addEventListener("resize", handleResize)
     handleResize()
     return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch])
+  }, [dispatch, useLocation().pathname])
 
   if (profileLoading || authLoading) {
     return (
@@ -37,12 +39,16 @@ export default function Sidebar() {
     )
   }
 
-  const handleNavigate = (link) => {
-    if (link?.path) {
+  const handleNavigate = (path) => {
+    if (path) {
       dispatch(setOpenSideMenu(false))
-      navigate(link.path)
+      navigate(path)
     }
   }
+
+  const handleSignOut = useCallback(() => {
+    dispatch(logout(navigate));
+  }, [dispatch, navigate]);
 
   return (
     <>
@@ -51,11 +57,19 @@ export default function Sidebar() {
         className="fixed right-4 mr-1 top-1/3 z-[60] flex -translate-y-1/2 flex-col items-center gap-3"
       >
         <button
+          aria-controls="full-sidebar"
+          onClick={() => handleNavigate("/")}
+          title="Home"
+          className={`mt-3 ${openSideMenu ? 'mb-10' : 'mb-0' }  flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+        >
+          <HiHome size={18} />
+        </button>
+        <button
           aria-expanded={openSideMenu}
           aria-controls="full-sidebar"
           onClick={() => dispatch(setOpenSideMenu(!openSideMenu))}
           title={openSideMenu ? "Close menu" : "Open menu"}
-          className="mt-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#ba7bf0] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#2c0052e1] to-[#421a8d] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40"
         >
           {openSideMenu ? <IoMdClose size={18} /> : <HiMenuAlt1 size={18} />}
         </button>
@@ -72,7 +86,7 @@ export default function Sidebar() {
                   key={link.id}
                   title={link.name}
                   aria-label={link.name}
-                  onClick={() => handleNavigate(link)}
+                  onClick={() => handleNavigate(link?.path)}
                   className="bg-gradient-to-r btn-purple bg-violet-600 hover:bg-violet-700 text-white group relative flex h-12 w-12 mt-1.5 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/30"
                 >
                   <span

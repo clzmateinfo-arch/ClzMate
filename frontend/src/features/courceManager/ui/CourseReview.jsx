@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { createRating } from "@/entities/course/model/courseDetailsAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
+import { useLocation } from "react-router-dom";
 
 export default function CourseReview({ setReviewModal }) {
   const { user } = useSelector((state) => state.profile);
@@ -23,7 +24,7 @@ export default function CourseReview({ setReviewModal }) {
   useEffect(() => {
     setValue("courseExperience", "");
     setValue("courseRating", 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   const ratingChanged = (newRating) => {
     setValue("courseRating", newRating);

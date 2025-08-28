@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Outlet } from "react-router-dom";
-import Sidebar from "@/shared/components/navigation/Sidebar";
+import { Outlet, useLocation } from "react-router-dom";
 import Loading from "@/shared/components/navigation/Loading";
 
 const Dashboard = () => {
@@ -18,11 +17,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   return (
     <div>
-      <Sidebar />
       <Outlet />
     </div>
   );

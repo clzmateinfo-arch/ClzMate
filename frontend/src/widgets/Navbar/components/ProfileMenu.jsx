@@ -11,7 +11,7 @@ const ProfileMenu = ({ user, onSignOut }) => {
 
     return (
         <div ref={ref} className="relative">
-            <button onClick={() => setOpen((s) => !s)} aria-expanded={open} aria-haspopup="true" className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-violet-50 transition-colors duration-200 focus:outline-none">
+            <button onClick={() => setOpen((s) => !s)} aria-expanded={open} aria-haspopup="true" className="flex items-center gap-2 px-1.5 py-1.5 rounded-full hover:bg-violet-50 transition-colors duration-200 focus:outline-none">
                 <Avatar user={user} />
                 <span className="hidden xl:inline text-sm font-medium text-gray-800">{user?.preferredName || "Account"}</span>
             </button>
