@@ -14,7 +14,7 @@ import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
 import ProfileMenu from "./components/ProfileMenu"
-import { HiHome } from "react-icons/hi2"
+import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 
 export default function UserSidebar() {
   const dispatch = useDispatch()
@@ -48,7 +48,7 @@ export default function UserSidebar() {
 
   const handleSignOut = useCallback(() => {
     dispatch(logout(navigate));
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <>
@@ -60,9 +60,16 @@ export default function UserSidebar() {
           aria-controls="full-sidebar"
           onClick={() => handleNavigate("/")}
           title="Home"
-          className={`mt-3 ${openSideMenu ? 'mb-10' : 'mb-0' }  flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mt-3 ${openSideMenu ? "mb-10" : "mb-0"
+            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <HiHome size={18} />
+          <span
+            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+            aria-hidden
+          >
+            Home
+          </span>
         </button>
         <button
           aria-expanded={openSideMenu}
@@ -119,6 +126,21 @@ export default function UserSidebar() {
             })}
           </div>
         )}
+        <button
+          aria-controls="full-sidebar"
+          onClick={() => handleSignOut()}
+          title="Signout"
+          className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"
+            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+        >
+          <HiArrowLeftStartOnRectangle size={18} />
+          <span
+            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+            aria-hidden
+          >
+            Signout
+          </span>
+        </button>
       </nav>
 
       {openSideMenu && (

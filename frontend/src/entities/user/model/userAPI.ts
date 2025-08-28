@@ -38,29 +38,72 @@ export function getUserDetails(token, navigate) {
   };
 }
 
-export async function getUserEnrolledCourses(token) {
-  let result = [];
+
+// export async function getUserEnrolledCourses(token) {
+//   let result = [];
+//   try {
+//     const response = await apiConnector(
+//       "GET",
+//       GET_USER_ENROLLED_COURSES_API,
+//       { token },
+//       { Authorization: `Bearer ${token}` }
+//     );
+
+//     console.log(
+//       "GET_USER_ENROLLED_COURSES_API API RESPONSE............",
+//       response
+//     );
+
+//     if (!response.data.success) {
+//       throw new Error(response.data.message);
+//     }
+//     result = response.data.data;
+//   } catch (error) {
+//     console.log("GET_USER_ENROLLED_COURSES_API API ERROR............", error);
+//     toast.error("Could Not Get Enrolled Courses");
+//   }
+//   return result;
+// }
+
+export async function getUserEnrolledCourses({
+  token,
+  page = 1,
+  limit = 10,
+  search = "",
+}: {
+  token: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+}) {
+  let result = { data: [], total: 0, success: false };
+
   try {
-    const response = await apiConnector(
-      "GET",
-      GET_USER_ENROLLED_COURSES_API,
-      { token },
-      { Authorization: `Bearer ${token}` }
-    );
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+    if (search) params.append("search", search);
 
-    console.log(
-      "GET_USER_ENROLLED_COURSES_API API RESPONSE............",
-      response
-    );
+    const url = `${GET_USER_ENROLLED_COURSES_API}?${params.toString()}`;
 
-    if (!response.data.success) {
-      throw new Error(response.data.message);
+    const response = await apiConnector("GET", url, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not fetch courses");
     }
-    result = response.data.data;
-  } catch (error) {
-    console.log("GET_USER_ENROLLED_COURSES_API API ERROR............", error);
-    toast.error("Could Not Get Enrolled Courses");
+
+    result = {
+      data: response.data.data?.courses ?? [],
+      total: response.data.data?.total ?? 0,
+      success: true,
+    };
+  } catch (error: any) {
+    console.error("GET_USER_ENROLLED_COURSES_API ERROR............", error);
+    toast.error(error?.message ?? "Could Not Get Enrolled Courses");
   }
+
   return result;
 }
 
