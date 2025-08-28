@@ -19,6 +19,7 @@ import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPan
 import CourseAuthorCard from "../../features/courseDetails/ui/CourseAuthorCard";
 import { BiArrowBack } from "react-icons/bi";
 import NewCourses from "../../features/portfolio/ui/NewCourses";
+import bgImage from "@/shared/assets/images/background.png";
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile);
@@ -217,8 +218,8 @@ function CourseDetails() {
   };
 
   return (
-    <>
-      <div className="relative w-full bg-white mt-15">
+    <div>
+      <div className="relative w-full mt-15">
         <div className="mx-auto px-4 lg:px-8 max-w-[1260px] pt-8">
           <div className="w-full flex self-start mt-10 -ml-3">
             <Link
@@ -267,7 +268,7 @@ function CourseDetails() {
 
       <Footer />
       {confirmationModal && <ConfirmationModal modalData={confirmationModal} />}
-    </>
+    </div>
   );
 }
 
