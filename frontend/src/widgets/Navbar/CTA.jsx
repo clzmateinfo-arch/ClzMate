@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export function LinkedButton({ children, to = "/app/sign-up", variant = "primary", className = "" }) {
+export function LinkButton({ children, to = "/app/sign-up", variant = "primary", className = "" }) {
   const base = "inline-flex items-center gap-3 rounded-full px-6 py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition";
   const primary = "bg-gradient-to-r from-[#ba7bf0] via-[#996bec] to-[#5046e4] text-white shadow-md hover:opacity-95 focus:ring-[#996bec]";
   const light = "bg-white/6 text-white/95 border border-white/10 hover:bg-white/5 focus:ring-white/40";

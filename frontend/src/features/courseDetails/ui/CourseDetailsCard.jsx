@@ -8,7 +8,7 @@ import { FaShareSquare, FaCheck } from "react-icons/fa";
 import { addToCart } from "@/entities/cart/model/cartSlice";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import Img from "@/shared/components/ui/Img";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { formatTimeAgo } from "@/shared/utils/formatDate";
 
 export default function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
@@ -173,7 +173,7 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <LinkedButton onClick={
+          <LinkButton onClick={
             user && course?.studentsEnrolled?.includes(user?._id)
               ? () => navigate("/dashboard/enrolled-courses")
               : handleBuyCourse
@@ -186,7 +186,7 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
             ) : (
               user && CurrentPrice === 0 ? "Enroll" : "Buy Now"
             )}
-          </LinkedButton>
+          </LinkButton>
 
           {(!user || !course?.studentsEnrolled?.includes(user?._id)) && (
             <button

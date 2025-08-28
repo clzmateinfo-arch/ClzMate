@@ -16,20 +16,14 @@ const Dashboard = () => {
     );
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="relative flex min-h-[calc(100vh-3.5rem)] ">
+    <div>
       <Sidebar />
-
-      <div className="h-[calc(100vh-3.5rem)] overflow-auto w-full">
-        <div className="mx-auto w-11/12 max-w-[1000px] py-10 ">
-          <Outlet />
-        </div>
-      </div>
+      <Outlet />
     </div>
   );
 };

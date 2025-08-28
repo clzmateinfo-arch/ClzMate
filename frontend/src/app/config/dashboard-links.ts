@@ -6,6 +6,7 @@ import {
   VscAdd,
   VscMortarBoard,
   VscHistory,
+  VscSettings
 } from "react-icons/vsc"
 
 export const sidebarLinks = [
@@ -49,5 +50,11 @@ export const sidebarLinks = [
     path: "/dashboard/purchase-history",
     type: ACCOUNT_TYPE.STUDENT,
     icon: VscHistory,
+  },
+  {
+    id: 7,
+    name: "Settings",
+    path: "/dashboard/settings",
+    icon: VscSettings,
   },
 ]

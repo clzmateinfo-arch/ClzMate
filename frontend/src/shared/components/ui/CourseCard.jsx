@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { formatTimeAgo } from "@/shared/utils/formatDate";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 
@@ -140,9 +140,9 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <LinkedButton to={safeHref} className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
+          <LinkButton to={safeHref} className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
             View Course
-          </LinkedButton>
+          </LinkButton>
 
           <button
             type="button"

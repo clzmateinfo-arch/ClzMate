@@ -93,24 +93,15 @@ export default function AppRoutes() {
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
 
                 {/* Protected */}
-                <Route
-                    path="/dashboard/*"
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                >
+                <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
-
                     {user?.accountType === ACCOUNT_TYPE.STUDENT && (
                         <>
                             <Route path="cart" element={<Cart />} />
                             <Route path="enrolled-courses" element={<EnrolledCourses />} />
                         </>
                     )}
-
                     {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
                         <>
                             <Route path="instructor" element={<Instructor />} />
@@ -121,19 +112,9 @@ export default function AppRoutes() {
                     )}
                 </Route>
 
-                <Route
-                    path="/view-course/*"
-                    element={
-                        <ProtectedRoute>
-                            <ViewCourse />
-                        </ProtectedRoute>
-                    }
-                >
+                <Route path="/view-course/*" element={<ProtectedRoute><ViewCourse /></ProtectedRoute>}>
                     {user?.accountType === ACCOUNT_TYPE.STUDENT && (
-                        <Route
-                            path=":courseId/section/:sectionId/sub-section/:subSectionId"
-                            element={<VideoDetails />}
-                        />
+                        <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<VideoDetails />} />
                     )}
                 </Route>
 

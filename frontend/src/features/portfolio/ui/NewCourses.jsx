@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
@@ -92,13 +92,13 @@ export function NewCourses() {
                         )}
 
                         <div className="mt-6 mr-5 flex justify-end">
-                            <LinkedButton
+                            <LinkButton
                                 to="/catalog/all"
                                 className="btn-xl group/btn btn-border-dark rounded-full"
                                 variant="light"
                             >
                                 Explore More
-                            </LinkedButton>
+                            </LinkButton>
                         </div>
                     </div>
                 </div>

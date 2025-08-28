@@ -3,16 +3,15 @@ import React from "react";
 import defaultBg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import SearchInput from "@/shared/components/ui/SearchInput";
 
-export default function PageHeader({
+export default function DashboardHeader({
   title = "Page Title",
   subtitle = "Page Subtittle",
-  description = "Page Description",
   background = defaultBg,
   showSearch = false,
   onSearch = () => { },
 }) {
   return (
-    <header className="relative -mt-24 pt-36 md:py-35 md:pb-20 text-white text-center overflow-hidden">
+    <header className="relative -mt-24 pt-20 md:py-35 pb-10 text-white text-center overflow-hidden">
       <img
         src={background}
         alt=""
@@ -28,12 +27,6 @@ export default function PageHeader({
         {subtitle && (
           <p className="text-sm sm:text-base lg:text-[18px] tracking-prose mb-2 max-w-[46.875rem] mx-auto text-[#e0e0e0]">
             {subtitle}
-          </p>
-        )}
-
-        {description && (
-          <p className="text-xs sm:text-base lg:text-[14px] tracking-prose mb-9 max-w-[46.875rem] mx-auto text-[#868686]">
-            {description}
           </p>
         )}
       </div>

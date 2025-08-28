@@ -1,5 +1,5 @@
 import React from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import cloudCity from "@/shared/assets/images/porfolio/cloud-city.avif";
 
 export function Hero() {
@@ -74,9 +74,9 @@ export function Hero() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <LinkedButton to="/signup" className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
+                            <LinkButton to="/signup" className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
                                 Get started, It’s free
-                            </LinkedButton>
+                            </LinkButton>
                         </div>
                     </div>
                 </div>

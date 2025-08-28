@@ -96,51 +96,52 @@ const About = () => {
         background={backImg}
         showSearch={false}
       />
-
-      <div className="rounded-2xl p-6 bg-white/6 mt-5 justify-center">
-        <StatsComponenet />
-        <LearningGrid />
-        <div
-          className="rounded-2xl p-6 mt-5 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm flex flex-col items-start"
-        >
-          <header className="mb-6 text-left">
-            <h2 id="site-stats-title" className="text-2xl font-semibold text-black">
-              Hi!
-            </h2>
-            <p className="mt-2 text-sm text-black">
-              Meet Our Team
-            </p>
-          </header>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-5">
-            <TeamMember
-              name="Sachini Kumarathunga"
-              role="Founder"
-              avatar={SachiniImg}
-              linkedin="https://www.linkedin.com/in/sachini-kumarathunga/"
-              github="https://github.com/sachkumarathunga"
-              facebook="https://www.facebook.com/share/16yLFTXhVS/"
-              twitter="twitter"
-              bio="Computer Science & ICT Lecture, Software Engineer, Web Developer, BSc (Hons) Information Technology & Management - University of Moratuwa"
-            />
-            {/* <TeamMember
+      <div className="mx-auto w-11/12 max-w-[95%]">
+        <div className="rounded-2xl p-6 bg-white/6 mt-5 justify-center">
+          <StatsComponenet />
+          <LearningGrid />
+          <div
+            className="rounded-2xl p-6 mt-5 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm flex flex-col items-start"
+          >
+            <header className="mb-6 text-left">
+              <h2 id="site-stats-title" className="text-2xl font-semibold text-black">
+                Hi!
+              </h2>
+              <p className="mt-2 text-sm text-black">
+                Meet Our Team
+              </p>
+            </header>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-5">
+              <TeamMember
+                name="Sachini Kumarathunga"
+                role="Founder"
+                avatar={SachiniImg}
+                linkedin="https://www.linkedin.com/in/sachini-kumarathunga/"
+                github="https://github.com/sachkumarathunga"
+                facebook="https://www.facebook.com/share/16yLFTXhVS/"
+                twitter="twitter"
+                bio="Computer Science & ICT Lecture, Software Engineer, Web Developer, BSc (Hons) Information Technology & Management - University of Moratuwa"
+              />
+              {/* <TeamMember
             name="Nimantha Hennayake"
             role="Developer"
             avatar={NimanthaImg}
             bio="Web developer who support to maintain this :)"
           /> */}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="rounded-2xl p-6 bg-white/6 mt-5">
-        <header className="mb-6 text-center">
-          <h2 id="site-stats-title" className="text-2xl font-semibold text-black">
-            Learners Reviews
-          </h2>
-          <p className="mt-2 text-sm text-black">
-            Feedback always matters
-          </p>
-        </header>
-        <ReviewSlider />
+        <div className="rounded-2xl p-6 bg-white/6 mt-5">
+          <header className="mb-6 text-center">
+            <h2 id="site-stats-title" className="text-2xl font-semibold text-black">
+              Learners Reviews
+            </h2>
+            <p className="mt-2 text-sm text-black">
+              Feedback always matters
+            </p>
+          </header>
+          <ReviewSlider />
+        </div>
       </div>
       <Footer />
     </div >

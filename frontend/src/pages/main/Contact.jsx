@@ -15,22 +15,23 @@ const Contact = () => {
         background={backImg}
         showSearch={false}
       />
-      <div className="container mx-auto w-11/12 max-w-maxContent mt-5 mb-10">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
-          <div className="lg:w-[50%]">
-            <ContactDetails />
+      <div className="mx-auto w-11/12 max-w-[95%]">
+        <div className="container mx-auto w-11/12 max-w-maxContent mt-5 mb-10">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+            <div className="lg:w-[50%]">
+              <ContactDetails />
+            </div>
+            <div className="lg:w-[50%]">
+              <ContactForm />
+            </div>
           </div>
-          <div className="lg:w-[50%]">
-            <ContactForm />
-          </div>
-        </div>
-{/* 
+          {/* 
         <div className="w-full max-w-5xl">
           <h4 className="text-m font-medium mb-2 text-black">Reviews from other learners</h4>
           <ReviewSlider />
         </div> */}
+        </div>
       </div>
-
       <Footer />
     </div>
   );

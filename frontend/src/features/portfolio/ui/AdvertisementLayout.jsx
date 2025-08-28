@@ -1,5 +1,5 @@
 import React from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import adImg from "@/shared/assets/images/porfolio/advertisment.png";
 
 export function AdvertisementLayout() {
@@ -63,12 +63,12 @@ export function AdvertisementLayout() {
                         </ul>
 
                         <div className="mt-6">
-                            <LinkedButton
+                            <LinkButton
                                 to="/signup"
                                 className="btn-xl btn-purple group/btn btn-border-dark rounded-full"
                             >
                                 Start Now
-                            </LinkedButton>
+                            </LinkButton>
                         </div>
                     </div>
                 </div>

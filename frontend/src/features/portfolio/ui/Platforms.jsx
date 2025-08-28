@@ -1,5 +1,5 @@
 import React from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 
 const platforms = [
     { name: "Computing", src: "/shared/assets/images/porfolio/advertisment.png" },
@@ -63,13 +63,13 @@ export function Platforms({ platforms = [] }) {
                             are passionate about sharing their knowledge with you
                         </p>
 
-                        <LinkedButton
+                        <LinkButton
                             to="/catalog/all"
                             className="btn-xl group/btn btn-border-dark rounded-full"
                             variant="light"
                         >
                             Learn More
-                        </LinkedButton>
+                        </LinkButton>
                     </div>
 
                     <div className="w-full">

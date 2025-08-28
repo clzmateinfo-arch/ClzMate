@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { Link, matchPath } from "react-router-dom";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import MobileSubmenu from "./MobileSubmenu";
 import { HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { LogoWithoutImage } from "@/shared/components/ui/Logo";
@@ -96,32 +96,32 @@ export default function MobileNav({
                     <div className="absolute left-5 right-5 bottom-5 mb-1 mt-8 space-y-3 " id="action-buttons">
                         {!token ? (
                             <div className="mt-5 justify-start">
-                                <LinkedButton
+                                <LinkButton
                                     to="/login"
                                     className="mt-2 block w-full text-left border border-gray-300 shadow-sm text-violet-600 hover:border-violet-500/40 hover:bg-violet-200 py-2 px-4"
                                     onClick={onClose}
                                 >
                                     Sign In
-                                </LinkedButton>
+                                </LinkButton>
 
-                                <LinkedButton
+                                <LinkButton
                                     to="/signup"
                                     className="mt-2 block w-full text-center bg-violet-600 hover:bg-violet-700 text-white py-2 px-4 rounded"
                                     onClick={onClose}
                                 >
                                     Get Started
-                                </LinkedButton>
+                                </LinkButton>
                             </div>
                         ) : (
                             <div className="w-[90%] mt-5 justify-start">
-                                <LinkedButton
+                                <LinkButton
                                     to="/dashboard"
                                     className="m-2 block w-full text-left border border-gray-300 shadow-sm text-violet-600 hover:border-violet-500/40 hover:bg-violet-200 py-2 px-4"
                                     onClick={onClose}
                                 >
                                     Dashboard
-                                </LinkedButton>
-                                <LinkedButton
+                                </LinkButton>
+                                <LinkButton
                                     to="/login"
                                     className="m-2 block w-full text-left border border-gray-300 shadow-sm text-violet-600 hover:border-violet-500/40 hover:bg-violet-200 py-2 px-4"
                                     onClick={() => {
@@ -130,7 +130,7 @@ export default function MobileNav({
                                     }}
                                 >
                                     Sign Out
-                                </LinkedButton>
+                                </LinkButton>
                             </div>
                         )}
                     </div>

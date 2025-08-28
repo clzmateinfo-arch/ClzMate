@@ -1,28 +1,44 @@
 /* eslint-disable react/prop-types */
+import React from "react";
+
 export default function IconBtn({
   text,
+  onClick,
   onclick,
   children,
-  disabled,
+  disabled = false,
   outline = false,
-  customClasses,
-  type,
+  className = "",
+  customClasses = "",
+  type = "button",
 }) {
+  const handleClick = (e) => {
+    if (disabled) return;
+    const fn = onClick ?? onclick;
+    if (typeof fn === "function") fn(e);
+  };
+
+  const base = "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const filled = "bg-violet-600 text-white shadow-sm hover:shadow-md hover:brightness-95 focus:ring-violet-300";
+  const outlineStyle = "bg-white/6 text-violet-600 border border-white/10 backdrop-blur-md hover:bg-white/10 focus:ring-violet-200";
+  const disabledCls = disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : "cursor-pointer";
+  const classes = `${base} ${outline ? outlineStyle : filled} ${disabledCls} ${className} ${customClasses}`;
+
   return (
     <button
-      disabled={disabled}
-      onClick={onclick}
-      className={`flex items-center justify-center outline-none ${outline ? "border border-yellow-50 bg-transparent" : "bg-yellow-50"
-        } cursor-pointer gap-x-2 rounded-md py-2 px-5 font-semibold text-black hover:bg-white hover:text-yellow-50 duration-300 ${customClasses}`}
       type={type}
+      onClick={handleClick}
+      aria-disabled={disabled}
+      disabled={disabled}
+      className={classes}
     >
       {children ? (
         <>
-          <span className={`${outline && "text-yellow-50"}`}>{text}</span>
-          {children}
+          <span className="truncate">{text}</span>
+          <span className="flex items-center justify-center">{children}</span>
         </>
       ) : (
-        text
+        <span className="truncate">{text}</span>
       )}
     </button>
   );

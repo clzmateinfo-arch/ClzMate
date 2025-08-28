@@ -16,12 +16,10 @@ export default function ChangeProfilePicture() {
 
   const fileInputRef = useRef(null);
 
-  const handleClick = () => {
-    fileInputRef.current.click();
-  };
+  const handleClick = () => fileInputRef.current?.click();
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       setProfileImage(file);
       previewFile(file);
@@ -31,63 +29,64 @@ export default function ChangeProfilePicture() {
   const previewFile = (file) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      setPreviewSource(reader.result);
-    };
+    reader.onloadend = () => setPreviewSource(reader.result);
   };
 
   const handleFileUpload = () => {
+    if (!profileImage) return;
     try {
       setLoading(true);
       const formData = new FormData();
       formData.append("profileImage", profileImage);
 
-      dispatch(updateUserProfileImage(token, formData)).then(() => {
-        setLoading(false);
-      });
+      dispatch(updateUserProfileImage(token, formData)).finally(() =>
+        setLoading(false)
+      );
     } catch (error) {
-      console.log("ERROR MESSAGE - ", error.message);
+      console.error("ERROR MESSAGE - ", error.message);
     }
   };
 
   useEffect(() => {
-    if (profileImage) {
-      previewFile(profileImage);
-    }
+    if (profileImage) previewFile(profileImage);
   }, [profileImage]);
 
   return (
-    <>
-      <div className="flex items-center justify-between rounded-md border-[1px] border-black  p-8 px-3 sm:px-12 text-black">
-        <div className="flex items-center gap-x-4">
-          <Img
-            src={previewSource || user?.image}
-            alt={`profile-${user?.firstName}`}
-            className="aspect-square w-[78px] rounded-full object-cover"
-          />
+    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 mb-3 mt-3 sm:p-8 text-black">
+      <div className="flex items-center gap-5">
+        <Img
+          src={previewSource || user?.image}
+          alt={`profile-${user?.firstName}`}
+          className="w-20 h-20 rounded-full object-cover ring-2 ring-white/20 shadow-md"
+        />
 
-          <div className="space-y-2">
-            <p className="font-medium">Change Profile Picture</p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/png, image/gif, image/jpeg, image/jpg"
-              />
+        <div className="space-y-2">
+          <p className="font-semibold text-sm text-black/80">
+            Change Profile Picture
+          </p>
 
-              <button
+          <div className="py-2 flex flex-col sm:flex-row gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/png, image/gif, image/jpeg, image/jpg"
+            />
+
+            <div className="mt-3">
+              <IconBtn
+                text="Select"
                 onClick={handleClick}
                 disabled={loading}
-                className="cursor-pointer rounded-md py-2 px-5 font-semibold  text-black hover: hover:text-black duration-300"
-              >
-                Select
-              </button>
+                className="m-1"
+              />
 
               <IconBtn
-                text={loading ? "UpLoading" : "Upload"}
-                onclick={handleFileUpload}
+                text={loading ? "Uploading..." : "Upload"}
+                onClick={handleFileUpload}
+                disabled={loading}
+                className="m-1"
               >
                 {!loading && <FiUpload className="text-lg" />}
               </IconBtn>
@@ -95,6 +94,6 @@ export default function ChangeProfilePicture() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

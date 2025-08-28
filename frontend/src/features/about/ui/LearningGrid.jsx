@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { LinkedButton } from "@/shared/components/ui/LinkButton";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import HighlightText from "@/shared/components/ui/HighlightText";
 
 const LearningGridArray = [
@@ -60,12 +60,12 @@ export default function LearningGrid() {
 
                 {card.BtnText && (
                   <div className="mt-6">
-                    <LinkedButton
+                    <LinkButton
                       to={card.BtnLink}
                       className="inline-flex items-center gap-2 btn-xl btn-purple btn-border-dark rounded-full"
                     >
                       {card.BtnText}
-                    </LinkedButton>
+                    </LinkButton>
                   </div>
                 )}
               </article>
