@@ -25,7 +25,7 @@ export default function Instructor() {
       }
       setLoading(false);
     })();
-  }, [useLocation().pathname]]);
+  }, [useLocation().pathname]);
 
   const totalAmount = instructorData?.reduce(
     (acc, curr) => acc + curr.totalAmountGenerated,
