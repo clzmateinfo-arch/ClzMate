@@ -16,8 +16,8 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import Upload from "../../../../shared/components/ui/Upload";
 import ChipInput from "../../../../shared/components/ui/ChipInput";
 import RequirementsField from "./RequirementField";
-import Input from "@/shared/components/ui/Input";
-import Textarea from "@/shared/components/ui/TextArea";
+import Input from "../../../../shared/components/ui/Input";
+import Textarea from "../../../../shared/components/ui/TextArea";
 import Select from "@/shared/components/ui/Select";
 import Button from "../../../../shared/components/ui/Button";
 
