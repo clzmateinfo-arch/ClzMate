@@ -62,7 +62,7 @@ export default function MobileProfileDropDown() {
           className="absolute min-w-[120px] top-[118%] right-0 z-[1000] divide-y-[1px] divide-black overflow-hidden rounded-lg border-[1px] border-black "
           ref={ref}
         >
-          <Link to="/dashboard/my-profile" onClick={() => setOpen(false)}>
+          <Link to="/dashboard" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black">
               <VscDashboard className="text-lg" />
               Dashboard

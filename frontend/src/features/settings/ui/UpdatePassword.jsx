@@ -50,18 +50,12 @@ export default function UpdatePassword() {
 
     try {
       setSubmitting(true);
-      // If changePassword is a thunk/action creator, dispatch it. If it's a plain function, call it directly.
       if (typeof changePassword === "function" && changePassword.length) {
-        // try dispatching — this matches updateProfile usage in your EditProfile
         await dispatch(changePassword(token, payload));
       } else {
         await changePassword(token, payload);
       }
-      // optional: show success toast or navigate
-      // navigate("/dashboard/my-profile");
     } catch (err) {
-      // show toast or set form error
-      // eslint-disable-next-line no-console
       console.error("Change password failed", err);
       setErrors((p) => ({ ...p, form: "Unable to change password. Please try again." }));
     } finally {

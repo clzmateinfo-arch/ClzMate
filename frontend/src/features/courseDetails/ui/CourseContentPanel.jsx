@@ -44,12 +44,9 @@ export default function CourseContentPanel({
             className={`w-full mx-auto bg-white rounded-2xl border border-[#efe7ff] p-6 shadow-md hover:shadow-2xl overflow-hidden ${className}`}
         >
             <div className="mr-6">
-                {/* Tags (keeps full width and spacing consistent) */}
                 <div className="w-full mb-6 min-w-0">
                     <CourseTags tags={tags} />
                 </div>
-
-                {/* Header: stacks on small screens, inline on md+ */}
                 <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
                     <h3 className="text-2xl font-semibold text-[#0b1220] min-w-0">Course Content</h3>
 
@@ -69,8 +66,6 @@ export default function CourseContentPanel({
                         </button>
                     </div>
                 </div>
-
-                {/* Accordion list: ensure each item can grow/shrink inside the panel */}
                 <div className="space-y-3">
                     {Array.isArray(sections) && sections.length > 0 ? (
                         sections.map((section, i) => {

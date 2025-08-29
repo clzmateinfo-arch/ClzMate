@@ -1,56 +1,52 @@
-import { useEffect, useState } from "react";
+// UserCourses.jsx
+import React, { useState, useCallback } from "react";
 import { VscAdd } from "react-icons/vsc";
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
-import { fetchInstructorCourses } from "@/entities/course/model/courseDetailsAPI";
+import { useNavigate } from "react-router-dom";
+
+import DashboardHeader from "@/shared/components/ui/DashboardHeader";
+import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import IconBtn from "@/shared/components/ui/IconBtn";
-import CoursesTable from "@/features/courceManager/ui/CoursesTable";
+import InstructorCourseSlider from "../../features/dashboard/ui/InstructorCourseSlider";
+import { ACCOUNT_TYPE } from "@/utils/constants";
 
 export default function UserCourses() {
-  const { token } = useSelector((state) => state.auth);
+  const { user } = useSelector((s) => s.profile);
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const getAllCourses = async () => {
-      setLoading(true);
-      const result = await fetchInstructorCourses(token);
-      setLoading(false);
-      if (result) {
-        setCourses(result);
-      }
-    };
-    getAllCourses();
-  }, [useLocation().pathname]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
+  const handleSearch = useCallback((term) => {
+    setSearchTerm(term);
+  }, []);
+
+  const canAddCourse = user?.accountType === ACCOUNT_TYPE.INSTRUCTOR;
 
   return (
-    <div>
-      <div className="mb-14 flex justify-between">
-        <h1 className="text-4xl font-medium text-black text-center lg:text-left">
-          My Courses
-        </h1>
-        <IconBtn
-          text="Add Course"
-          onclick={() => navigate("/dashboard/add-course")}
-        >
-          <VscAdd />
-        </IconBtn>
-      </div>
+    <div className="bg-transparent text-richblack-900 min-h-screen pb-12">
+      <DashboardHeader
+        title="My Courses"
+        subtitle=""
+        background={backImg}
+        showSearch={true}
+        onSearch={handleSearch}
+      />
 
-      {/* course Table */}
-      {courses && (
-        <CoursesTable
-          courses={courses}
-          setCourses={setCourses}
-          loading={loading}
-          setLoading={setLoading}
-        />
-      )}
+      <div className="mx-auto w-11/12 max-w-maxContent mt-8 xl:max-w-[60%] lg:max-w-[85%] md:max-w-[95%] sm:max-w-[100%]">
+        <div className="mb-6 flex justify-between items-center">
+          {canAddCourse && (
+            <IconBtn
+              text="Add Course"
+              onclick={() => navigate("/dashboard/add-course")}
+              customClasses="bg-violet-600"
+            >
+              <VscAdd />
+            </IconBtn>
+          )}
+        </div>
+
+        <InstructorCourseSlider searchTerm={searchTerm} />
+      </div>
     </div>
   );
 }

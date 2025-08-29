@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { getUserEnrolledCourses } from "@/entities/user/model/userAPI";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
-import EnrolledCourseCard from "@/features/courceManager/ui/EnrolledCourseCard";
+import EnrolledCourseCard from "@/features/dashboard/ui/EnrolledCourseCard";
 
 export default function EnrolledCourseSlider({
     searchTerm = "",

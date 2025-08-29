@@ -81,6 +81,7 @@ export default function ChangeProfilePicture() {
                 onClick={handleClick}
                 disabled={loading}
                 className="m-1"
+                customClasses="bg-violet-600"
               />
 
               <IconBtn
@@ -88,6 +89,7 @@ export default function ChangeProfilePicture() {
                 onClick={handleFileUpload}
                 disabled={loading}
                 className="m-1"
+                customClasses="bg-violet-600"
               >
                 {!loading && <FiUpload className="text-lg" />}
               </IconBtn>

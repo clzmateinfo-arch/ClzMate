@@ -355,29 +355,46 @@ export const deleteSubSection = async (data, token) => {
   return result;
 };
 
-export const fetchInstructorCourses = async (token) => {
-  let result = [];
+export async function fetchInstructorCourses({
+  token,
+  page = 1,
+  limit = 10,
+  search = "",
+}) {
+  let result = { data: [], total: 0, page, limit, totalPages: 0, success: false };
 
   try {
-    const response = await apiConnector(
-      "GET",
-      GET_ALL_INSTRUCTOR_COURSES_API,
-      null,
-      {
-        Authorization: `Bearer ${token}`,
-      }
-    );
-    console.log("INSTRUCTOR COURSES API RESPONSE", response);
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+    if (String(search || "").trim()) params.append("search", String(search).trim());
+
+    const url = `${GET_ALL_INSTRUCTOR_COURSES_API}?${params.toString()}`;
+
+    const response = await apiConnector("GET", url, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
     if (!response?.data?.success) {
-      throw new Error("Could Not Fetch Instructor Courses");
+      throw new Error(response?.data?.message || "Could not fetch instructor courses");
     }
-    result = response?.data?.data;
+
+    const payload = response.data.data || {};
+    result = {
+      data: payload.courses ?? [],
+      total: payload.total ?? 0,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
+      totalPages: payload.totalPages ?? Math.ceil((payload.total ?? 0) / limit),
+      success: true,
+    };
   } catch (error) {
-    console.log("INSTRUCTOR COURSES API ERROR............", error);
-    toast.error(error.message);
+    console.error("FETCH_INSTRUCTOR_COURSES ERROR", error);
+    toast.error(error?.message ?? "Could not fetch instructor courses");
   }
+
   return result;
-};
+}
 
 export const deleteCourse = async (data, token) => {
   try {

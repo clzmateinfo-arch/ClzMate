@@ -108,7 +108,7 @@ export default function CourseReview({ setReviewModal }) {
               >
                 Cancel
               </button>
-              <IconBtn text="Save" />
+              <IconBtn text="Save" customClasses="bg-violet-600"/>
             </div>
           </form>
         </div>

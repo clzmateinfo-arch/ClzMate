@@ -133,7 +133,7 @@ const Select = forwardRef(
         return (
             <div className={`w-full relative ${className}`} ref={containerRef}>
                 {label && (
-                    <label htmlFor={id || name} className="block text-sm font-semibold text-[#0b1220] mb-1">
+                    <label htmlFor={id || name} className="block text-sm font-semibold text-[#0b1220] mb-2">
                         {label} {required && <span aria-hidden className="text-red-500"> *</span>}
                     </label>
                 )}
@@ -258,9 +258,10 @@ const Select = forwardRef(
                         </div>
 
                         {helpText && !error && <div className="px-3 py-2 text-xs text-gray-500">{helpText}</div>}
-                        {error && <div className="px-3 py-2 text-xs text-red-600">{error}</div>}
                     </div>
                 )}
+
+                {error && <div className="px-3 py-2 text-xs text-red-600">{error}</div>}
             </div>
         );
     }

@@ -517,22 +517,76 @@ exports.editCourse = async (req, res) => {
 exports.getInstructorCourses = async (req, res) => {
     try {
         const instructorId = req.user.id;
+        const { page = "1", limit = "10", search = "" } = req.query;
 
-        const instructorCourses = await Course.find({
-            instructor: instructorId,
-        }).sort({ createdAt: -1 });
+        const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+        const lim = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+        const skip = (pageNum - 1) * lim;
 
-        res.status(200).json({
+        let query = { instructor: instructorId };
+
+        let instructorCourses = await Course.find(query)
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        if (!Array.isArray(instructorCourses)) instructorCourses = [];
+
+        const trimmedSearch = (search || "").trim();
+        if (trimmedSearch) {
+            const regex = new RegExp(trimmedSearch, "i");
+            instructorCourses = instructorCourses.filter(
+                (c) => regex.test(c.courseName) || regex.test(c.courseDescription)
+            );
+        }
+
+        for (let i = 0; i < instructorCourses.length; i++) {
+            const course = instructorCourses[i];
+
+            let totalDurationInSeconds = 0;
+            let subsectionLength = 0;
+
+            if (Array.isArray(course.courseContent)) {
+                for (const section of course.courseContent) {
+                    if (Array.isArray(section.subSection)) {
+                        subsectionLength += section.subSection.length;
+                        totalDurationInSeconds += section.subSection.reduce((acc, curr) => {
+                            const dur = parseInt(curr.timeDuration || 0, 10) || 0;
+                            return acc + dur;
+                        }, 0);
+                    }
+                }
+            }
+
+            course.totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+            course.subsectionLength = subsectionLength;
+
+            course.studentsEnrolledCount = Array.isArray(course.studentsEnrolled) ? course.studentsEnrolled.length : 0;
+        }
+
+        const total = instructorCourses.length;
+        const paginated = instructorCourses.slice(skip, skip + lim);
+
+        return res.status(200).json({
             success: true,
-            data: instructorCourses,
-            message: "Courses made by Instructor fetched successfully",
+            data: {
+                courses: paginated,
+                total,
+                page: pageNum,
+                limit: lim,
+                totalPages: Math.ceil(total / lim),
+            },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
+        console.error("GET_INSTRUCTOR_COURSES error", error);
+        return res.status(500).json({
             success: false,
-            message: "Failed to retrieve instructor courses",
-            error: error.message,
+            message: error.message || "Failed to fetch instructor courses",
         });
     }
 };

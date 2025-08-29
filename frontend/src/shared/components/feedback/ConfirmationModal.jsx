@@ -17,6 +17,7 @@ export default function ConfirmationModal({ modalData }) {
           <IconBtn
             onclick={modalData?.btn1Handler}
             text={modalData?.btn1Text}
+            customClasses="bg-violet-600"
           />
           <button
             className="cursor-pointer rounded-md  text-black hover: hover:text-black

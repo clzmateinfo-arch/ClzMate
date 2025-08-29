@@ -197,20 +197,19 @@ const VideoDetails = () => {
                   disabled={loading}
                   onclick={() => handleLectureCompletion()}
                   text={!loading ? "Mark As Completed" : "Loading"}
-                  customClasses="text-xl max-w-max px-4 mx-auto"
+                  customClasses="text-xl max-w-max px-4 mx-auto bg-violet-600"
                 />
               )}
               <IconBtn
                 disabled={loading}
                 onclick={() => {
                   if (playerRef?.current) {
-                    // set the current time of the video to 0
                     playerRef?.current?.seek(0);
                     setVideoEnded(false);
                   }
                 }}
                 text="Rewatch"
-                customClasses="text-xl max-w-max px-4 mx-auto mt-2"
+                customClasses="text-xl max-w-max px-4 mx-auto mt-2 bg-violet-600"
               />
 
               <div className="mt-10 flex min-w-[250px] justify-center gap-x-4 text-xl">

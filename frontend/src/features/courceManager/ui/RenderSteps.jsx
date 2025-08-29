@@ -1,9 +1,10 @@
+/* eslint-disable react/prop-types */
 import React from "react";
-import { FaCheck } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import CourseBuilderForm from "@/features/courceManager/ui/CourseBuilder/CourseBuilderForm";
 import CourseInformationForm from "@/features/courceManager/ui/CourseInformation/CourseInformationForm";
 import PublishCourse from "@/features/courceManager/ui/PublishCourse/PublishCourse";
+import StepCard from "../../../shared/components/navigation/StepCard";
 
 export default function RenderSteps() {
   const { step } = useSelector((state) => state.course);
@@ -13,74 +14,83 @@ export default function RenderSteps() {
     {
       id: 1,
       title: "Course Information",
+      short: "Basics",
+      desc: "Add title, description, price, thumbnail and tags. This is the primary information learners see.",
     },
     {
       id: 2,
       title: "Course Builder",
+      short: "Sections & lectures",
+      desc: "Create sections, add lectures (video / resources) and arrange the course flow for learners.",
     },
     {
       id: 3,
       title: "Publish",
+      short: "Visibility & final checks",
+      desc: "Choose whether the course is public or draft and publish once you're ready.",
     },
   ];
 
   return (
     <>
-      <div className="relative mb-2 flex w-full select-none justify-center ">
-        {steps.map((item) => (
-          <React.Fragment key={item.id}>
-            <div
-              className="flex flex-col items-center "
-            // key={item.id}
-            >
-              <div
-                className={`grid  aspect-square w-[34px] place-items-center rounded-full border-[1px] 
-                    ${step === item.id
-                    ? "border-yellow-50 bg-yellow-900 text-yellow-50"
-                    : "border-black  text-black"
-                  }
-                    ${step > item.id && "bg-yellow-50 text-yellow-50"}} `}
-              >
-                {step > item.id ? (
-                  <FaCheck className="font-bold text-black" />
-                ) : (
-                  item.id
+      <div className="mb-6">
+        <div className="md:hidden">
+          {steps.map((s) => {
+            if (s.id !== step) return null;
+            const state = step > s.id ? "done" : step === s.id ? "active" : "future";
+            return (
+              <StepCard
+                key={s.id}
+                id={s.id}
+                title={s.title}
+                short={s.short}
+                desc={s.desc}
+                state={state}
+                compact={true}
+              />
+            );
+          })}
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-3 gap-3">
+          {steps.map((s) => {
+            const state = step > s.id ? "done" : step === s.id ? "active" : "future";
+            return (
+              <div key={s.id} className="relative">
+                <StepCard
+                  id={s.id}
+                  title={s.title}
+                  short={s.short}
+                  desc={s.desc}
+                  state={state}
+                />
+                {s.id !== steps.length && (
+                  <div className="absolute top-1/2 right-[-1.5rem] w-[48px] h-px">
+                    <div
+                      className={`h-px w-full ${step > s.id ? "bg-yellow-50" : step === s.id ? "bg-violet-500" : "bg-white/12"
+                        }`}
+                    />
+                  </div>
                 )}
               </div>
-            </div>
-
-            {/* dashes  */}
-            {item.id !== steps.length && (
-              <div
-                className={`h-[calc(34px/2)] w-[33%] border-dashed border-b-2 ${step > item.id ? "border-yellow-50" : "border-black"
-                  } `}
-              ></div>
-            )}
-          </React.Fragment>
-        ))}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="relative mb-16 flex w-full select-none justify-between">
-        {steps.map((item) => (
-          <div
-            className={`sm:min-w-[130px] flex flex-col items-center gap-y-2 ${editCourse && "sm:min-w-[270px]"
-              }`}
-            key={item.id}
-          >
-            <p
-              className={`text-sm ${step >= item.id ? "text-black" : "text-black"
-                }`}
-            >
-              {item.title}
-            </p>
-          </div>
-        ))}
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-violet-950">
+            {steps.find((st) => st.id === step)?.title ?? "Course Step"}
+          </h2>
+        </div>
       </div>
 
-      {/* Render specific component based on current step */}
-      {step === 1 && <CourseInformationForm />}
-      {step === 2 && <CourseBuilderForm />}
-      {step === 3 && <PublishCourse />}
+      <div className="rounded-2xl">
+        {step === 1 && <CourseInformationForm />}
+        {step === 2 && <CourseBuilderForm />}
+        {step === 3 && <PublishCourse />}
+      </div>
     </>
   );
 }

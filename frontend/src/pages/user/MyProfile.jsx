@@ -70,6 +70,7 @@ export default function MyProfile() {
                 <IconBtn
                   text="Edit"
                   onClick={() => navigate("/dashboard/settings")}
+                  customClasses="bg-violet-600"
                 >
                   <RiEditBoxLine />
                 </IconBtn>
@@ -162,6 +163,7 @@ export default function MyProfile() {
                       <IconBtn
                         text="Unlink"
                         onClick={() => navigate("/dashboard/settings")}
+                        customClasses="bg-violet-600"
                       >
                         <RiEditBoxLine />
                       </IconBtn>
@@ -185,6 +187,7 @@ export default function MyProfile() {
                       <IconBtn
                         text="Unlink"
                         onClick={() => navigate("/dashboard/settings")}
+                        customClasses="bg-violet-600"
                       >
                         <RiEditBoxLine />
                       </IconBtn>
@@ -208,6 +211,7 @@ export default function MyProfile() {
                       <IconBtn
                         text="Unlink"
                         onClick={() => navigate("/dashboard/settings")}
+                        customClasses="bg-violet-600"
                       >
                         <RiEditBoxLine />
                       </IconBtn>
