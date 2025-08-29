@@ -10,7 +10,7 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import Upload from "@/shared/components/ui/Upload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
-import Textarea from "@/shared/components/ui/TextArea";
+import Textarea from "@/shared/components/ui/Textarea";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false }) {
   const {
