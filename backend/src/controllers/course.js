@@ -401,17 +401,14 @@ exports.editCourse = async (req, res) => {
         const rawBody = req.body;
         const { courseId } = rawBody;
 
-        // Normalize updates: if body is a JSON string (common with some multipart clients), parse it.
         let updates = rawBody;
         if (typeof updates === "string") {
             try {
                 updates = JSON.parse(updates);
             } catch (e) {
-                // leave as-is (we'll treat non-object below)
             }
         }
 
-        // Ensure updates is a plain object; otherwise make it an empty object
         if (!updates || typeof updates !== "object") {
             updates = {};
         }
@@ -421,12 +418,10 @@ exports.editCourse = async (req, res) => {
             return res.status(404).json({ error: "Course not found" });
         }
 
-        // Handle thumbnail upload (support req.file, req.files, req.files.thumbnailImage)
         let thumbnailFile = null;
         if (req.file) {
             thumbnailFile = req.file;
         } else if (req.files) {
-            // multer with fields can give req.files as object of arrays
             if (req.files.thumbnailImage) {
                 thumbnailFile = Array.isArray(req.files.thumbnailImage)
                     ? req.files.thumbnailImage[0]
@@ -444,19 +439,15 @@ exports.editCourse = async (req, res) => {
             course.thumbnail = thumbnailImage.secure_url;
         }
 
-        // Prevent accidental overwrite of courseId and file field names from updates
         delete updates.courseId;
         delete updates.thumbnailImage;
-        delete updates.thumbnail; // if client sent it
+        delete updates.thumbnail;
 
-        // Iterate entries and set course fields safely
         for (const [key, rawVal] of Object.entries(updates)) {
-            // safe hasOwnProperty check (defensive)
             if (!Object.prototype.hasOwnProperty.call(updates, key)) continue;
 
             let value = rawVal;
 
-            // If the incoming value is a JSON-looking string, try to parse it.
             if (typeof value === "string") {
                 const trimmed = value.trim();
                 if (
@@ -466,17 +457,14 @@ exports.editCourse = async (req, res) => {
                     try {
                         value = JSON.parse(trimmed);
                     } catch (e) {
-                        // keep as string if parse fails
                     }
                 }
             }
 
-            // explicit parsing for fields you expect as arrays/objects
             if ((key === "tag" || key === "instructions") && typeof value === "string") {
                 try {
                     value = JSON.parse(value);
                 } catch (e) {
-                    // keep original string if parsing fails
                 }
             }
 
@@ -617,7 +605,32 @@ exports.deleteCourse = async (req, res) => {
                 for (const subSectionId of subSections) {
                     const subSection = await SubSection.findById(subSectionId);
                     if (subSection) {
-                        await deleteResourceFromCloudinary(subSection.videoUrl);
+                        // delete video
+                        if (subSection.videoUrl) {
+                            try {
+                                await deleteResourceFromCloudinary(subSection.videoUrl);
+                            } catch (e) {
+                                console.warn("Error deleting subSection.videoUrl:", e.message);
+                            }
+                        }
+                        // delete pdf
+                        if (subSection.pdfUrl) {
+                            try {
+                                await deleteResourceFromCloudinary(subSection.pdfUrl);
+                            } catch (e) {
+                                console.warn("Error deleting subSection.pdfUrl:", e.message);
+                            }
+                        }
+                        // delete support materials array
+                        if (Array.isArray(subSection.supportMaterials)) {
+                            for (const sUrl of subSection.supportMaterials) {
+                                try {
+                                    await deleteResourceFromCloudinary(sUrl);
+                                } catch (e) {
+                                    console.warn("Error deleting support material:", e.message);
+                                }
+                            }
+                        }
                     }
                     await SubSection.findByIdAndDelete(subSectionId);
                 }
