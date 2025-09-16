@@ -51,7 +51,7 @@ const Textarea = forwardRef(
         const baseTextarea =
             "block w-full rounded-xl border bg-white/95 text-[#0b1220] placeholder:text-gray-400 transition duration-200 shadow-sm";
 
-        const focusClasses = "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/50";
+        const focusClasses = "focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#996bec]/70";
         const errorClasses = error ? "border-red-500 focus:ring-red-400" : "border-[#E9EFF5]";
 
         const paddingLeft = leftIcon ? "pl-14" : "pl-4";

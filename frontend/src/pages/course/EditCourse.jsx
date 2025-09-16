@@ -85,7 +85,7 @@ export default function EditCourse() {
       <button
         onClick={() => setTipsOpen(true)}
         aria-label="Open course tips"
-        className="fixed right-6 bottom-6 z-[1200] flex items-center gap-3 rounded-full px-4 py-3 bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow-lg hover:scale-105 transition-transform"
+        className="fixed left-6 bottom-6 z-[1200] flex items-center gap-3 rounded-full px-4 py-3 bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow-lg hover:scale-105 transition-transform"
       >
         <span className="grid place-items-center w-6 h-6 rounded-full bg-white/8">
           <FiZap className="w-4 h-4" />

@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
@@ -8,77 +7,74 @@ import { createSubSection, updateSubSection } from "@/entities/course/model/cour
 import { setCourse } from "@/entities/course/model/courseSlice";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Upload from "@/shared/components/ui/Upload";
+import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
 import Textarea from "@/shared/components/ui/Textarea";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false }) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-    getValues,
-  } = useForm();
-
+  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
   const { course } = useSelector((state) => state.course);
   const loc = useLocation();
 
-  // initialize form values when modal opens / mode changes
   useEffect(() => {
     if (view || edit) {
       setValue("lectureTitle", modalData?.title ?? "");
       setValue("lectureDesc", modalData?.description ?? "");
-      // Upload component registers the file field itself, but we set value (existing url) so Upload can show preview
       setValue("lectureVideo", modalData?.videoUrl ?? null);
+      setValue("lecturePdf", modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null);
+      setValue("supportMaterials", modalData?.supportMaterials ?? []);
     } else {
       setValue("lectureTitle", "");
       setValue("lectureDesc", "");
       setValue("lectureVideo", null);
+      setValue("lecturePdf", null);
+      setValue("supportMaterials", []);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalData, view, edit, loc.pathname]);
-
-  // NOTE: Upload registers the file input internally. Don't double-register here.
-  // If you prefer to register here instead, remove the internal register from Upload.
-  // useEffect(() => { register("lectureVideo", { required: !view }); }, [register, view]);
-
-  // helper to extract register() result into props + ref for forwarded components
-  const regWithRef = (name, rules = {}) => {
-    const reg = register(name, rules);
-    const { ref, ...rest } = reg;
-    return { inputProps: rest, inputRef: ref };
-  };
+  }, [modalData, view, edit, loc.pathname, setValue]);
 
   const isFormUpdated = () => {
-    const currentValues = getValues();
+    const current = getValues();
+    const origVideo = modalData?.videoUrl ?? null;
+    const origPdf = modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null;
     return (
-      currentValues.lectureTitle !== (modalData?.title ?? "") ||
-      currentValues.lectureDesc !== (modalData?.description ?? "") ||
-      currentValues.lectureVideo !== (modalData?.videoUrl ?? "")
+      current.lectureTitle !== (modalData?.title ?? "") ||
+      current.lectureDesc !== (modalData?.description ?? "") ||
+      current.lectureVideo !== origVideo ||
+      current.lecturePdf !== origPdf
     );
   };
 
   const handleEditSubsection = async () => {
     const currentValues = getValues();
+
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf) {
+      toast.error("Please upload either a video (MP4) or a PDF before saving.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("sectionId", modalData.sectionId);
     formData.append("subSectionId", modalData._id);
     if (currentValues.lectureTitle !== modalData.title) formData.append("title", currentValues.lectureTitle);
     if (currentValues.lectureDesc !== modalData.description) formData.append("description", currentValues.lectureDesc);
-    if (currentValues.lectureVideo !== modalData.videoUrl) formData.append("video", currentValues.lectureVideo);
+    if (currentValues.lectureVideo && currentValues.lectureVideo !== modalData.videoUrl) formData.append("video", currentValues.lectureVideo);
+    if (currentValues.lecturePdf && currentValues.lecturePdf !== (modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf)) formData.append("pdf", currentValues.lecturePdf);
+
+    const support = currentValues.supportMaterials ?? [];
+    if (support && support.length) {
+      support.forEach((f) => formData.append("supportMaterials", f));
+    }
 
     setLoading(true);
     const result = await updateSubSection(formData, token);
     setLoading(false);
 
     if (result) {
-      const updatedCourseContent = course.courseContent.map((section) =>
-        section._id === modalData.sectionId ? result : section
-      );
+      const updatedCourseContent = course.courseContent.map((section) => (section._id === modalData.sectionId ? result : section));
       const updatedCourse = { ...course, courseContent: updatedCourseContent };
       dispatch(setCourse(updatedCourse));
       setModalData(null);
@@ -89,6 +85,13 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
 
   const onSubmit = async (data) => {
     if (view) return;
+
+    const currentValues = getValues();
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf) {
+      toast.error("Please upload either a video (MP4) or a PDF.");
+      return;
+    }
+
     if (edit) {
       if (!isFormUpdated()) {
         toast.error("No changes made to the form");
@@ -102,16 +105,16 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     formData.append("sectionId", modalData);
     formData.append("title", data.lectureTitle);
     formData.append("description", data.lectureDesc);
-    formData.append("video", data.lectureVideo);
+    if (data.lectureVideo) formData.append("video", data.lectureVideo);
+    if (data.lecturePdf) formData.append("pdf", data.lecturePdf);
+    (data.supportMaterials ?? []).forEach((f) => formData.append("supportMaterials", f));
 
     setLoading(true);
     const result = await createSubSection(formData, token);
     setLoading(false);
 
     if (result) {
-      const updatedCourseContent = course.courseContent.map((section) =>
-        section._id === modalData ? result : section
-      );
+      const updatedCourseContent = course.courseContent.map((section) => (section._id === modalData ? result : section));
       const updatedCourse = { ...course, courseContent: updatedCourseContent };
       dispatch(setCourse(updatedCourse));
       setModalData(null);
@@ -120,14 +123,16 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
   };
 
-  // prepare register props + refs to pass to forwarded components
-  const titleReg = regWithRef("lectureTitle", { required: !view });
-  const descReg = regWithRef("lectureDesc", { required: !view });
+  const titleReg = { inputProps: register("lectureTitle", { required: !view }).inputProps ?? {}, inputRef: register("lectureTitle", { required: !view }).ref };
+  const descReg = { inputProps: register("lectureDesc", { required: !view }).inputProps ?? {}, inputRef: register("lectureDesc", { required: !view }).ref };
+
+  const watchedVideo = watch("lectureVideo");
+  const watchedPdf = watch("lecturePdf");
 
   return (
     <div className="fixed inset-0 z-[1000] grid place-items-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl bg-white/80 border border-white/60 rounded-2xl shadow-lg overflow-auto">
-        <div className="flex items-center justify-between p-5 border-b border-white/8">
+      <div className="w-full max-w-2xl bg-white/80 border border-white/60 rounded-2xl shadow-lg max-h-[90vh] overflow-auto">
+        <div className="flex items-center justify-between p-5 border-b border-white/8 sticky top-0 bg-white/80 z-10">
           <h3 className="text-lg font-semibold text-richblack-900">{view ? "Viewing" : add ? "Add" : "Edit"} Lecture</h3>
           <button onClick={() => !loading && setModalData(null)} aria-label="close">
             <RxCross2 className="text-2xl text-richblack-900" />
@@ -135,42 +140,54 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <div className="my-3 max-h-200">
+          <div className="my-3">
             <Upload
               name="lectureVideo"
-              label="Lecture Video"
+              label="Lecture Video (MP4)"
               register={register}
               setValue={setValue}
               errors={errors}
-              video
+              fileType="video"
+              required={false}
               viewData={view ? modalData?.videoUrl : null}
               editData={edit ? modalData?.videoUrl : null}
+              previewHeight={320}
             />
           </div>
 
           <div className="my-3">
-            <Input
-              id="lectureTitle"
-              label="Lecture Title"
-              placeholder="Enter Lecture Title"
-              {...titleReg.inputProps}
-              ref={titleReg.inputRef}
-              error={errors.lectureTitle?.message}
-              disabled={view || loading}
+            <Upload
+              name="lecturePdf"
+              label="Lecture Slides / Notes (PDF)"
+              register={register}
+              setValue={setValue}
+              errors={errors}
+              fileType="pdf"
+              required={false}
+              viewData={view ? (modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf) : null}
+              editData={edit ? (modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf) : null}
+              previewHeight={320}
             />
           </div>
 
           <div className="my-3">
-            <Textarea
-              id="lectureDesc"
-              label="Lecture Description"
-              placeholder="Enter Lecture Description"
-              {...descReg.inputProps}
-              ref={descReg.inputRef}
-              error={errors.lectureDesc?.message}
-              disabled={view || loading}
-              rows={6}
+            <MultiUpload
+              name="supportMaterials"
+              label="Support Materials"
+              register={register}
+              setValue={setValue}
+              errors={errors}
+              viewData={view ? modalData?.supportMaterials : null}
+              editData={edit ? modalData?.supportMaterials : null}
             />
+          </div>
+
+          <div className="my-3">
+            <Input id="lectureTitle" label="Lecture Title" placeholder="Enter Lecture Title" {...(register("lectureTitle", { required: !view }))} error={errors.lectureTitle?.message} disabled={view || loading} />
+          </div>
+
+          <div className="my-3">
+            <Textarea id="lectureDesc" label="Lecture Description" placeholder="Enter Lecture Description" {...(register("lectureDesc", { required: !view }))} error={errors.lectureDesc?.message} disabled={view || loading} rows={6} />
           </div>
 
           <div className="my-3">

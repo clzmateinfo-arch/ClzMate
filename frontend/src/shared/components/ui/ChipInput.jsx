@@ -12,7 +12,6 @@ export default function ChipInput({ label, name, placeholder, register, errors, 
   useEffect(() => {
     if (editCourse && course?.tag) setChips(Array.isArray(course.tag) ? course.tag : []);
     register(name, { required: true, validate: (v) => Array.isArray(v) && v.length > 0 }, chips);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useLocation().pathname]);
 
   useEffect(() => setValue(name, chips), [chips, name, setValue]);

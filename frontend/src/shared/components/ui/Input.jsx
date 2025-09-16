@@ -31,16 +31,12 @@ const Input = forwardRef(
         const computedType = isPassword && showPassword ? "text" : type;
         const uid = useId();
 
-        const baseInput =
-            "block w-full rounded-xl border bg-white/95 text-[#0b1220] placeholder:text-gray-400 transition duration-200 shadow-sm";
-
-        const focusClasses =
-            "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/50";
+        const baseInput = "block w-full rounded-xl border bg-white/95 text-[#0b1220] placeholder:text-gray-400 transition duration-200 shadow-sm";
+        const focusClasses = "focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#996bec]/70";
         const errorClasses = error
             ? "border-red-500 focus:ring-red-400"
             : "border-[#E9EFF5]";
 
-        // Keep enough padding so icons don't overlap input text
         const paddingLeft = leftIcon ? "pl-14" : "pl-4";
         const paddingRight =
             rightIcon || (showPasswordToggle && isPassword) ? "pr-12" : "pr-4";

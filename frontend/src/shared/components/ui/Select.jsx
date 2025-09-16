@@ -126,7 +126,7 @@ const Select = forwardRef(
         })();
 
         const baseBtn = "w-full text-left rounded-xl border bg-white/95 text-[#0b1220] shadow-sm transition duration-200 flex items-center justify-between px-4 py-3";
-        const focusBtn = "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/50";
+        const focusBtn = "focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#996bec]/70";
         const errorClass = error ? "border-red-500" : "border-[#E9EFF5]";
         const disabledClass = disabled ? "opacity-60 pointer-events-none" : "";
 
