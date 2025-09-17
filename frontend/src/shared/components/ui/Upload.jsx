@@ -1,3 +1,4 @@
+// Upload.jsx (replace file)
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud } from "react-icons/fi";
@@ -14,6 +15,7 @@ export default function Upload({
   required = true,
   previewHeight = 420,
   multiple = false,
+  disabled = false,
 }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewSource, setPreviewSource] = useState(viewData ?? editData ?? "");
@@ -23,26 +25,74 @@ export default function Upload({
     image: { "image/*": [".jpeg", ".jpg", ".png", ".webp"] },
     video: { "video/*": [".mp4", ".webm", ".mov"] },
     pdf: { "application/pdf": [".pdf"] },
-    any: {},
+    any: { "image/*": [], "video/*": [], "application/pdf": [], ".zip": [] },
+  };
+
+  const isFileAllowed = (file, expectedType) => {
+    if (!file) return false;
+    const mimetype = (file.type || "").toLowerCase();
+    const name = (file.name || "").toLowerCase();
+    const ext = name.includes(".") ? name.substring(name.lastIndexOf(".")) : "";
+
+    if (expectedType === "video") {
+      return mimetype.includes("video");
+    }
+    if (expectedType === "pdf") {
+      return mimetype.includes("pdf");
+    }
+    if (expectedType === "image") {
+      return mimetype.includes("image");
+    }
+
+    if (mimetype.includes("image/")) return true;
+    if (mimetype.startsWith("video/")) return true;
+    if (mimetype === "application/pdf" || ext === ".pdf") return true;
+    if (ext === ".zip" || mimetype === "application/zip") return true;
+    return false;
   };
 
   const onDrop = (acceptedFiles) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
-    if (multiple) {
-      const newFiles = [...selectedFiles, ...acceptedFiles];
+    const file = multiple ? acceptedFiles : acceptedFiles[0];
+
+    if (multiple && Array.isArray(file)) {
+      const filtered = file.filter((f) => isFileAllowed(f, fileType));
+      if (filtered.length !== file.length) {
+        window.alert("Some files were rejected — only images, videos, PDFs and ZIPs are allowed.");
+      }
+      const newFiles = [...selectedFiles, ...filtered];
       setSelectedFiles(newFiles);
       setValue(name, newFiles);
-      setPreview(acceptedFiles[0]);
+      if (filtered[0]) setPreview(filtered[0]);
+      return;
+    }
+
+    const f = file;
+    if (!isFileAllowed(f, fileType)) {
+      window.alert(
+        fileType === "video"
+          ? "Please upload a valid video file (MP4/WEBM/MOV)."
+          : fileType === "pdf"
+            ? "Please upload a valid PDF file."
+            : "File type not allowed. Allowed: images, videos, PDF, ZIP."
+      );
+      return;
+    }
+
+    if (multiple) {
+      const newFiles = [...selectedFiles, f];
+      setSelectedFiles(newFiles);
+      setValue(name, newFiles);
+      setPreview(f);
     } else {
-      const file = acceptedFiles[0];
-      setSelectedFiles([file]);
-      setValue(name, file);
-      setPreview(file);
+      setSelectedFiles([f]);
+      setValue(name, f);
+      setPreview(f);
     }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: acceptMap[fileType] ?? {},
+    accept: acceptMap[fileType] ?? acceptMap.any,
     onDrop,
     multiple,
   });
@@ -92,10 +142,6 @@ export default function Upload({
     }
   };
 
-  const acceptedFilesText = fileType === "video" ? "MP4, WEBM, MOV" : fileType === "pdf" ? "PDF" : fileType === "image" ? "JPEG, JPG, PNG, WEBP" : "Any";
-  const recommended = fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes";
-  const errorClasses = errors?.[name] ? "border-red-500 focus:ring-red-400" : "border border-white/8";
-
   return (
     <div className={`flex flex-col space-y-2`}>
       <label className="block text-sm font-semibold text-[#0b1220]" htmlFor={name}>
@@ -105,7 +151,7 @@ export default function Upload({
 
       <div
         {...getRootProps()}
-        className={`relative flex min-h-[220px] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/6 p-4 shadow-sm transition-all ${errorClasses} ${isDragActive ? "ring-2 ring-offset-2 ring-[#996bec]/30" : ""}`}
+        className={`relative flex min-h-[220px] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/6 p-4 shadow-sm transition-all ${isDragActive ? "ring-2 ring-offset-2 ring-[#996bec]/30" : ""}`}
         aria-label={label}
       >
         <input
@@ -132,9 +178,6 @@ export default function Upload({
                       height: "100%",
                       objectFit: "cover",
                     }}
-                    onLoadedMetadata={(e) => {
-                      const duration = e.target.duration;
-                    }}
                   />
                 </div>
               ) : fileType === "pdf" ? (
@@ -149,7 +192,7 @@ export default function Upload({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 justify-end">
-              <label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
+              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
                 Replace
                 <input
                   type="file"
@@ -157,6 +200,10 @@ export default function Upload({
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) {
+                      if (!isFileAllowed(f, fileType)) {
+                        window.alert("Selected file type not allowed.");
+                        return;
+                      }
                       setSelectedFiles([f]);
                       setValue(name, multiple ? [f] : f);
                       setPreview(f);
@@ -165,6 +212,7 @@ export default function Upload({
                   className="hidden"
                 />
               </label>
+              ) : (<></>)}
 
               {!viewData && !editData && (
                 <button type="button" onClick={handleClear} className="rounded-full border border-white/10 bg-white/4 px-3 py-2 text-sm font-medium text-[#0b1220] hover:bg-white/8 transition">
@@ -180,10 +228,10 @@ export default function Upload({
             </div>
             <div className="max-w-[540px]">
               <p className="text-sm text-[#0b1220]">{isDragActive ? "Drop file to upload" : `Drag & drop ${fileType === "video" ? "a video" : fileType === "pdf" ? "a PDF" : fileType === "image" ? "an image" : "a file"} here, or click to browse`}</p>
-              <p className="mt-3 text-xs text-[#374151]">{recommended}</p>
+              <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes"}</p>
             </div>
             <div className="mt-4 flex gap-3">
-              <label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
+              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
                 Browse
                 <input
                   type="file"
@@ -191,6 +239,10 @@ export default function Upload({
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) {
+                      if (!isFileAllowed(f, fileType)) {
+                        window.alert("Selected file type not allowed.");
+                        return;
+                      }
                       setSelectedFiles([f]);
                       setValue(name, multiple ? [f] : f);
                       setPreview(f);
@@ -199,10 +251,10 @@ export default function Upload({
                   className="hidden"
                 />
               </label>
+              ) : (<></>)}
             </div>
           </div>
         )}
-
       </div>
 
       {errors?.[name] && (
@@ -213,4 +265,3 @@ export default function Upload({
     </div>
   );
 }
-

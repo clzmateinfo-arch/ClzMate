@@ -20,7 +20,7 @@ const {
   GET_FULL_COURSE_DETAILS_AUTHENTICATED,
   CREATE_RATING_API,
   LECTURE_COMPLETION_API,
-  GET_ASSEST_URL,
+  GET_ASSET_URL_API,
 } = courseEndpoints;
 
 const initialState = {
@@ -489,7 +489,7 @@ export const createRating = async (data, token) => {
 
 export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type = "authenticated", expiresInSec = 300, format = null }, token) => {
   try {
-    const response = await apiConnector("POST", GET_ASSEST_URL, {
+    const response = await apiConnector("POST", GET_ASSET_URL_API, {
       publicId,
       resourceType,
       type,
@@ -498,11 +498,9 @@ export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type 
     }, {
       Authorization: `Bearer ${token}`
     });
-
     if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to get asset url");
     return response.data.url;
-  } catch (err) {
-    console.error("getSignedAssetUrl error", err);
+  } catch (error) {
     return null;
   }
 };

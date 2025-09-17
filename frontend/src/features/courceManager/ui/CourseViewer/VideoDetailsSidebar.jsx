@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -20,7 +19,7 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
     courseEntireData,
     totalNoOfLectures,
     completedLectures,
-  } = useSelector((state) => state.viewCourse);
+  } = useSelector((state) => state.course);
   const { courseViewSidebar } = useSelector((state) => state.sidebar);
 
   useEffect(() => {
@@ -46,7 +45,6 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
       <div className="flex h-[calc(100vh-3.5rem)] w-[320px] max-w-[350px] flex-col border-r-[1px] border-r-black ">
         <div className="mx-5 flex flex-col items-start justify-between gap-2 gap-y-4 border-b border-black py-5 text-lg font-bold text-black">
           <div className="flex w-full items-center justify-between ">
-            {/* open - close side bar icons */}
             <div
               className="sm:hidden text-white cursor-pointer "
               onClick={() => dispatch(setCourseViewSidebar(!courseViewSidebar))}
@@ -57,8 +55,6 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
                 <HiMenuAlt1 size={33} />
               )}
             </div>
-
-            {/* go back dashboard */}
             <button
               onClick={() => {
                 navigate(`/dashboard/enrolled-courses`);
@@ -68,16 +64,12 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
             >
               <IoIosArrowBack size={30} />
             </button>
-
-            {/* add review button */}
             <IconBtn
               text="Add Review"
               customClasses="bg-violet-600"
               onclick={() => setReviewModal(true)}
             />
           </div>
-
-          {/* course Name - total No Of Lectures*/}
           <div className="flex flex-col">
             <p>{courseEntireData?.courseName}</p>
             <p className="text-sm font-semibold text-black">
@@ -85,8 +77,6 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
             </p>
           </div>
         </div>
-
-        {/* render all section -subSection */}
         <div className="h-[calc(100vh - 5rem)] overflow-y-auto">
           {courseSectionData.map((section, index) => (
             <div
@@ -94,7 +84,6 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
               onClick={() => setActiveStatus(section?._id)}
               key={index}
             >
-              {/* Section */}
               <div className="flex justify-between  px-5 py-4">
                 <div className="w-[70%] font-semibold">
                   {section?.sectionName}
@@ -104,27 +93,23 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
                     Lession {section?.subSection.length}
                   </span>
                   <span
-                    className={`${
-                      activeStatus === section?._id
-                        ? "rotate-0 transition-all duration-500"
-                        : "rotate-180"
-                    } `}
+                    className={`${activeStatus === section?._id
+                      ? "rotate-0 transition-all duration-500"
+                      : "rotate-180"
+                      } `}
                   >
                     <BsChevronDown />
                   </span>
                 </div>
               </div>
-
-              {/* Sub Sections */}
               {activeStatus === section?._id && (
                 <div className="transition-[height] duration-500 ease-in-out">
                   {section.subSection.map((topic, i) => (
                     <div
-                      className={`flex gap-3  px-5 py-2 ${
-                        videoBarActive === topic._id
-                          ? "bg-yellow-200 font-semibold text-black"
-                          : "hover:"
-                      } `}
+                      className={`flex gap-3  px-5 py-2 ${videoBarActive === topic._id
+                        ? "bg-yellow-200 font-semibold text-black"
+                        : "hover:"
+                        } `}
                       key={i}
                       onClick={() => {
                         navigate(
@@ -139,7 +124,7 @@ export default function VideoDetailsSidebar({ setReviewModal }) {
                       <input
                         type="checkbox"
                         checked={completedLectures.includes(topic?._id)}
-                        onChange={() => {}}
+                        onChange={() => { }}
                       />
                       {topic.title}
                     </div>

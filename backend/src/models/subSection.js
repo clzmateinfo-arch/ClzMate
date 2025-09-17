@@ -1,48 +1,27 @@
 const mongoose = require("mongoose");
 
+const supportMaterialSchema = new mongoose.Schema({
+    url: { type: String },
+    publicId: { type: String },
+    originalName: { type: String },
+    mimeType: { type: String },
+    size: { type: Number },
+    resourceType: { type: String },
+    isMainVideo: { type: Boolean, default: false },
+    isMainPdf: { type: Boolean, default: false },
+});
+
 const subSectionSchema = new mongoose.Schema(
     {
-        title: {
-            type: String,
-            trim: true,
-            default: "",
-        },
-
-        timeDuration: {
-            type: Number,
-            default: 0,
-        },
-
-        description: {
-            type: String,
-            default: "",
-        },
-
-        videoUrl: {
-            type: String,
-            default: null,
-        },
-        pdfUrl: {
-            type: String,
-            default: null,
-        },
-
+        title: { type: String, trim: true, default: "" },
+        timeDuration: { type: Number, default: 0 },
+        description: { type: String, default: "" },
         supportMaterials: {
-            type: [
-                {
-                    url: { type: String },
-                    originalName: { type: String },
-                    mimeType: { type: String },
-                    size: { type: Number },
-                },
-            ],
+            type: [supportMaterialSchema],
             default: [],
         },
 
-        createdAt: {
-            type: Date,
-            default: Date.now,
-        },
+        createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date },
     },
     { timestamps: true }

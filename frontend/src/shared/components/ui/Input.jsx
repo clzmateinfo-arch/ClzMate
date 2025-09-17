@@ -108,11 +108,17 @@ const Input = forwardRef(
                         {helpText}
                     </p>
                 )}
-                {error && (
-                    <p id={`${uid}-help`} className="mt-2 text-sm text-red-600" role="alert">
-                        {error}
-                    </p>
-                )}
+                {error && (() => {
+                    const errorMsg =
+                        typeof error === "string"
+                            ? error
+                            : error?.message ?? error?.type ?? "Invalid value";
+                    return (
+                        <p id={`${uid}-help`} className="mt-2 text-sm text-red-600" role="alert">
+                            {errorMsg}
+                        </p>
+                    );
+                })()}
             </div>
         );
     }

@@ -1,64 +1,102 @@
-// src/utils/fileUploader.js
 const cloudinary = require("cloudinary").v2;
-const { extractPublicIdFromUrl } = require("./cloudinaryId");
+const path = require("path");
 
-/**
- * Upload file to Cloudinary as authenticated asset (private).
- * file: express-fileupload file (tempFilePath, mimetype, name, size)
- */
+function detectResourceTypeFromFile(file) {
+  if (!file) return "raw";
+
+  const mimetype = (file.mimetype || "").toLowerCase();
+  const ext = (file.name && path.extname(file.name).toLowerCase()) || "";
+
+  if (mimetype.includes("image")) return "image";
+  if (mimetype.includes("video")) return "video";
+  return "auto";
+}
+
 exports.uploadFileToCloudinary = async (file, folder, height, quality, opts = {}) => {
   try {
-    const options = { folder };
+    if (!file) throw new Error("No file provided to uploadFileToCloudinary");
 
-    if (height) options.height = height;
-    if (quality) options.quality = quality;
+    const resource_type = opts.resource_type || detectResourceTypeFromFile(file);
 
-    // Let Cloudinary decide resource type automatically
-    options.resource_type = "auto";
-    // make asset authenticated (private, requires signed URLs)
-    options.type = "authenticated";
+    const options = {
+      folder,
+      resource_type,
+      type: "authenticated",
+    };
+
+    if (resource_type === "image" || resource_type === "video") {
+      const transformation = {};
+      if (height) transformation.height = height;
+      if (quality) transformation.quality = quality;
+      if (Object.keys(transformation).length) options.transformation = [transformation];
+    }
 
     if (opts.extraOptions && typeof opts.extraOptions === "object") {
       Object.assign(options, opts.extraOptions);
     }
 
+    console.log("Uploading to Cloudinary with options:", options);
     const result = await cloudinary.uploader.upload(file.tempFilePath, options);
-    // result contains secure_url, public_id, resource_type, duration, etc.
+
+    result._resource_type = resource_type;
+
+    console.log("Cloudinary upload result:", {
+      public_id: result.public_id,
+      secure_url: result.secure_url,
+      resource_type: result.resource_type,
+      format: result.format,
+      bytes: result.bytes,
+      original_filename: result.original_filename,
+    });
+
     return result;
-  } catch (error) {
-    console.error("Error while uploading file to Cloudinary", error);
-    throw error;
+  } catch (err) {
+    console.error("Error while uploading file to Cloudinary", err);
+    throw err;
   }
 };
 
-/**
- * Delete resource from Cloudinary given a public_id OR a full URL.
- * If URL is provided, we will derive its public_id.
- */
-exports.deleteResourceFromCloudinary = async (publicIdOrUrl) => {
+exports.deleteResourceFromCloudinary = async (publicIdOrUrl, resourceType = null) => {
   if (!publicIdOrUrl) return;
   try {
-    let publicId = null;
-    if (typeof publicIdOrUrl !== "string") {
-      publicId = null;
-    } else {
-      // if input is already a short public id without http(s)
-      if (!publicIdOrUrl.startsWith("http")) {
-        publicId = publicIdOrUrl;
-      } else {
-        // try to extract
-        publicId = extractPublicIdFromUrl(publicIdOrUrl);
+    let publicId = publicIdOrUrl;
+
+    if (typeof publicIdOrUrl === "string" && publicIdOrUrl.startsWith("http")) {
+      try {
+        const u = new URL(publicIdOrUrl);
+        const parts = u.pathname.split("/").filter(Boolean);
+        const uploadIdx = parts.findIndex((p) => p === "upload");
+        if (uploadIdx !== -1) {
+          const maybeType = parts[uploadIdx - 1];
+          if (["image", "video", "raw"].includes(maybeType)) resourceType = resourceType || maybeType;
+          const after = parts.slice(uploadIdx + 1).filter((seg) => !/^v\d+$/.test(seg));
+          const last = after.pop();
+          const filename = last && last.includes(".") ? last.substring(0, last.lastIndexOf(".")) : last;
+          const folder = after.length ? after.join("/") + "/" : "";
+          publicId = `${folder}${filename}`;
+        }
+      } catch (e) {
+        console.error("Error parsing URL:", e.message);
       }
     }
 
-    if (!publicId) {
-      // fallback: attempt to call destroy using the input (Cloudinary will try to resolve)
-      return await cloudinary.uploader.destroy(publicIdOrUrl, { resource_type: "auto", type: "authenticated" });
+    if (resourceType) {
+      return await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, type: "authenticated" });
     }
 
-    return await cloudinary.uploader.destroy(publicId, { resource_type: "auto", type: "authenticated" });
+    const tryTypes = ["video", "image", "raw"];
+    for (const rt of tryTypes) {
+      try {
+        const res = await cloudinary.uploader.destroy(publicId, { resource_type: rt, type: "authenticated" });
+        return res;
+      } catch (e) {
+        console.warn(`destroy with resource_type=${rt} failed:`, e.message || e);
+      }
+    }
+
+    return await cloudinary.uploader.destroy(publicId, { resource_type: "raw", type: "authenticated" });
   } catch (err) {
-    console.error("Error deleting resource from Cloudinary:", err);
+    console.error("Error deleting resource from Cloudinary:", err && err.message ? err.message : err);
     throw err;
   }
 };
