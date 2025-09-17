@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud } from "react-icons/fi";
-import "video-react/dist/video-react.css";
-import { Player } from "video-react";
 
 export default function Upload({
   name,
@@ -21,7 +19,6 @@ export default function Upload({
   const [previewSource, setPreviewSource] = useState(viewData ?? editData ?? "");
   const inputRef = useRef(null);
 
-  // create accept map
   const acceptMap = {
     image: { "image/*": [".jpeg", ".jpg", ".png", ".webp"] },
     video: { "video/*": [".mp4", ".webm", ".mov"] },
@@ -124,8 +121,21 @@ export default function Upload({
               {fileType === "image" ? (
                 <img src={previewSource} alt="Preview" className="w-full object-cover" style={{ maxHeight: previewHeight }} />
               ) : fileType === "video" ? (
-                <div style={{ height: previewHeight }} className="w-full overflow-hidden rounded-xl">
-                  <Player playsInline src={previewSource} fluid={false} width="100%" height={previewHeight} />
+                <div style={{ height: previewHeight }} className="w-full overflow-hidden rounded-xl bg-black">
+                  <video
+                    src={previewSource}
+                    controls
+                    playsInline
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                    onLoadedMetadata={(e) => {
+                      const duration = e.target.duration;
+                    }}
+                  />
                 </div>
               ) : fileType === "pdf" ? (
                 <div style={{ height: previewHeight }} className="w-full overflow-auto rounded-xl bg-white">

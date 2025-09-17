@@ -1,5 +1,7 @@
+// SubSectionModal.jsx
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { RxCross2 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,31 +12,58 @@ import Upload from "@/shared/components/ui/Upload";
 import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
-import Textarea from "@/shared/components/ui/Textarea";
+import TextArea from "@/shared/components/ui/TextArea";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false }) {
-  const { register, handleSubmit, setValue, formState: { errors }, getValues, watch } = useForm();
+  // include control and reset here
+  const { register, control, handleSubmit, setValue, reset, formState: { errors }, getValues, watch } = useForm({
+    defaultValues: {
+      lectureTitle: "",
+      lectureDesc: "",
+      lectureVideo: null,
+      lecturePdf: null,
+      supportMaterials: [],
+    },
+  });
+
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
   const { course } = useSelector((state) => state.course);
   const loc = useLocation();
 
+  // reset form whenever modalData / mode changes
   useEffect(() => {
     if (view || edit) {
-      setValue("lectureTitle", modalData?.title ?? "");
-      setValue("lectureDesc", modalData?.description ?? "");
-      setValue("lectureVideo", modalData?.videoUrl ?? null);
-      setValue("lecturePdf", modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null);
-      setValue("supportMaterials", modalData?.supportMaterials ?? []);
+      reset({
+        lectureTitle: modalData?.title ?? "",
+        lectureDesc: modalData?.description ?? "",
+        lectureVideo: modalData?.videoUrl ?? null,
+        lecturePdf: modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null,
+        // supportMaterials: store as an object for MultiUpload
+        supportMaterials: {
+          existing: modalData?.supportMaterials?.map(it => ({
+            url: it.url ?? it.pdfUrl ?? it.videoUrl ?? null,
+            publicId: it.publicId ?? it.pdfPublicId ?? it.videoPublicId ?? it._id ?? null,
+            originalName: it.originalName ?? it.name ?? (it.url ? it.url.split("/").pop() : "file"),
+            mimeType: it.mimeType ?? null,
+            size: it.size ?? null,
+            _id: it._id ?? null,
+          })) ?? [],
+          new: [],
+          remove: [],
+        },
+      });
     } else {
-      setValue("lectureTitle", "");
-      setValue("lectureDesc", "");
-      setValue("lectureVideo", null);
-      setValue("lecturePdf", null);
-      setValue("supportMaterials", []);
+      reset({
+        lectureTitle: "",
+        lectureDesc: "",
+        lectureVideo: null,
+        lecturePdf: null,
+        supportMaterials: { existing: [], new: [], remove: [] },
+      });
     }
-  }, [modalData, view, edit, loc.pathname, setValue]);
+  }, [modalData, view, edit, loc.pathname, reset]);
 
   const isFormUpdated = () => {
     const current = getValues();
@@ -64,9 +93,16 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     if (currentValues.lectureVideo && currentValues.lectureVideo !== modalData.videoUrl) formData.append("video", currentValues.lectureVideo);
     if (currentValues.lecturePdf && currentValues.lecturePdf !== (modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf)) formData.append("pdf", currentValues.lecturePdf);
 
-    const support = currentValues.supportMaterials ?? [];
-    if (support && support.length) {
-      support.forEach((f) => formData.append("supportMaterials", f));
+    const support = getValues().supportMaterials ?? { existing: [], new: [], remove: [] };
+
+    // append only new File objects
+    if (Array.isArray(support.new) && support.new.length) {
+      support.new.forEach((f) => formData.append("supportMaterials", f));
+    }
+
+    // tell backend which existing items to remove (publicIds or urls)
+    if (Array.isArray(support.remove) && support.remove.length) {
+      formData.append("removeSupport", JSON.stringify(support.remove));
     }
 
     setLoading(true);
@@ -107,7 +143,11 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     formData.append("description", data.lectureDesc);
     if (data.lectureVideo) formData.append("video", data.lectureVideo);
     if (data.lecturePdf) formData.append("pdf", data.lecturePdf);
-    (data.supportMaterials ?? []).forEach((f) => formData.append("supportMaterials", f));
+    const support = getValues().supportMaterials ?? { existing: [], new: [], remove: [] };
+    // append new local files only
+    if (Array.isArray(support.new) && support.new.length) {
+      support.new.forEach((f) => formData.append("supportMaterials", f));
+    }
 
     setLoading(true);
     const result = await createSubSection(formData, token);
@@ -123,9 +163,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
   };
 
-  const titleReg = { inputProps: register("lectureTitle", { required: !view }).inputProps ?? {}, inputRef: register("lectureTitle", { required: !view }).ref };
-  const descReg = { inputProps: register("lectureDesc", { required: !view }).inputProps ?? {}, inputRef: register("lectureDesc", { required: !view }).ref };
-
+  // Watchers (optional)
   const watchedVideo = watch("lectureVideo");
   const watchedPdf = watch("lecturePdf");
 
@@ -183,11 +221,43 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
           </div>
 
           <div className="my-3">
-            <Input id="lectureTitle" label="Lecture Title" placeholder="Enter Lecture Title" {...(register("lectureTitle", { required: !view }))} error={errors.lectureTitle?.message} disabled={view || loading} />
+            <Controller
+              name="lectureTitle"
+              control={control}
+              rules={{ required: !view }}
+              render={({ field }) => (
+                <Input
+                  id="lectureTitle"
+                  label="Lecture Title"
+                  placeholder="Enter Lecture Title"
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  error={errors.lectureTitle?.message}
+                  disabled={view || loading}
+                />
+              )}
+            />
           </div>
 
           <div className="my-3">
-            <Textarea id="lectureDesc" label="Lecture Description" placeholder="Enter Lecture Description" {...(register("lectureDesc", { required: !view }))} error={errors.lectureDesc?.message} disabled={view || loading} rows={6} />
+            <Controller
+              name="lectureDesc"
+              control={control}
+              rules={{ required: !view }}
+              render={({ field }) => (
+                <TextArea
+                  id="lectureDesc"
+                  label="Lecture Description"
+                  placeholder="Enter Lecture Description"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  error={errors.lectureDesc?.message}
+                  disabled={view || loading}
+                  rows={6}
+                />
+              )}
+            />
           </div>
 
           <div className="my-3">

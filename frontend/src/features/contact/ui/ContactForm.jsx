@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
-import Textarea from "@/shared/components/ui/Textarea";
+import TextArea from "@/shared/components/ui/TextArea";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
 import { submitContact } from "@/entities/conatct/model/contactAPI";
 
@@ -154,7 +154,7 @@ export default function ContactUsForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Textarea
+            <TextArea
               label="Message"
               name="message"
               value={message}

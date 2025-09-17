@@ -2,7 +2,7 @@
 import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const Textarea = forwardRef(
+const TextArea = forwardRef(
     (
         {
             id,
@@ -140,4 +140,4 @@ const Textarea = forwardRef(
     }
 );
 
-export default Textarea;
+export default TextArea;

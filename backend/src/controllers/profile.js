@@ -3,9 +3,9 @@ const User = require("../models/user");
 const CourseProgress = require("../models/courseProgress");
 const Course = require("../models/course");
 const {
-    uploadImageToCloudinary,
+    uploadFileToCloudinary,
     deleteResourceFromCloudinary,
-} = require("../utils/imageUploader");
+} = require("../utils/fileUploader");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
 
 exports.updateProfile = async (req, res) => {
@@ -127,7 +127,7 @@ exports.updateUserProfileImage = async (req, res) => {
         const profileImage = req.files?.profileImage;
         const userId = req.user.id;
 
-        const image = await uploadImageToCloudinary(
+        const image = await uploadFileToCloudinary(
             profileImage,
             process.env.FOLDER_NAME,
             1000,
@@ -241,7 +241,6 @@ exports.getEnrolledCourses = async (req, res) => {
         });
     }
 };
-
 
 // ================ instructor Dashboard ================
 exports.instructorDashboard = async (req, res) => {

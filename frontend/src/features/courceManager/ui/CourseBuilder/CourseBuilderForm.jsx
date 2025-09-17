@@ -83,20 +83,15 @@ export default function CourseBuilderForm() {
           />
           {editSectionName && (
             <div className="ml-5 mb-[3px] items-center-safe align-middle">
-              <Button
-                disabled={loading}
-                onClick={cancelEdit}
-                classes="w-40 text-sm"
-                style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
-              >
-                Cancel Edit
-              </Button>
+              <IconBtn type="button" onClick={cancelEdit} disabled={loading} text={"Cancel Edit"} outline customClasses="bg-violet-600">
+                <MdNavigateNext size={18} />
+              </IconBtn>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <IconBtn type="submit" disabled={loading} text={editSectionName ? "Edit Section" : "Create Section"} outline customClasses="bg-violet-600 text-white">
+          <IconBtn type="submit" disabled={loading} text={editSectionName ? "Save" : "Create Section"} outline customClasses="bg-violet-600">
             <IoAddCircleOutline size={18} />
           </IconBtn>
         </div>
@@ -106,9 +101,6 @@ export default function CourseBuilderForm() {
 
       <div className="flex justify-end gap-3">
         <button onClick={goBack} className="rounded-md py-2 px-4 font-semibold text-sm border border-white/8">Back</button>
-        {/* <IconBtn disabled={loading} text="Next" onClick={goToNext} customClasses="bg-violet-600 text-white text-md">
-          <MdNavigateNext />
-        </IconBtn> */}
         <Button
           disabled={loading}
           onClick={goToNext}

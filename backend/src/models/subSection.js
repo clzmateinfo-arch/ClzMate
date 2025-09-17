@@ -27,20 +27,10 @@ const subSectionSchema = new mongoose.Schema(
             default: null,
         },
 
-        videoPublicId: {
-            type: String,
-            default: null,
-        },
-        pdfPublicId: {
-            type: String,
-            default: null,
-        },
-
         supportMaterials: {
             type: [
                 {
                     url: { type: String },
-                    publicId: { type: String },
                     originalName: { type: String },
                     mimeType: { type: String },
                     size: { type: Number },

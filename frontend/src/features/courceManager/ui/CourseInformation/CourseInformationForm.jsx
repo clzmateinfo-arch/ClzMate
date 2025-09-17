@@ -17,7 +17,7 @@ import Upload from "../../../../shared/components/ui/Upload";
 import ChipInput from "../../../../shared/components/ui/ChipInput";
 import RequirementsField from "./RequirementField";
 import Input from "../../../../shared/components/ui/Input";
-import Textarea from "../../../../shared/components/ui/Textarea";
+import TextArea from "../../../../shared/components/ui/TextArea";
 import Select from "@/shared/components/ui/Select";
 import Button from "../../../../shared/components/ui/Button";
 
@@ -159,7 +159,7 @@ export default function CourseInformationForm() {
       </div>
 
       <div className="mb-5">
-        <Textarea
+        <TextArea
           label="Course Short Description"
           {...register("courseShortDesc", {
             required: "Please enter a short description",
@@ -259,7 +259,7 @@ export default function CourseInformationForm() {
       </div>
 
       <div className="mb-5">
-        <Textarea
+        <TextArea
           label="Benefits of the course"
           {...register("courseBenefits", {
             required: "Please enter benefits of the course",

@@ -7,7 +7,7 @@ import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import FieldsetRadio from "@/shared/components/ui/FieldsetRadio";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
-import Textarea from "@/shared/components/ui/Textarea";
+import TextArea from "@/shared/components/ui/TextArea";
 
 const genders = ["Male", "Female", "Non-Binary", "Prefer not to say", "Other"];
 
@@ -163,7 +163,7 @@ export default function EditProfile() {
           {errors.contactNumber && <span className="error-text">{errors.contactNumber}</span>}
         </div>
         <div className="flex flex-col gap-2 w-full ml-1 mt-5">
-          <Textarea
+          <TextArea
             label="About"
             name="about"
             value={form.about}

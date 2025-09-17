@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
-import { useNavigate, useParams } from "react-router-dom";
-import "video-react/dist/video-react.css";
-import { BigPlayButton, Player } from "video-react";
-import { markLectureAsComplete } from "@/entities/course/model/courseDetailsAPI";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { markLectureAsComplete, getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import { updateCompletedLectures } from "@/entities/course/model/courseSlice";
 import { setCourseViewSidebar } from "@/entities/ui/sidebarSlice";
 import IconBtn from "@/shared/components/ui/IconBtn";
@@ -18,10 +15,11 @@ const VideoDetails = () => {
   const { token } = useSelector((state) => state.auth);
   const { courseSectionData, courseEntireData, completedLectures } =
     useSelector((state) => state.viewCourse);
-  const [videoData, setVideoData] = useState([]);
+  const [videoData, setVideoData] = useState(null);
   const [previewSource, setPreviewSource] = useState("");
   const [videoEnded, setVideoEnded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [signedMediaUrl, setSignedMediaUrl] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -42,6 +40,24 @@ const VideoDetails = () => {
     })();
   }, [courseSectionData, courseEntireData, useLocation().pathname]);
 
+  useEffect(() => {
+    (async () => {
+      if (!videoData) return;
+
+      // prefer using public_id if present (safer). videoPublicId stored in DB
+      const publicId = videoData.videoPublicId || null;
+      if (publicId && token) {
+        const url = await getSignedAssetUrl({ publicId, resourceType: videoData.resource_type || "auto", type: "authenticated" }, token);
+        setSignedMediaUrl(url);
+      } else if (videoData.videoUrl) {
+        // fallback to existing stored URL (shouldn't be public if you went private)
+        setSignedMediaUrl(videoData.videoUrl);
+      } else {
+        setSignedMediaUrl(null);
+      }
+    })();
+  }, [videoData, token]);
+
   const isFirstVideo = () => {
     const currentSectionIndx = courseSectionData.findIndex(
       (data) => data._id === sectionId
@@ -51,11 +67,7 @@ const VideoDetails = () => {
       currentSectionIndx
     ].subSection.findIndex((data) => data._id === subSectionId);
 
-    if (currentSectionIndx === 0 && currentSubSectionIndx === 0) {
-      return true;
-    } else {
-      return false;
-    }
+    return currentSectionIndx === 0 && currentSubSectionIndx === 0;
   };
 
   const goToNextVideo = () => {
@@ -101,14 +113,10 @@ const VideoDetails = () => {
       currentSectionIndx
     ].subSection.findIndex((data) => data._id === subSectionId);
 
-    if (
+    return (
       currentSectionIndx === courseSectionData.length - 1 &&
       currentSubSectionIndx === noOfSubsections - 1
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    );
   };
 
   const goToPrevVideo = () => {
@@ -155,11 +163,29 @@ const VideoDetails = () => {
   };
 
   const { courseViewSidebar } = useSelector((state) => state.sidebar);
-  if (courseViewSidebar && window.innerWidth <= 640) return;
+  if (courseViewSidebar && window.innerWidth <= 640) return null;
+
+  const onVideoEnded = () => {
+    setVideoEnded(true);
+  };
+
+  const handleRewatch = () => {
+    const el = playerRef.current;
+    if (el) {
+      try {
+        el.currentTime = 0;
+        el.play().catch(() => {
+        });
+        setVideoEnded(false);
+      } catch (e) {
+        console.warn("Rewatch failed:", e);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 text-white">
-      {/* open - close side bar icons */}
+
       <div
         className="sm:hidden text-white absolute left-7 top-3 cursor-pointer "
         onClick={() => dispatch(setCourseViewSidebar(!courseViewSidebar))}
@@ -167,30 +193,35 @@ const VideoDetails = () => {
         {!courseViewSidebar && <HiMenuAlt1 size={33} />}
       </div>
 
-      {!videoData ? (
+      {!videoData || !videoData.videoUrl ? (
         <img
           src={previewSource}
           alt="Preview"
           className="h-full w-full rounded-md object-cover"
         />
       ) : (
-        <Player
-          ref={playerRef}
-          aspectRatio="16:9"
-          playsInline
-          autoPlay
-          onEnded={() => setVideoEnded(true)}
-          src={videoData?.videoUrl}
-        >
-          <BigPlayButton position="center" />
-          {/* Render When Video Ends */}
+        <div className="relative w-full rounded-md bg-black">
+
+          <div className="aspect-video w-full bg-black rounded-md overflow-hidden">
+            <video
+              ref={playerRef}
+              src={videoData?.videoUrl}
+              poster={previewSource || undefined}
+              controls
+              playsInline
+              autoPlay
+              onEnded={onVideoEnded}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
           {videoEnded && (
             <div
               style={{
                 backgroundImage:
-                  "linear-gradient(to top, rgb(0, 0, 0), rgba(0,0,0,0.7), rgba(0,0,0,0.5), rgba(0,0,0,0.1)",
+                  "linear-gradient(to top, rgb(0, 0, 0), rgba(0,0,0,0.7), rgba(0,0,0,0.5), rgba(0,0,0,0.1))",
               }}
-              className="full absolute inset-0 z-[100] grid h-full place-content-center"
+              className="absolute inset-0 z-[100] grid h-full place-content-center text-center"
             >
               {!completedLectures.includes(subSectionId) && (
                 <IconBtn
@@ -200,14 +231,10 @@ const VideoDetails = () => {
                   customClasses="text-xl max-w-max px-4 mx-auto bg-violet-600"
                 />
               )}
+
               <IconBtn
                 disabled={loading}
-                onclick={() => {
-                  if (playerRef?.current) {
-                    playerRef?.current?.seek(0);
-                    setVideoEnded(false);
-                  }
-                }}
+                onclick={handleRewatch}
                 text="Rewatch"
                 customClasses="text-xl max-w-max px-4 mx-auto mt-2 bg-violet-600"
               />
@@ -234,7 +261,7 @@ const VideoDetails = () => {
               </div>
             </div>
           )}
-        </Player>
+        </div>
       )}
 
       <h1 className="mt-4 text-3xl font-semibold">{videoData?.title}</h1>

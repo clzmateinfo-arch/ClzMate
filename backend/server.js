@@ -34,7 +34,6 @@ app.use(
     })
 )
 
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
@@ -50,9 +49,6 @@ app.use('/api/v1/auth', userRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
-
-
-
 
 // Default Route
 app.get('/', (req, res) => {
