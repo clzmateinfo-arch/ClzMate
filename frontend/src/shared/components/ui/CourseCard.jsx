@@ -147,7 +147,7 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
           <button
             type="button"
             onClick={() => onAddToCart(course)}
-            className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-full border border-[#efe7ff] bg-white hover:bg-gradient-to-r hover:from-[#7e8694] hover:via-[#8e939e] hover:to-[#a5a9b1] hover:text-white text-sm transition-all duration-200 transform hover:-translate-y-0.5 hover:scale-[1.02] shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/40 group"
+            className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-full border text-black border-[#efe7ff] bg-white hover:bg-gradient-to-r hover:from-[#7e8694] hover:via-[#8e939e] hover:to-[#a5a9b1] hover:text-white text-sm transition-all duration-200 transform hover:-translate-y-0.5 hover:scale-[1.02] shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/40 group"
             aria-label={`Add ${courseName} to cart`}
           >
             <svg

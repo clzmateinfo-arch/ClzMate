@@ -9,7 +9,6 @@ import AuthLayout from "@/app/layouts/AuthLayout";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import StudentDashboard from "../../pages/user/StudentDashboard";
 import Loading from "@/shared/components/navigation/Loading";
-import FullscreenCourseView from "@/pages/course/FullscreenCourseView";
 
 const SignIn = lazy(() => import("@/pages/auth/SignIn"));
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -136,10 +135,9 @@ export default function AppRoutes() {
                 </Route>
             </Route>
 
-            <Route path="/view-course/*" element={<ProtectedRoute><FullscreenCourseView /></ProtectedRoute>}>
-                {user?.accountType === ACCOUNT_TYPE.STUDENT && (
-                    <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<CoursePlayerPanelWrapper />} />
-                )}
+            {/* CourseLayout */}
+            <Route path="/view-course/*" element={<ProtectedRoute><CourseViewerLayout /></ProtectedRoute>}>
+                <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<CourseViewerPage />} />
             </Route>
 
             {/* Errors */}
