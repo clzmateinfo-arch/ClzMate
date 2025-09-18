@@ -5,6 +5,7 @@ const Category = require("../models/category");
 const Section = require("../models/section");
 const SubSection = require("../models/subSection");
 const CourseProgress = require("../models/courseProgress");
+const Note = require("../models/note");
 const {
     uploadFileToCloudinary,
     deleteResourceFromCloudinary,
@@ -653,4 +654,63 @@ exports.deleteCourse = async (req, res) => {
             error: error.message,
         });
     }
+};
+
+exports.getNote = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { courseId, sectionId, subSectionId } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "courseId is required" });
+    }
+
+    const query = { userId, courseId };
+    if (subSectionId) query.subSectionId = subSectionId;
+    else if (sectionId) query.sectionId = sectionId;
+
+    const note = await Note.findOne(query).sort({ updatedAt: -1 }).lean();
+
+    return res.status(200).json({ success: true, data: note || { content: "" } });
+  } catch (err) {
+    console.error("GET_NOTE error", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.saveNote = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { courseId, sectionId, subSectionId, content } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "courseId is required" });
+    }
+
+    const query = { userId, courseId };
+    if (subSectionId) query.subSectionId = subSectionId;
+    else if (sectionId) query.sectionId = sectionId;
+
+    let note = await Note.findOne(query);
+
+    if (note) {
+      note.content = content || "";
+      note.updatedAt = Date.now();
+      await note.save();
+    } else {
+      note = new Note({
+        userId,
+        courseId,
+        sectionId: sectionId || null,
+        subSectionId: subSectionId || null,
+        content: content || "",
+      });
+      await note.save();
+    }
+
+    return res.status(200).json({ success: true, data: note });
+  } catch (err) {
+    console.error("SAVE_NOTE error", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
 };

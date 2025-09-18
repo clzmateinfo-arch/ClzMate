@@ -6,6 +6,7 @@ import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
 import MainLayout from "@/app/layouts/MainLayout";
 import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
+import CourseLayout from "@/app/layouts/CourseLayout";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import StudentDashboard from "../../pages/user/StudentDashboard";
 import Loading from "@/shared/components/navigation/Loading";
@@ -33,8 +34,7 @@ const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
 const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
 
-const CourseViewerLayout = lazy(() => import("@/pages/course/CourseViewerLayout"));
-const CourseViewerPage = lazy(() => import("@/pages/course/CourseViewerPage"));
+const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));
 
@@ -136,8 +136,8 @@ export default function AppRoutes() {
             </Route>
 
             {/* CourseLayout */}
-            <Route path="/view-course/*" element={<ProtectedRoute><CourseViewerLayout /></ProtectedRoute>}>
-                <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<CourseViewerPage />} />
+            <Route path="/view-course/*" element={<ProtectedRoute><CourseLayout /></ProtectedRoute>}>
+                <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<ViewCourse />} />
             </Route>
 
             {/* Errors */}

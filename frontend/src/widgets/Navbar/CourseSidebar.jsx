@@ -8,7 +8,7 @@ import { HiMenuAlt1 } from "react-icons/hi"
 import { IoMdClose } from "react-icons/io"
 import { MdOutlineSettings } from "react-icons/md"
 
-import { sidebarLinks } from "@/app/config/dashboard-links"
+import { sidebarLinks } from "@/app/config/course-links"
 import { logout } from "@/entities/auth/model/authAPI"
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
@@ -16,7 +16,7 @@ import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
 import ProfileMenu from "./components/ProfileMenu"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 
-export default function UserSidebar() {
+export default function CourseSidebar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)

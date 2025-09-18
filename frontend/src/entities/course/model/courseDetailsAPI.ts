@@ -21,6 +21,8 @@ const {
   CREATE_RATING_API,
   LECTURE_COMPLETION_API,
   GET_ASSET_URL_API,
+  GET_NOTES_API,
+  CREATE_NOTES_API,
 } = courseEndpoints;
 
 const initialState = {
@@ -503,4 +505,41 @@ export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type 
   } catch (error) {
     return null;
   }
+};
+
+// inside courseDetailsAPI.ts (add near other exported functions)
+export const fetchNote = async ({ courseId, sectionId, subSectionId }, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      GET_NOTES_API,
+      { courseId, sectionId, subSectionId },
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to fetch note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("FETCH_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to fetch note" };
+  }
+  return result;
+};
+
+export const saveNote = async (payload, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      CREATE_NOTES_API,
+      payload,
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to save note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("SAVE_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to save note" };
+  }
+  return result;
 };
