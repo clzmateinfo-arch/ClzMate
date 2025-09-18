@@ -1,5 +1,3 @@
-// SubSectionModal.jsx
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-hot-toast";

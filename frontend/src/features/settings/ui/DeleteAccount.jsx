@@ -69,9 +69,10 @@ export default function DeleteAccount() {
               <div className="flex items-center gap-3">
                 <Button
                   type="button"
-                  classes={`text-sm min-w-[160px] ${!checked ? "opacity-60 pointer-events-none" : ""}`}
+                  className={`text-sm min-w-[160px] ${!checked ? "opacity-60 pointer-events-none" : ""}`}
                   style={checked ? { boxShadow: "0 6px 18px rgba(236,72,153,0.12)" } : {}}
                   onClick={openConfirm}
+                  animated={true}
                 >
                   Delete account
                 </Button>

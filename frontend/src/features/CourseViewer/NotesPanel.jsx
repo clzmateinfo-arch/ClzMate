@@ -3,129 +3,76 @@ import { useSelector } from "react-redux";
 import { fetchNote, saveNote } from "@/entities/course/model/courseDetailsAPI";
 
 export default function NotesPanel({ courseId, sectionId, subSectionId, userId }) {
-    const auth = useSelector((s) => s.auth || {});
-    const token = auth?.token || null;
-
     const key = `notes:${userId || "anon"}:${courseId}:${sectionId}:${subSectionId}`;
-
+    const token = useSelector((s) => s.auth?.token);
     const [text, setText] = useState("");
     const [status, setStatus] = useState("Saved");
-    const [lastSavedAt, setLastSavedAt] = useState(null);
     const timer = useRef(null);
     const idleDelay = 2000; // 2s
-    const mounted = useRef(true);
-    const pendingSaveId = useRef(0);
 
+    // fetch from server if token present, else localStorage
     useEffect(() => {
-        mounted.current = true;
-        (async () => {
-            setStatus("Saving");
-            try {
-                if (token) {
-                    const resp = await fetchNote({ courseId, sectionId, subSectionId }, token);
-                    if (resp?.success && resp.data) {
-                        setText(resp.data.content ?? "");
-                        setStatus("Saved");
-                        setLastSavedAt(resp.data.updatedAt || resp.data.createdAt || null);
-                        try { localStorage.setItem(key, resp.data.content ?? ""); } catch (e) { }
-                        return;
-                    }
+        let mounted = true;
+        setStatus("Loading");
+        const doLoad = async () => {
+            if (token) {
+                const res = await fetchNote({ courseId, sectionId, subSectionId }, token);
+                if (!mounted) return;
+                if (res?.success && res.data) {
+                    setText(res.data.content || "");
+                    setStatus("Saved");
+                } else {
+                    // fallback to localStorage
+                    const existing = localStorage.getItem(key);
+                    if (existing) setText(existing);
+                    setStatus("Saved");
                 }
-            } catch (e) {
-                console.warn("fetch note failed", e);
-            }
-            try {
+            } else {
                 const existing = localStorage.getItem(key);
                 if (existing) setText(existing);
-            } catch (e) { }
-            setStatus("Saved");
-        })();
-
-        return () => {
-            mounted.current = false;
-            if (timer.current) clearTimeout(timer.current);
+                setStatus("Saved");
+            }
         };
-    }, [courseId, sectionId, subSectionId, token, userId]);
+        doLoad();
+        return () => { mounted = false; if (timer.current) clearTimeout(timer.current); };
+    }, [courseId, sectionId, subSectionId, token, key]);
 
-    const doSaveToServer = async (value, saveId) => {
+    const doSave = async (value) => {
         try {
             setStatus("Saving");
-            try { localStorage.setItem(key, value); } catch (e) { }
-            if (!token) {
-                setStatus("Saved");
-                setLastSavedAt(new Date().toISOString());
-                return { success: false, message: "No token" };
+            localStorage.setItem(key, value);
+            if (token) {
+                // call backend saveNote
+                const payload = { courseId, sectionId, subSectionId, content: value };
+                const res = await saveNote(payload, token);
+                if (res?.success) {
+                    setStatus("Saved");
+                } else {
+                    setStatus("Saved (local)");
+                }
+            } else {
+                // offline: only localStorage
+                setStatus("Saved (local)");
             }
-            const payload = { courseId, sectionId, subSectionId, content: value };
-            const resp = await saveNote(payload, token);
-            if (!resp || !resp.success) {
-                throw new Error(resp?.message || "Failed to save note");
-            }
-            setStatus("Saved");
-            setLastSavedAt(resp.data?.updatedAt || new Date().toISOString());
-            return resp;
-        } catch (err) {
-            console.error("Save note failed", err);
+        } catch (e) {
+            console.error(e);
             setStatus("Error");
-            return { success: false, error: err };
-        } finally {
-            console.log("notes saved successfully");
         }
-    };
-
-    const scheduleSave = (value) => {
-        pendingSaveId.current += 1;
-        const thisSaveId = pendingSaveId.current;
-        if (timer.current) clearTimeout(timer.current);
-        timer.current = setTimeout(async () => {
-            await doSaveToServer(value, thisSaveId);
-        }, idleDelay);
     };
 
     const onChange = (v) => {
         setText(v);
         setStatus("Unsaved");
-        scheduleSave(v);
-    };
-
-    const handleManualSave = async () => {
         if (timer.current) clearTimeout(timer.current);
-        await doSaveToServer(text, ++pendingSaveId.current);
-    };
-
-    const handleDiscard = async () => {
-        if (token) {
-            try {
-                setStatus("Saving");
-                const resp = await fetchNote({ courseId, sectionId, subSectionId }, token);
-                if (resp?.success && resp.data) {
-                    setText(resp.data.content ?? "");
-                    setStatus("Saved");
-                    setLastSavedAt(resp.data.updatedAt || resp.data.createdAt || null);
-                    try { localStorage.setItem(key, resp.data.content ?? ""); } catch (e) { }
-                    return;
-                }
-            } catch (e) {
-                console.warn("discard -> fetch failed", e);
-            }
-        }
-        try {
-            const existing = localStorage.getItem(key) ?? "";
-            setText(existing);
-        } catch (e) { }
-        setStatus("Saved");
+        timer.current = setTimeout(() => doSave(v), idleDelay);
     };
 
     return (
         <div className="bg-slate-800/40 rounded-xl p-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between">
                 <h4 className="font-medium">Personal Notes</h4>
-                <div className="flex items-center gap-3">
-                    <div className="text-xs text-slate-400">
-                        {status === "Saving" ? "Saving..." : status === "Saved" ? `Saved${lastSavedAt ? ` • ${new Date(lastSavedAt).toLocaleTimeString()}` : ""}` : status}
-                    </div>
-                    <button onClick={handleManualSave} className="px-2 py-1 rounded bg-gradient-to-tr from-[#ba7bf0] to-[#5046e4] text-white text-sm">Save</button>
-                    <button onClick={handleDiscard} className="px-2 py-1 rounded bg-slate-700 text-sm">Discard</button>
+                <div className="text-xs text-slate-400">
+                    {status === "Saving" ? "Saving..." : status}
                 </div>
             </div>
 

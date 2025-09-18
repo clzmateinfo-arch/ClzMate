@@ -6,7 +6,7 @@ export default function ResourceViewer({
   course,
   token,
   presentMode = false,
-  onExitPresent = () => {},
+  onExitPresent = () => { },
 }) {
   const [signedUrl, setSignedUrl] = useState(null);
 
@@ -20,21 +20,21 @@ export default function ResourceViewer({
       try {
         const resolved = resource.publicId
           ? await getSignedAssetUrl(
-              {
-                publicId: resource.publicId,
-                resourceType: resource.resourceType || "auto",
-                type: "authenticated",
-              },
-              token
-            )
+            {
+              publicId: resource.publicId,
+              resourceType: resource.resourceType || "auto",
+              type: "authenticated",
+            },
+            token
+          )
           : await getSignedAssetUrl(
-              {
-                url: resource.url,
-                resourceType: resource.resourceType || "auto",
-                type: "authenticated",
-              },
-              token
-            );
+            {
+              url: resource.url,
+              resourceType: resource.resourceType || "auto",
+              type: "authenticated",
+            },
+            token
+          );
 
         const final =
           typeof resolved === "string"

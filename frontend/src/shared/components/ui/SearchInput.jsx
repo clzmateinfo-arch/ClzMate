@@ -87,7 +87,7 @@ export default function SearchInput({
                     type="submit"
                     aria-label="Search"
                     style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
-                    classes="text-sm"
+                    className="text-sm"
                 >
                     {buttonText}
                 </Button>

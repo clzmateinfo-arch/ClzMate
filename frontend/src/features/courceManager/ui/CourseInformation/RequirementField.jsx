@@ -38,7 +38,14 @@ export default function RequirementsField({ name, label, register, setValue, err
         <Input value={requirement} onChange={(e) => setRequirement(e.target.value)} className="flex-1" placeholder="Add requirement" />
         {/* <button type="button" onClick={handleAddRequirement} className="font-semibold text-violet-600">Add</button> */}
         <div className="mt-2">
-          <Button type="button" classes="text-m ml-2" onClick={handleAddRequirement}>Add</Button>
+          <Button
+            type="button"
+            classes="text-m ml-2" o
+            nClick={handleAddRequirement}
+            animated={false}
+          >
+            Add
+          </Button>
         </div>
       </div>
 
@@ -46,7 +53,12 @@ export default function RequirementsField({ name, label, register, setValue, err
         <ul className="mt-1 list-disc ml-5 space-y-2">
           {requirementsList.map((req, idx) => (
             <li key={idx} className="flex items-center justify-start text-sm text-richblack-900">
-              <Button type="button" classes="mt-2" onClick={() => handleRemoveRequirement(idx)}>
+              <Button
+                type="button"
+                className="mt-2"
+                onClick={() => handleRemoveRequirement(idx)}
+                animated={false}
+              >
                 <RiDeleteBin6Line className="text-red-500 text-sm hover:scale-110 duration-150" />
               </Button>
               <span className="ml-4 mt-2">{req}</span>

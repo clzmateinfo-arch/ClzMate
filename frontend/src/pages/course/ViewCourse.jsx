@@ -101,6 +101,81 @@ export default function ViewCourse() {
   const [currentSub, setCurrentSub] = useState(null);
 
   useEffect(() => {
+    // build boxes array based on features
+    const features = courseEntireData?.features ?? { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
+
+    const arr = [];
+
+    // always section
+    arr.push({
+      id: "section",
+      title: "Sections",
+      type: "section",
+      top: 0,
+      left: 0,
+      width: 15,
+      height: 100,
+      visible: true,
+      z: 300,
+      component: SectionSidebar,
+      componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
+    });
+
+    // player area (main player or resource) is added later based on currentSub supports (existing logic)
+    // add notes only if enabled
+    if (features.notesEnabled) {
+      arr.push({
+        id: "notes",
+        title: "Notes",
+        type: "notes",
+        top: 0,
+        left: 75,
+        width: 25,
+        height: 50,
+        visible: true,
+        z: 180,
+        component: NotesPanel,
+        componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
+      });
+    }
+
+    // support panel
+    arr.push({
+      id: "support",
+      title: "Support Files",
+      type: "support",
+      top: 50,
+      left: features.notesEnabled ? 75 : 60,
+      width: features.notesEnabled ? 25 : 40,
+      height: features.notesEnabled ? 50 : 100,
+      visible: true,
+      z: 170,
+      component: SupportFilesPanel,
+      componentProps: {},
+    });
+
+    // sandbox only if enabled
+    if (features.sandboxEnabled) {
+      arr.push({
+        id: "sandbox",
+        title: "Sandbox",
+        type: "sandbox",
+        top: 60,
+        left: 15,
+        width: 30,
+        height: 40,
+        visible: true,
+        z: 150,
+        component: SandboxPanel,
+        componentProps: { language: features.sandboxLanguage || "javascript" },
+      });
+    }
+
+    // set boxes (we don't override z for section)
+    setBoxes(arr);
+  }, [courseEntireData, courseSectionData, sectionId, subSectionId, courseId, auth]);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       try {

@@ -22,7 +22,6 @@ import Select from "@/shared/components/ui/Select";
 import Button from "../../../../shared/components/ui/Button";
 
 export default function CourseInformationForm() {
-  // add Controller and control
   const {
     register,
     control,
@@ -33,8 +32,15 @@ export default function CourseInformationForm() {
   } = useForm();
 
   const dispatch = useDispatch();
-  const { token } = useSelector((state) => state.auth);
-  const { course, editCourse } = useSelector((state) => state.course);
+  const { token } = useSelector((state) => state.auth || {});
+
+  // read both variants from your course slice — some flows set `course`, other flows set `courseEntireData`
+  const courseSlice = useSelector((state) => state.course || {});
+  const { course: courseFromSlice, editCourse, courseEntireData } = courseSlice;
+
+  // prefer explicit 'course' if present, otherwise fall back to courseEntireData
+  const courseData = editCourse ? (courseFromSlice || courseEntireData || {}) : null;
+
   const [loading, setLoading] = useState(false);
   const [courseCategories, setCourseCategories] = useState([]);
 
@@ -42,75 +48,81 @@ export default function CourseInformationForm() {
     const getCategories = async () => {
       setLoading(true);
       const categories = await fetchCourseCategories();
-      if (categories.length > 0) setCourseCategories(categories);
+      if (categories && categories.length > 0) setCourseCategories(categories);
       setLoading(false);
     };
+    getCategories();
+  }, []);
 
-    // populate defaults when editing
-    if (editCourse && course) {
-      setValue("courseTitle", course.courseName);
-      setValue("courseShortDesc", course.courseDescription);
-      setValue("coursePrice", course.price);
-      setValue("courseTags", course.tag);
-      setValue("courseBenefits", course.whatYouWillLearn);
-      setValue("courseCategory", course.category?._id ?? "");
-      setValue("courseRequirements", course.instructions);
-      setValue("courseImage", course.thumbnail);
+  useEffect(() => {
+    // only populate form when editing and courseData is available
+    if (editCourse && courseData) {
+      // defensive defaults so undefined doesn't break fields
+      setValue("courseTitle", courseData.courseName ?? "");
+      setValue("courseShortDesc", courseData.courseDescription ?? "");
+      setValue("coursePrice", courseData.price ?? 0);
+      setValue("courseTags", courseData.tag ?? []);
+      setValue("courseBenefits", courseData.whatYouWillLearn ?? "");
+      setValue("courseCategory", courseData.category?._id ?? "");
+      setValue("courseRequirements", courseData.instructions ?? []);
+      setValue("courseImage", courseData.thumbnail ?? null);
     } else {
-      // ensure courseCategory default is present when creating
+      // ensure category starts empty for new course
       setValue("courseCategory", "");
     }
-
-    getCategories();
+    // only want to run when edit mode or courseData changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editCourse, course]);
+  }, [editCourse, courseData]);
 
   const isFormUpdated = () => {
     const currentValues = getValues();
+    // if there's no courseData then it's a new course, treat as updated
+    if (!editCourse || !courseData) return true;
+
     return (
-      currentValues.courseTitle !== course?.courseName ||
-      currentValues.courseShortDesc !== course?.courseDescription ||
-      Number(currentValues.coursePrice) !== Number(course?.price) ||
-      JSON.stringify(currentValues.courseTags) !== JSON.stringify(course?.tag) ||
-      currentValues.courseBenefits !== course?.whatYouWillLearn ||
-      (course?.category && currentValues.courseCategory !== course.category._id) ||
-      JSON.stringify(currentValues.courseRequirements) !==
-      JSON.stringify(course?.instructions) ||
-      currentValues.courseImage !== course?.thumbnail
+      currentValues.courseTitle !== (courseData.courseName ?? "") ||
+      currentValues.courseShortDesc !== (courseData.courseDescription ?? "") ||
+      Number(currentValues.coursePrice) !== Number(courseData.price ?? 0) ||
+      JSON.stringify(currentValues.courseTags ?? []) !== JSON.stringify(courseData.tag ?? []) ||
+      currentValues.courseBenefits !== (courseData.whatYouWillLearn ?? "") ||
+      (courseData.category && currentValues.courseCategory !== (courseData.category._id ?? "")) ||
+      JSON.stringify(currentValues.courseRequirements ?? []) !==
+      JSON.stringify(courseData.instructions ?? []) ||
+      currentValues.courseImage !== (courseData.thumbnail ?? "")
     );
   };
 
   const onSubmit = async (data) => {
-    if (editCourse && course) {
+    // If editing
+    if (editCourse && courseData) {
       if (!isFormUpdated()) {
         toast.error("No changes made to the form");
         return;
       }
       const currentValues = getValues();
       const formData = new FormData();
-      formData.append("courseId", course._id);
-      if (currentValues.courseTitle !== course.courseName)
+      formData.append("courseId", courseData._id);
+
+      if (currentValues.courseTitle !== (courseData.courseName ?? ""))
         formData.append("courseName", data.courseTitle);
-      if (currentValues.courseShortDesc !== course.courseDescription)
+      if (currentValues.courseShortDesc !== (courseData.courseDescription ?? ""))
         formData.append("courseDescription", data.courseShortDesc);
-      if (Number(currentValues.coursePrice) !== Number(course.price))
+      if (Number(currentValues.coursePrice) !== Number(courseData.price ?? 0))
         formData.append("price", data.coursePrice);
       if (
-        JSON.stringify(currentValues.courseTags) !== JSON.stringify(course.tag)
+        JSON.stringify(currentValues.courseTags ?? []) !== JSON.stringify(courseData.tag ?? [])
       )
         formData.append("tag", JSON.stringify(data.courseTags));
-      if (currentValues.courseBenefits !== course.whatYouWillLearn)
+      if (currentValues.courseBenefits !== (courseData.whatYouWillLearn ?? ""))
         formData.append("whatYouWillLearn", data.courseBenefits);
-      if (
-        currentValues.courseCategory !== (course.category?._id ?? "")
-      )
+      if (currentValues.courseCategory !== (courseData.category?._id ?? ""))
         formData.append("category", data.courseCategory);
       if (
-        JSON.stringify(currentValues.courseRequirements) !==
-        JSON.stringify(course.instructions)
+        JSON.stringify(currentValues.courseRequirements ?? []) !==
+        JSON.stringify(courseData.instructions ?? [])
       )
         formData.append("instructions", JSON.stringify(data.courseRequirements));
-      if (currentValues.courseImage !== course.thumbnail)
+      if (currentValues.courseImage !== (courseData.thumbnail ?? ""))
         formData.append("thumbnailImage", data.courseImage);
 
       setLoading(true);
@@ -123,6 +135,7 @@ export default function CourseInformationForm() {
       return;
     }
 
+    // New course
     const formData = new FormData();
     formData.append("courseName", data.courseTitle);
     formData.append("courseDescription", data.courseShortDesc);
@@ -133,6 +146,7 @@ export default function CourseInformationForm() {
     formData.append("status", COURSE_STATUS.DRAFT);
     formData.append("instructions", JSON.stringify(data.courseRequirements));
     formData.append("thumbnailImage", data.courseImage);
+
     setLoading(true);
     const result = await addCourseDetails(formData, token);
     setLoading(false);
@@ -159,14 +173,21 @@ export default function CourseInformationForm() {
       </div>
 
       <div className="mb-5">
-        <TextArea
-          label="Course Short Description"
-          {...register("courseShortDesc", {
-            required: "Please enter a short description",
-          })}
-          placeholder="Enter Description"
-          error={errors.courseShortDesc?.message}
-          rows={6}
+        <Controller
+          name="courseShortDesc"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <TextArea
+              id="courseShortDesc"
+              label="Course Short Description"
+              placeholder="Enter Description"
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(e.target.value)}
+              error={errors.courseShortDesc?.message}
+              rows={6}
+            />
+          )}
         />
       </div>
 
@@ -191,19 +212,16 @@ export default function CourseInformationForm() {
         </div>
 
         <div>
-          {/* Use Controller for the custom Select */}
           <Controller
             name="courseCategory"
             control={control}
             rules={{ required: "Please choose a category" }}
-            defaultValue={editCourse ? course?.category?._id ?? "" : ""}
+            defaultValue={editCourse ? courseData?.category?._id ?? "" : ""}
             render={({ field, fieldState }) => {
-              // Select calls onChange with syntheticEvent: { target: { name, value } }
               const handleChangeFromSelect = (evt) => {
                 if (evt && evt.target && "value" in evt.target) {
                   field.onChange(evt.target.value);
                 } else {
-                  // fallback if Select sends raw value
                   field.onChange(evt);
                 }
               };
@@ -244,7 +262,7 @@ export default function CourseInformationForm() {
           register={register}
           setValue={setValue}
           errors={errors}
-          editData={editCourse ? course?.thumbnail : null}
+          editData={editCourse ? courseData?.thumbnail : null}
         />
       </div>
 
@@ -259,33 +277,43 @@ export default function CourseInformationForm() {
       </div>
 
       <div className="mb-5">
-        <TextArea
-          label="Benefits of the course"
-          {...register("courseBenefits", {
-            required: "Please enter benefits of the course",
-          })}
-          placeholder="Enter benefits of the course"
-          error={errors.courseBenefits?.message}
-          rows={6}
+        <Controller
+          name="courseBenefits"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <TextArea
+              id="courseBenefits"
+              label="Benefits of the course"
+              placeholder="Enter benefits of the course"
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(e.target.value)}
+              error={errors.courseBenefits?.message}
+              rows={6}
+            />
+          )}
         />
       </div>
 
       <div className="flex justify-end gap-3 mt-15">
         {editCourse && (
-          <button
-            type="button"
-            onClick={() => dispatch(setStep(2))}
+          <Button
             disabled={loading}
-            className="rounded-md py-2 px-4 border border-white/8"
+            variant="light"
+            onClick={() => dispatch(setStep(2))}
+            className="w-xs bg-white text-black"
+            style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+            animated={false}
           >
             Continue Without Saving
-          </button>
+          </Button>
         )}
         <Button
           disabled={loading}
           type="submit"
-          classes="w-xs"
+          className="w-xs"
           style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={true}
         >
           {!editCourse ? "Next" : "Save Changes"}
         </Button>

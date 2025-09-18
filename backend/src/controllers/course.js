@@ -23,7 +23,18 @@ exports.createCourse = async (req, res) => {
             instructions: _instructions,
             status,
             tag: _tag,
+            features: _features
         } = req.body;
+
+        let features = { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
+        try {
+            if (_features) {
+                if (typeof _features === "string") features = JSON.parse(_features);
+                else features = _features;
+            }
+        } catch (e) {
+            console.log("set default features");
+        }
 
         const tag = JSON.parse(_tag);
         const instructions = JSON.parse(_instructions);
@@ -62,6 +73,7 @@ exports.createCourse = async (req, res) => {
             thumbnail,
             process.env.FOLDER_NAME
         );
+
         const newCourse = await Course.create({
             courseName,
             courseDescription,
@@ -72,6 +84,7 @@ exports.createCourse = async (req, res) => {
             tag,
             status,
             instructions,
+            features,
             thumbnail: thumbnailDetails.secure_url,
             createdAt: Date.now(),
         });
@@ -472,6 +485,14 @@ exports.editCourse = async (req, res) => {
             course[key] = value;
         }
 
+        if (updates.features && typeof updates.features === "string") {
+            try {
+                updates.features = JSON.parse(updates.features);
+            } catch (e) {
+                console.error("Error parsing features:", e);
+            }
+        }
+
         course.updatedAt = Date.now();
         await course.save();
 
@@ -657,60 +678,60 @@ exports.deleteCourse = async (req, res) => {
 };
 
 exports.getNote = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { courseId, sectionId, subSectionId } = req.body;
+    try {
+        const userId = req.user.id;
+        const { courseId, sectionId, subSectionId } = req.body;
 
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "courseId is required" });
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: "courseId is required" });
+        }
+
+        const query = { userId, courseId };
+        if (subSectionId) query.subSectionId = subSectionId;
+        else if (sectionId) query.sectionId = sectionId;
+
+        const note = await Note.findOne(query).sort({ updatedAt: -1 }).lean();
+
+        return res.status(200).json({ success: true, data: note || { content: "" } });
+    } catch (err) {
+        console.error("GET_NOTE error", err);
+        return res.status(500).json({ success: false, message: err.message });
     }
-
-    const query = { userId, courseId };
-    if (subSectionId) query.subSectionId = subSectionId;
-    else if (sectionId) query.sectionId = sectionId;
-
-    const note = await Note.findOne(query).sort({ updatedAt: -1 }).lean();
-
-    return res.status(200).json({ success: true, data: note || { content: "" } });
-  } catch (err) {
-    console.error("GET_NOTE error", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
 };
 
 exports.saveNote = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { courseId, sectionId, subSectionId, content } = req.body;
+    try {
+        const userId = req.user.id;
+        const { courseId, sectionId, subSectionId, content } = req.body;
 
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "courseId is required" });
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: "courseId is required" });
+        }
+
+        const query = { userId, courseId };
+        if (subSectionId) query.subSectionId = subSectionId;
+        else if (sectionId) query.sectionId = sectionId;
+
+        let note = await Note.findOne(query);
+
+        if (note) {
+            note.content = content || "";
+            note.updatedAt = Date.now();
+            await note.save();
+        } else {
+            note = new Note({
+                userId,
+                courseId,
+                sectionId: sectionId || null,
+                subSectionId: subSectionId || null,
+                content: content || "",
+            });
+            await note.save();
+        }
+
+        return res.status(200).json({ success: true, data: note });
+    } catch (err) {
+        console.error("SAVE_NOTE error", err);
+        return res.status(500).json({ success: false, message: err.message });
     }
-
-    const query = { userId, courseId };
-    if (subSectionId) query.subSectionId = subSectionId;
-    else if (sectionId) query.sectionId = sectionId;
-
-    let note = await Note.findOne(query);
-
-    if (note) {
-      note.content = content || "";
-      note.updatedAt = Date.now();
-      await note.save();
-    } else {
-      note = new Note({
-        userId,
-        courseId,
-        sectionId: sectionId || null,
-        subSectionId: subSectionId || null,
-        content: content || "",
-      });
-      await note.save();
-    }
-
-    return res.status(200).json({ success: true, data: note });
-  } catch (err) {
-    console.error("SAVE_NOTE error", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
 };

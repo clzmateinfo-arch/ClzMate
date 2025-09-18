@@ -146,7 +146,12 @@ export default function SignupForm() {
           />
         </div>
 
-        <Button type="submit" classes="w-full" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}>
+        <Button
+          type="submit"
+          className="w-full"
+          style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={true}
+        >
           Create Account
         </Button>
 

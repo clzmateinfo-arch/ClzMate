@@ -130,7 +130,7 @@ export default function StudentDashboard() {
                                     <div className="py-12 text-center">
                                         <p className="text-sm text-black/70">You aren't enrolled in any courses yet.</p>
                                         <Link to="/courses">
-                                            <Button classes="mt-4">Browse courses</Button>
+                                            <Button className="mt-4">Browse courses</Button>
                                         </Link>
                                     </div>
                                 ) : (
@@ -184,12 +184,12 @@ export default function StudentDashboard() {
                                         <p className="text-xs text-black/70">Quick actions</p>
                                         <div className="mt-3 flex flex-col gap-3">
                                             <Link to="/courses">
-                                                <Button classes="w-full text-sm" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.08)" }}>
+                                                <Button className="w-full text-sm" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.08)" }}>
                                                     Browse Courses
                                                 </Button>
                                             </Link>
                                             <Link to="/dashboard/settings">
-                                                <Button classes="w-full text-sm" variant="ghost">
+                                                <Button className="w-full text-sm" variant="ghost">
                                                     Account Settings
                                                 </Button>
                                             </Link>

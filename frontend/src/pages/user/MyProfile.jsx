@@ -231,8 +231,9 @@ export default function MyProfile() {
                     <div className="flex flex-col gap-3 mt-4">
                       <Button
                         type="button"
-                        classes="w-full text-sm"
+                        className="w-full text-sm"
                         style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+                        animated={true}
                       >
                         Send password setup email
                       </Button>
@@ -240,8 +241,9 @@ export default function MyProfile() {
                     <div className="flex flex-col gap-3 mt-4">
                       <Button
                         type="button"
-                        classes="w-full text-sm"
+                        className="w-full text-sm"
                         style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+                        animated={true}
                       >
                         Manage connected apps
                       </Button>

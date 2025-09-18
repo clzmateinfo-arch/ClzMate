@@ -507,7 +507,6 @@ export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type 
   }
 };
 
-// inside courseDetailsAPI.ts (add near other exported functions)
 export const fetchNote = async ({ courseId, sectionId, subSectionId }, token) => {
   let result = { success: false, data: null };
   try {

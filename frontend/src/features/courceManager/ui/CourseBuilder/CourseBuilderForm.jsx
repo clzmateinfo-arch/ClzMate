@@ -10,6 +10,7 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import NestedView from "./NestedView";
 import Input from "@/shared/components/ui/Input";
 import Button from "../../../../shared/components/ui/Button";
+import { LinkButton } from "../../../../shared/components/ui/LinkButton";
 
 export default function CourseBuilderForm() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
@@ -99,13 +100,23 @@ export default function CourseBuilderForm() {
 
       {course?.courseContent?.length > 0 && <NestedView handleChangeEditSectionName={handleChangeEditSectionName} />}
 
-      <div className="flex justify-end gap-3">
-        <button onClick={goBack} className="rounded-md py-2 px-4 font-semibold text-sm border border-white/8">Back</button>
+      <div className="flex justify-end gap-3 mt-5">
+        <Button
+          disabled={loading}
+          variant="light"
+          onClick={goBack}
+          className="w-xs bg-white text-black"
+          style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={false}
+        >
+          Back
+        </Button>
         <Button
           disabled={loading}
           onClick={goToNext}
-          classes="w-xs"
+          className="w-xs"
           style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={true}
         >
           Next
         </Button>

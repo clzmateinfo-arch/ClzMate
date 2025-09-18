@@ -1,4 +1,3 @@
-// src/features/courseViewer/PlayerPanel.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import useKeyboardShortcuts from "@/shared/hooks/useKeyboardShortcuts";
@@ -87,7 +86,6 @@ export default function PlayerPanel({
         return () => { mounted = false; };
     }, [sub, token, preferredType, overrideResource]);
 
-    // keyboard mappings via hook
     useKeyboardShortcuts({
         onTogglePlay: () => {
             const el = playerRef.current;
@@ -122,11 +120,9 @@ export default function PlayerPanel({
 
     const isPdfPrimary = primary && ((primary.mimeType || "").toLowerCase() === "application/pdf" || (primary.originalName || "").toLowerCase().endsWith(".pdf") || primary.isMainPdf);
 
-    // when in present mode, auto-play video when possible
     useEffect(() => {
         if (presentMode && playerRef.current && playerRef.current.tagName === "VIDEO") {
             playerRef.current.play().catch(() => { });
-            // Note: Fullscreen is requested by the Box overlay (document.requestFullscreen) so no need to request here.
         }
     }, [presentMode]);
 
@@ -136,11 +132,9 @@ export default function PlayerPanel({
             return <div className="w-full h-full flex items-center justify-center text-slate-400">No preview</div>;
         }
 
-        // Some viewers respect #toolbar=0 etc — append when not present already
         const hash = "#toolbar=0&navpanes=0&scrollbar=0";
         const urlWithHash = url.includes("#") ? url : `${url}${hash}`;
 
-        // If present mode: iframe with allowFullScreen so it can be shown fullscreen, and we overlay the top to prevent clicks on toolbars.
         if (presentMode) {
             return (
                 <div className="w-full h-full relative bg-black">
@@ -148,13 +142,10 @@ export default function PlayerPanel({
                         title={primary?.originalName || "pdf"}
                         src={urlWithHash}
                         className="w-full h-full"
-                        // allow fullscreen so in-frame viewers can enter presentation if they want
                         allowFullScreen
                         allow="fullscreen"
-                        // include allow-same-origin and allow-scripts so PDF.js (if used) can run — adjust as per security needs
                         sandbox="allow-same-origin allow-scripts allow-forms allow-modals"
                     />
-                    {/* overlay top area to block built-in toolbar clicks */}
                     <div
                         aria-hidden
                         style={{ position: "absolute", top: 0, left: 0, right: 0, height: 56, zIndex: 40 }}
@@ -164,7 +155,6 @@ export default function PlayerPanel({
             );
         }
 
-        // non-present mode fallback
         return (
             <object data={url} type="application/pdf" className="w-full h-full">
                 <div className="p-6 text-center text-slate-400">
@@ -193,7 +183,6 @@ export default function PlayerPanel({
                             controls
                             className={`w-full ${presentMode ? "h-full" : "h-[64vh] md:h-[72vh]"} object-contain bg-black`}
                             playsInline
-                            // when in present mode we want larger controls; autoplay handled by effect
                             autoPlay={presentMode}
                         />
                     </div>
