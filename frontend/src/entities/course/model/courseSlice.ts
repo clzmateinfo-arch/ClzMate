@@ -1,3 +1,4 @@
+// src/entities/course/model/courseSlice.ts
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -9,6 +10,7 @@ const initialState = {
   courseEntireData: [],
   completedLectures: [],
   totalNoOfLectures: 0,
+  drawMode: false,
 };
 
 const courseSlice = createSlice({
@@ -44,6 +46,10 @@ const courseSlice = createSlice({
       state.completedLectures = [...state.completedLectures, action.payload];
     },
 
+    setDrawMode: (state, action) => {
+      state.drawMode = action.payload;
+    },
+
     resetCourseState: (state) => {
       state.step = 1;
       state.course = null;
@@ -54,6 +60,8 @@ const courseSlice = createSlice({
       state.courseEntireData = [];
       state.completedLectures = [];
       state.totalNoOfLectures = 0;
+
+      state.drawMode = false;
     },
   },
 });
@@ -69,6 +77,8 @@ export const {
   setTotalNoOfLectures,
   setCompletedLectures,
   updateCompletedLectures,
+
+  setDrawMode,
 
   resetCourseState,
 } = courseSlice.actions;

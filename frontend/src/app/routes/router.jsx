@@ -33,7 +33,6 @@ const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
 const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
-
 const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));

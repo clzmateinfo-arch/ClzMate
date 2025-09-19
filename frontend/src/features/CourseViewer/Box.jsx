@@ -369,7 +369,7 @@ export default function Box({
 
             {present && (
                 <div
-                    className="fixed inset-0 z-[9999] bg-black text-white flex flex-col"
+                    className="fixed inset-0 z-[99998] bg-black text-white flex flex-col"
                     onContextMenu={(e) => e.preventDefault()}
                     role="dialog"
                     aria-modal="true"

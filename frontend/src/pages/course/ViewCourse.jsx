@@ -2,12 +2,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import PlayerPanel from "@/features/courseViewer/PlayerPanel";
 import NotesPanel from "@/features/courseViewer/NotesPanel";
 import SandboxPanel from "@/features/courseViewer/SandboxPanel";
 import SupportFilesPanel from "@/features/courseViewer/SupportFilesPanel";
 import SectionSidebar from "@/features/courseViewer/SectionSidebar";
 import Box from "@/features/courseViewer/Box";
+import Whiteboard from "@/features/courseViewer/Whiteboard";
 import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
 import {
   setCourseSectionData,
@@ -16,74 +16,10 @@ import {
   setTotalNoOfLectures,
 } from "@/entities/course/model/courseSlice";
 import ResourceViewer from "@/features/courseViewer/ResourceViewer";
+import { generateLayout } from "../../shared/utils/generateLayout";
+import { setDrawMode } from "@/entities/course/model/courseSlice";
 
-const baseDefaultBoxes = [
-  {
-    id: "section",
-    title: "Sections",
-    type: "section",
-    top: 0,
-    left: 0,
-    width: 15,
-    height: 100,
-    visible: true,
-    z: 300,
-    component: SectionSidebar,
-    componentProps: {},
-  },
-  {
-    id: "player",
-    title: "Player",
-    type: "player",
-    top: 0,
-    left: 15,
-    width: 60,
-    height: 60,
-    visible: true,
-    z: 200,
-    component: PlayerPanel,
-    componentProps: {},
-  },
-  {
-    id: "sandbox",
-    title: "Sandbox",
-    type: "sandbox",
-    top: 60,
-    left: 15,
-    width: 30,
-    height: 40,
-    visible: true,
-    z: 150,
-    component: SandboxPanel,
-    componentProps: {},
-  },
-  {
-    id: "notes",
-    title: "Notes",
-    type: "notes",
-    top: 0,
-    left: 75,
-    width: 25,
-    height: 50,
-    visible: true,
-    z: 180,
-    component: NotesPanel,
-    componentProps: {},
-  },
-  {
-    id: "support",
-    title: "Support Files",
-    type: "support",
-    top: 50,
-    left: 75,
-    width: 25,
-    height: 50,
-    visible: true,
-    z: 170,
-    component: SupportFilesPanel,
-    componentProps: {},
-  },
-];
+const DEFAULT_SECTION_WIDTH = 15;
 
 export default function ViewCourse() {
   const { courseId, sectionId, subSectionId } = useParams();
@@ -95,85 +31,12 @@ export default function ViewCourse() {
   const courseEntireData = courseSlice.courseEntireData || {};
   const [loading, setLoading] = useState(false);
 
-  const [boxes, setBoxes] = useState(() =>
-    baseDefaultBoxes.map((b) => ({ ...b, componentProps: { ...(b.componentProps || {}) } }))
-  );
+  const [boxes, setBoxes] = useState([]);
   const [currentSub, setCurrentSub] = useState(null);
 
-  useEffect(() => {
-    // build boxes array based on features
-    const features = courseEntireData?.features ?? { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
-
-    const arr = [];
-
-    // always section
-    arr.push({
-      id: "section",
-      title: "Sections",
-      type: "section",
-      top: 0,
-      left: 0,
-      width: 15,
-      height: 100,
-      visible: true,
-      z: 300,
-      component: SectionSidebar,
-      componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
-    });
-
-    // player area (main player or resource) is added later based on currentSub supports (existing logic)
-    // add notes only if enabled
-    if (features.notesEnabled) {
-      arr.push({
-        id: "notes",
-        title: "Notes",
-        type: "notes",
-        top: 0,
-        left: 75,
-        width: 25,
-        height: 50,
-        visible: true,
-        z: 180,
-        component: NotesPanel,
-        componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
-      });
-    }
-
-    // support panel
-    arr.push({
-      id: "support",
-      title: "Support Files",
-      type: "support",
-      top: 50,
-      left: features.notesEnabled ? 75 : 60,
-      width: features.notesEnabled ? 25 : 40,
-      height: features.notesEnabled ? 50 : 100,
-      visible: true,
-      z: 170,
-      component: SupportFilesPanel,
-      componentProps: {},
-    });
-
-    // sandbox only if enabled
-    if (features.sandboxEnabled) {
-      arr.push({
-        id: "sandbox",
-        title: "Sandbox",
-        type: "sandbox",
-        top: 60,
-        left: 15,
-        width: 30,
-        height: 40,
-        visible: true,
-        z: 150,
-        component: SandboxPanel,
-        componentProps: { language: features.sandboxLanguage || "javascript" },
-      });
-    }
-
-    // set boxes (we don't override z for section)
-    setBoxes(arr);
-  }, [courseEntireData, courseSectionData, sectionId, subSectionId, courseId, auth]);
+  const { drawMode } = useSelector((s) => s.course || {});
+  const [wbStatus, setWbStatus] = useState("idle");
+  const wbRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -201,7 +64,6 @@ export default function ViewCourse() {
     return () => { mounted = false; };
   }, [courseId, token, dispatch]);
 
-  // derive currentSub
   useEffect(() => {
     if (!courseSectionData || !courseSectionData.length) {
       setCurrentSub(null);
@@ -211,6 +73,81 @@ export default function ViewCourse() {
     const sub = (sec?.subSection || []).find((ss) => ss._id === subSectionId) || sec?.subSection?.[0] || null;
     setCurrentSub(sub);
   }, [courseSectionData, sectionId, subSectionId]);
+
+  useEffect(() => {
+    const features = courseEntireData?.features ?? { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
+    const layout = generateLayout({ features, currentSub, sectionWidth: DEFAULT_SECTION_WIDTH });
+
+    const boxesMapped = layout.map((tile) => {
+      if (tile.id === "section") {
+        return {
+          ...tile,
+          visible: true,
+          z: 300,
+          component: SectionSidebar,
+          componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
+        };
+      }
+
+      if (tile.id === "video") {
+        const mats = currentSub?.supportMaterials || [];
+        const mainVideo = mats.find((m) => !!m.isMainVideo) || mats.find((m) => (m.resourceType || "").startsWith("video"));
+        return {
+          ...tile,
+          visible: true,
+          z: 200,
+          component: ResourceViewer,
+          componentProps: { resource: mainVideo, course: courseEntireData, token },
+        };
+      }
+
+      if (tile.id === "pdf") {
+        const mats = currentSub?.supportMaterials || [];
+        const mainPdf = mats.find((m) => !!m.isMainPdf) || mats.find((m) => (m.mimeType || "").toLowerCase() === "application/pdf");
+        return {
+          ...tile,
+          visible: true,
+          z: 190,
+          component: ResourceViewer,
+          componentProps: { resource: mainPdf, course: courseEntireData, token },
+        };
+      }
+
+      if (tile.id === "notes") {
+        return {
+          ...tile,
+          visible: true,
+          z: 180,
+          component: NotesPanel,
+          componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
+        };
+      }
+
+      if (tile.id === "support") {
+        return {
+          ...tile,
+          visible: true,
+          z: 170,
+          component: SupportFilesPanel,
+          componentProps: { supportMaterials: (currentSub && currentSub.supportMaterials) || [] },
+        };
+      }
+
+      if (tile.id === "sandbox") {
+        return {
+          ...tile,
+          visible: true,
+          z: 160,
+          component: SandboxPanel,
+          componentProps: { language: (courseEntireData?.features?.sandboxLanguage) || "python" },
+        };
+      }
+
+      return { ...tile, visible: true, z: 120, component: () => null, componentProps: {} };
+    });
+
+    setBoxes(boxesMapped);
+  }, [courseEntireData, courseSectionData, currentSub, sectionId, subSectionId, token, auth, courseId]);
 
   const dragState = useRef(null);
   const resizeState = useRef(null);
@@ -227,22 +164,26 @@ export default function ViewCourse() {
     const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
     bringToFront(id);
 
-    const box = boxes.find((b) => b.id === id);
-    if (!box) return;
+    setBoxes((prevBoxes) => {
+      const box = prevBoxes.find((b) => b.id === id);
+      if (!box) return prevBoxes;
 
-    dragState.current = {
-      id,
-      startX: clientX,
-      startY: clientY,
-      startLeft: box.left,
-      startTop: box.top,
-    };
+      dragState.current = {
+        id,
+        startX: clientX,
+        startY: clientY,
+        startLeft: box.left,
+        startTop: box.top,
+      };
 
-    window.addEventListener("mousemove", onPointerMoveDrag);
-    window.addEventListener("touchmove", onPointerMoveDrag, { passive: false });
-    window.addEventListener("mouseup", onPointerUpDrag);
-    window.addEventListener("touchend", onPointerUpDrag);
-  }, [boxes, bringToFront]);
+      window.addEventListener("mousemove", onPointerMoveDrag);
+      window.addEventListener("touchmove", onPointerMoveDrag, { passive: false });
+      window.addEventListener("mouseup", onPointerUpDrag);
+      window.addEventListener("touchend", onPointerUpDrag);
+
+      return prevBoxes;
+    });
+  }, [bringToFront]);
 
   const onPointerMoveDrag = useCallback((e) => {
     if (!dragState.current) return;
@@ -271,21 +212,25 @@ export default function ViewCourse() {
     const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
     const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
     bringToFront(id);
-    const box = boxes.find((b) => b.id === id);
-    if (!box) return;
-    resizeState.current = {
-      id,
-      startX: clientX,
-      startY: clientY,
-      startW: box.width,
-      startH: box.height,
-    };
 
-    window.addEventListener("mousemove", onPointerMoveResize);
-    window.addEventListener("touchmove", onPointerMoveResize, { passive: false });
-    window.addEventListener("mouseup", onPointerUpResize);
-    window.addEventListener("touchend", onPointerUpResize);
-  }, [boxes, bringToFront]);
+    setBoxes((prev) => {
+      const box = prev.find((b) => b.id === id);
+      if (!box) return prev;
+      resizeState.current = {
+        id,
+        startX: clientX,
+        startY: clientY,
+        startW: box.width,
+        startH: box.height,
+      };
+
+      window.addEventListener("mousemove", onPointerMoveResize);
+      window.addEventListener("touchmove", onPointerMoveResize, { passive: false });
+      window.addEventListener("mouseup", onPointerUpResize);
+      window.addEventListener("touchend", onPointerUpResize);
+      return prev;
+    });
+  }, [bringToFront]);
 
   const onPointerMoveResize = useCallback((e) => {
     if (!resizeState.current) return;
@@ -322,114 +267,59 @@ export default function ViewCourse() {
     };
   }, []);
 
+  const toggleBox = useCallback((id) => {
+    setBoxes((prev) => {
+      const updated = prev.map((b) => (b.id === id ? { ...b, visible: !b.visible } : b));
+      const toggled = updated.find((u) => u.id === id);
+      if (toggled && toggled.visible) {
+        const maxZ = updated.length ? Math.max(...updated.map((p) => (typeof p.z === "number" ? p.z : 0))) : 0;
+        return updated.map((p) => (p.id === id ? { ...p, z: maxZ + 1 } : p));
+      }
+      return updated;
+    });
+  }, []);
+
   useEffect(() => {
-    setBoxes((prev) => {
-      return prev.map((b) => {
-        if (b.id === "section") {
-          return {
-            ...b,
-            component: SectionSidebar,
-            componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
-          };
-        }
-        if (b.id === "notes") {
-          return {
-            ...b,
-            component: NotesPanel,
-            componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
-          };
-        }
-        if (b.id === "support") {
-          return {
-            ...b,
-            component: SupportFilesPanel,
-            componentProps: { supportMaterials: (currentSub && currentSub.supportMaterials) || [] },
-          };
-        }
-        if (b.id === "sandbox") {
-          return {
-            ...b,
-            component: SandboxPanel,
-            componentProps: { language: (currentSub && currentSub.sandboxLanguage) || "javascript" },
-          };
-        }
-        return b;
-      });
-    });
-
-    if (!currentSub) return;
-
-    const mats = currentSub.supportMaterials || [];
-    const mainVideo = mats.find((m) => !!m.isMainVideo) || mats.find((m) => (m.resourceType || "").startsWith("video"));
-    const mainPdf = mats.find((m) => !!m.isMainPdf) || mats.find((m) => (m.mimeType || "").toLowerCase() === "application/pdf");
-
-    setBoxes((prev) => {
-      const filtered = prev.filter((p) => !["player", "video", "pdf"].includes(p.id));
-
-      if (mainVideo && mainPdf) {
-        const videoBox = {
-          id: "video",
-          title: "Video",
-          type: "video",
-          top: 0,
-          left: 15,
-          width: 50,
-          height: 60,
-          visible: true,
-          z: 200,
-          component: ResourceViewer,
-          componentProps: { resource: mainVideo, course: courseEntireData, token },
-        };
-        const pdfBox = {
-          id: "pdf",
-          title: "PDF",
-          type: "pdf",
-          top: 60,
-          left: 15,
-          width: 50,
-          height: 40,
-          visible: true,
-          z: 190,
-          component: ResourceViewer,
-          componentProps: { resource: mainPdf, course: courseEntireData, token },
-        };
-
-        const sectionIndex = filtered.findIndex((p) => p.id === "section");
-        if (sectionIndex === -1) {
-          return [...filtered, videoBox, pdfBox];
-        }
-        const head = filtered.slice(0, sectionIndex + 1);
-        const tail = filtered.slice(sectionIndex + 1);
-        return [...head, videoBox, pdfBox, ...tail];
+    const handleKey = (e) => {
+      if (e.key === "d" || e.key === "D") {
+        setDrawMode((v) => !v);
       }
-
-      const first = mainVideo || mainPdf || mats[0] || null;
-      const playerBox = {
-        id: "player",
-        title: "Player",
-        type: "player",
-        top: 0,
-        left: 15,
-        width: 60,
-        height: 60,
-        visible: true,
-        z: 200,
-        component: first ? (first.resourceType && first.resourceType.startsWith("video") ? PlayerPanel : ResourceViewer) : PlayerPanel,
-        componentProps: first ? (first.resourceType && first.resourceType.startsWith("video") ? { sub: currentSub, course: courseEntireData, token } : { resource: first, course: courseEntireData, token }) : { sub: currentSub, course: courseEntireData, token },
-      };
-
-      const secIndex = filtered.findIndex((p) => p.id === "section");
-      if (secIndex === -1) {
-        return [playerBox, ...filtered];
-      }
-      const head = filtered.slice(0, secIndex + 1);
-      const tail = filtered.slice(secIndex + 1);
-      return [...head, playerBox, ...tail];
-    });
-  }, [currentSub, courseEntireData, courseSectionData, token, auth, courseId, sectionId, subSectionId]);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   return (
     <div className="w-screen h-screen bg-slate-900 text-white relative overflow-hidden">
+      <div className="absolute top-4 right-4 z-[900] flex flex-col items-end gap-2">
+      </div>
+
+      <input
+        id={`wb-import-${courseId}`}
+        accept="application/json"
+        type="file"
+        className="hidden"
+        onChange={(ev) => {
+          const f = ev.target.files && ev.target.files[0];
+          if (!f) return;
+          if (wbRef.current && wbRef.current.importFile) {
+            wbRef.current.importFile(f);
+          } else {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const parsed = JSON.parse(e.target.result);
+                localStorage.setItem(`whiteboard:${courseId}`, JSON.stringify(parsed));
+              } catch (err) {
+                console.warn("json parse error in whiteboard");
+              }
+            };
+            reader.readAsText(f);
+          }
+          ev.target.value = "";
+        }}
+      />
+
       <div className="w-full h-full relative bg-white">
         {boxes.map((b) => (
           <Box
@@ -450,12 +340,37 @@ export default function ViewCourse() {
             }}
             onPointerDownDrag={onPointerDownDrag}
             onPointerDownResize={onPointerDownResize}
-            toggleBox={(id) => {
-              setBoxes((prev) => prev.map((p) => (p.id === id ? { ...p, visible: !p.visible } : p)));
-            }}
+            toggleBox={toggleBox}
             onBringToFront={bringToFront}
           />
         ))}
+
+        <div
+          className="fixed inset-0 z-[800]"
+          aria-hidden={!drawMode}
+          style={{
+            display: drawMode ? "block" : "none",
+            pointerEvents: drawMode ? "auto" : "none",
+            background: "transparent",
+          }}
+        >
+          <div
+            className="w-full h-full"
+            style={{
+              width: "100%",
+              height: "100%",
+              touchAction: drawMode ? "none" : "auto",
+            }}
+          >
+            <Whiteboard
+              ref={wbRef}
+              courseId={courseId}
+              onStatusChange={(s) => {
+                setWbStatus(s);
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
