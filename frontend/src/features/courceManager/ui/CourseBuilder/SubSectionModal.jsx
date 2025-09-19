@@ -312,7 +312,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               viewData={view ? getValues().lectureVideo : null}
               editData={edit ? getValues().lectureVideo : null}
               previewHeight={320}
-              disabled={!view}
+              disabled={view}
             />
           </div>
 
@@ -328,7 +328,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               viewData={view ? getValues().lecturePdf : null}
               editData={edit ? getValues().lecturePdf : null}
               previewHeight={320}
-              disabled={!view}
+              disabled={view}
             />
           </div>
 

@@ -253,6 +253,7 @@ export default function CourseInformationForm() {
           setValue={setValue}
           errors={errors}
           editData={editCourse ? courseData?.thumbnail : null}
+          disabled={false}
         />
       </div>
 
