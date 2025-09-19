@@ -45,6 +45,9 @@ export default function AppRoutes() {
     const RedirectToRole = () => {
         if (profileLoading || !user) return <Loading />;
 
+        if (user.accountType === ACCOUNT_TYPE.ADMIN) {
+            return <Navigate to="/dashboard/admin-controls" replace />;
+        }
         if (user.accountType === ACCOUNT_TYPE.STUDENT) {
             return <Navigate to="/dashboard/student" replace />;
         }
@@ -54,10 +57,19 @@ export default function AppRoutes() {
         return <Navigate to="/dashboard/student" replace />;
     };
 
+    const RedirectToAuth = () => {
+        return <Navigate to="/login" replace />;
+    };
+
+    const RedirectToMain = () => {
+        return <Navigate to="/" replace />;
+    };
+
     return (
         <Routes>
             {/* Auth */}
             <Route element={<AuthLayout />}>
+                <Route index element={<RedirectToAuth />} />
                 <Route
                     path="/signup"
                     element={
@@ -102,6 +114,7 @@ export default function AppRoutes() {
 
             {/* MainLayout */}
             <Route element={<MainLayout />}>
+                <Route index element={<RedirectToMain />} />
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
