@@ -135,3 +135,30 @@ exports.getCategoryPageDetails = async (req, res) => {
     });
   }
 };
+
+exports.updateCategory = async (req, res) => {
+  try {
+    const { categoryId, name, description } = req.body;
+    if (!categoryId) return res.status(400).json({ success: false, message: "categoryId required" });
+    const updated = await Category.findByIdAndUpdate(categoryId, { name, description }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ success: false, message: "Category not found" });
+    return res.status(200).json({ success: true, data: updated, message: "Category updated" });
+  } catch (error) {
+    console.error("updateCategory", error);
+    return res.status(500).json({ success: false, message: "Error while updating category", error: error.message });
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.body;
+    if (!categoryId) return res.status(400).json({ success: false, message: "categoryId required" });
+    const deleted = await Category.findByIdAndDelete(categoryId).lean();
+    if (!deleted) return res.status(404).json({ success: false, message: "Category not found" });
+    return res.status(200).json({ success: true, message: "Category deleted" });
+  } catch (error) {
+    console.error("deleteCategory", error);
+    return res.status(500).json({ success: false, message: "Error while deleting category", error: error.message });
+  }
+};
+

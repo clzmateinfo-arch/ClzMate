@@ -13,6 +13,8 @@ const userRoutes = require('./src/routes/user');
 const profileRoutes = require('./src/routes/profile');
 const paymentRoutes = require('./src/routes/payments');
 const courseRoutes = require('./src/routes/course');
+const adminRoutes = require('./src/routes/admin');
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -42,6 +44,7 @@ app.use('/api/v1/auth', userRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send(`<div>

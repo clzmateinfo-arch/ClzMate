@@ -30,6 +30,8 @@ const Settings = lazy(() => import("@/pages/user/Settings"));
 const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
+const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
+
 const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
 const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
@@ -115,6 +117,12 @@ export default function AppRoutes() {
 
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
+
+                    {user?.accountType === ACCOUNT_TYPE.ADMIN && (
+                        <>
+                            <Route path="admin-controls" element={<AdminPage />} />
+                        </>
+                    )}
 
                     {user?.accountType === ACCOUNT_TYPE.STUDENT && (
                         <>
