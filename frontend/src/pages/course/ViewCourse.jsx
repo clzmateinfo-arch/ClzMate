@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import NotesPanel from "../../features/courseViewer/NotesPanel";
+import NotePanel from "../../features/courseViewer/NotePanel";
 import SandboxPanel from "../../features/courseViewer/SandboxPanel";
 import SupportFilesPanel from "../../features/courseViewer/SupportFilesPanel";
 import SectionSidebar from "../../features/courseViewer/SectionSidebar";
@@ -117,7 +117,7 @@ export default function ViewCourse() {
           ...tile,
           visible: true,
           z: 180,
-          component: NotesPanel,
+          component: NotePanel,
           componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
         };
       }

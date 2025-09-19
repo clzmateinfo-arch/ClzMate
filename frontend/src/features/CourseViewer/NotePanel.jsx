@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { fetchNote, saveNote } from "@/entities/course/model/courseDetailsAPI";
 
-export default function NotesPanel({ courseId, sectionId, subSectionId, userId }) {
+export default function NotePanel({ courseId, sectionId, subSectionId, userId }) {
     const key = `notes:${userId || "anon"}:${courseId}:${sectionId}:${subSectionId}`;
     const token = useSelector((s) => s.auth?.token);
     const [text, setText] = useState("");
