@@ -1,23 +1,22 @@
-// src/pages/course/ViewCourse.jsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import NotesPanel from "@/features/courseViewer/NotesPanel";
-import SandboxPanel from "@/features/courseViewer/SandboxPanel";
-import SupportFilesPanel from "@/features/courseViewer/SupportFilesPanel";
-import SectionSidebar from "@/features/courseViewer/SectionSidebar";
-import Box from "@/features/courseViewer/Box";
-import Whiteboard from "@/features/courseViewer/Whiteboard";
-import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
+import NotesPanel from "../../features/courseViewer/NotesPanel";
+import SandboxPanel from "../../features/courseViewer/SandboxPanel";
+import SupportFilesPanel from "../../features/courseViewer/SupportFilesPanel";
+import SectionSidebar from "../../features/courseViewer/SectionSidebar";
+import Box from "../../features/courseViewer/Box";
+import Whiteboard from "../../features/courseViewer/Whiteboard";
+import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
   setCourseSectionData,
   setEntireCourseData,
   setCompletedLectures,
   setTotalNoOfLectures,
-} from "@/entities/course/model/courseSlice";
-import ResourceViewer from "@/features/courseViewer/ResourceViewer";
+} from "../../entities/course/model/courseSlice";
+import ResourceViewer from "../../features/courseViewer/ResourceViewer";
 import { generateLayout } from "../../shared/utils/generateLayout";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
+import { setDrawMode } from "../../entities/course/model/courseSlice";
 
 const DEFAULT_SECTION_WIDTH = 15;
 
