@@ -169,9 +169,10 @@ export default function ContactUsForm() {
           <div className="w-full flex flex-col items-end gap-2">
             <Button
               type="submit"
-              classes="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold"
+              className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold"
               disabled={loading}
               style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+              animated={true}
             >
               {loading ? "Sending..." : "Send message"}
             </Button>

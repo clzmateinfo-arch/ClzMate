@@ -1,7 +1,6 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
-export function LinkButton({ children, to = "/app/sign-up", variant = "primary", className = "" }) {
+export function LinkButton({ children, to = "/", variant = "primary", className = "" }) {
     const base = "inline-flex items-center gap-3 rounded-full px-6 py-3 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition";
     const primary = "bg-gradient-to-r btn-purple bg-violet-600 hover:bg-violet-700 text-white text-sm transition-colors shadow-md hover:opacity-95 focus:ring-[#996bec]";
     const light = "inline-flex items-center gap-3 rounded-full px-6 py-3 text-sm font-semibold dark:bg-gray-800/6 backdrop-blur-sm ring-1 ring-white/20 hover:bg-gray-800/8 transition group";

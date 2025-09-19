@@ -1,28 +1,27 @@
-/* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useLocation, useNavigate } from "react-router-dom"
 
-import { VscSignOut } from "react-icons/vsc"
 import { HiMenuAlt1 } from "react-icons/hi"
+import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { IoMdClose } from "react-icons/io"
-import { MdOutlineSettings } from "react-icons/md"
 
-import { sidebarLinks } from "@/app/config/dashboard-links"
+import { sidebarLinks } from "@/app/config/course-links"
 import { logout } from "@/entities/auth/model/authAPI"
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
-import ProfileMenu from "./components/ProfileMenu"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
+import { setDrawMode } from "@/entities/course/model/courseSlice";
 
-export default function UserSidebar() {
+export default function CourseSidebar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
   const { loading: authLoading } = useSelector((s) => s.auth)
   const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
   const [confirmationModal, setConfirmationModal] = useState(null)
+  const { drawMode } = useSelector((s) => s.course || {});
 
   useEffect(() => {
     const handleResize = () => dispatch(setScreenSize(window.innerWidth))
@@ -56,6 +55,20 @@ export default function UserSidebar() {
         aria-label="Quick links"
         className="fixed right-4 mr-1 top-1/3 z-[99999] flex -translate-y-1/2 flex-col items-center gap-3"
       >
+        <button
+          aria-controls="full-sidebar"
+          onClick={() => dispatch(setDrawMode(!drawMode))}
+          title="Home"
+          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full ${drawMode ? "bg-gradient-to-tr from-[#dcc3f1] to-[#ffffff]" : "bg-gradient-to-tr from-[#757575] to-[#c4c4c4]"}  text-black shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+        >
+          <LiaChalkboardTeacherSolid size={18} />
+          <span
+            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+            aria-hidden
+          >
+            Whiteboard
+          </span>
+        </button>
         <button
           aria-controls="full-sidebar"
           onClick={() => handleNavigate("/")}

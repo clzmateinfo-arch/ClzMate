@@ -125,7 +125,12 @@ export default function UpdatePassword() {
         {errors.form && <div className="text-sm text-red-500">{errors.form}</div>}
 
         <div className="flex justify-end gap-3 mt-5">
-          <Button type="submit" classes="min-w-[220px] text-sm" disabled={submitting}>
+          <Button
+            type="submit"
+            className="min-w-[220px] text-sm"
+            disabled={submitting}
+            animated={true}
+          >
             Save
           </Button>
         </div>

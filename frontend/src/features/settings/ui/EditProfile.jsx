@@ -177,7 +177,12 @@ export default function EditProfile() {
           {errors.about && <span className="error-text">{errors.about}</span>}
         </div>
         <div className="flex justify-end gap-3 mt-5">
-          <Button type="submit" classes="min-w-[220px] text-sm" disabled={submitting}>
+          <Button 
+          type="submit" 
+          className="min-w-[220px] text-sm" 
+          disabled={submitting}
+          animated={true}
+          >
             Save
           </Button>
         </div>

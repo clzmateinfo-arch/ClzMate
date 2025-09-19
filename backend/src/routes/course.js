@@ -8,6 +8,7 @@ const {
     editCourse,
     deleteCourse,
     getInstructorCourses,
+    getNote, saveNote
 } = require("../controllers/course");
 const { updateCourseProgress } = require("../controllers/courseProgress");
 const {
@@ -59,5 +60,7 @@ router.post("/createRating", auth, isStudent, createRating);
 router.get("/getAverageRating", getAverageRating);
 router.get("/getReviews", getAllRatingReview);
 router.post("/getAssetUrl", auth, getAssetUrl);
+router.post("/getNote", auth, getNote);
+router.post("/saveNote", auth, saveNote);
 
 module.exports = router;

@@ -20,7 +20,9 @@ const {
   GET_FULL_COURSE_DETAILS_AUTHENTICATED,
   CREATE_RATING_API,
   LECTURE_COMPLETION_API,
-  GET_ASSEST_URL,
+  GET_ASSET_URL_API,
+  GET_NOTES_API,
+  CREATE_NOTES_API,
 } = courseEndpoints;
 
 const initialState = {
@@ -489,7 +491,7 @@ export const createRating = async (data, token) => {
 
 export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type = "authenticated", expiresInSec = 300, format = null }, token) => {
   try {
-    const response = await apiConnector("POST", GET_ASSEST_URL, {
+    const response = await apiConnector("POST", GET_ASSET_URL_API, {
       publicId,
       resourceType,
       type,
@@ -498,11 +500,45 @@ export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type 
     }, {
       Authorization: `Bearer ${token}`
     });
-
     if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to get asset url");
     return response.data.url;
-  } catch (err) {
-    console.error("getSignedAssetUrl error", err);
+  } catch (error) {
     return null;
   }
+};
+
+export const fetchNote = async ({ courseId, sectionId, subSectionId }, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      GET_NOTES_API,
+      { courseId, sectionId, subSectionId },
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to fetch note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("FETCH_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to fetch note" };
+  }
+  return result;
+};
+
+export const saveNote = async (payload, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      CREATE_NOTES_API,
+      payload,
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to save note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("SAVE_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to save note" };
+  }
+  return result;
 };
