@@ -34,11 +34,9 @@ export default function CourseInformationForm() {
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth || {});
 
-  // read both variants from your course slice — some flows set `course`, other flows set `courseEntireData`
   const courseSlice = useSelector((state) => state.course || {});
   const { course: courseFromSlice, editCourse, courseEntireData } = courseSlice;
 
-  // prefer explicit 'course' if present, otherwise fall back to courseEntireData
   const courseData = editCourse ? (courseFromSlice || courseEntireData || {}) : null;
 
   const [loading, setLoading] = useState(false);
@@ -55,9 +53,7 @@ export default function CourseInformationForm() {
   }, []);
 
   useEffect(() => {
-    // only populate form when editing and courseData is available
     if (editCourse && courseData) {
-      // defensive defaults so undefined doesn't break fields
       setValue("courseTitle", courseData.courseName ?? "");
       setValue("courseShortDesc", courseData.courseDescription ?? "");
       setValue("coursePrice", courseData.price ?? 0);
@@ -67,16 +63,12 @@ export default function CourseInformationForm() {
       setValue("courseRequirements", courseData.instructions ?? []);
       setValue("courseImage", courseData.thumbnail ?? null);
     } else {
-      // ensure category starts empty for new course
       setValue("courseCategory", "");
     }
-    // only want to run when edit mode or courseData changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editCourse, courseData]);
 
   const isFormUpdated = () => {
     const currentValues = getValues();
-    // if there's no courseData then it's a new course, treat as updated
     if (!editCourse || !courseData) return true;
 
     return (
@@ -93,7 +85,6 @@ export default function CourseInformationForm() {
   };
 
   const onSubmit = async (data) => {
-    // If editing
     if (editCourse && courseData) {
       if (!isFormUpdated()) {
         toast.error("No changes made to the form");
@@ -135,7 +126,6 @@ export default function CourseInformationForm() {
       return;
     }
 
-    // New course
     const formData = new FormData();
     formData.append("courseName", data.courseTitle);
     formData.append("courseDescription", data.courseShortDesc);
@@ -267,12 +257,19 @@ export default function CourseInformationForm() {
       </div>
 
       <div className="mb-5">
-        <RequirementsField
+        <Controller
           name="courseRequirements"
-          label="Requirements/Instructions"
-          register={register}
-          setValue={setValue}
-          errors={errors}
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <RequirementsField
+              name="courseRequirements"
+              label="Requirements/Instructions"
+              register={register}
+              setValue={setValue}
+              errors={errors}
+            />
+          )}
         />
       </div>
 

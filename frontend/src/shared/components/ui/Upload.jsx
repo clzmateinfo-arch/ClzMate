@@ -1,4 +1,4 @@
-// Upload.jsx (replace file)
+// src/shared/components/ui/Upload.jsx
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud } from "react-icons/fi";
@@ -34,15 +34,9 @@ export default function Upload({
     const name = (file.name || "").toLowerCase();
     const ext = name.includes(".") ? name.substring(name.lastIndexOf(".")) : "";
 
-    if (expectedType === "video") {
-      return mimetype.includes("video");
-    }
-    if (expectedType === "pdf") {
-      return mimetype.includes("pdf");
-    }
-    if (expectedType === "image") {
-      return mimetype.includes("image");
-    }
+    if (expectedType === "video") return mimetype.includes("video");
+    if (expectedType === "pdf") return mimetype.includes("pdf");
+    if (expectedType === "image") return mimetype.includes("image");
 
     if (mimetype.includes("image/")) return true;
     if (mimetype.startsWith("video/")) return true;
@@ -91,11 +85,21 @@ export default function Upload({
     }
   };
 
+  // useDropzone provides input props; we also keep a ref so manual buttons can call click()
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: acceptMap[fileType] ?? acceptMap.any,
     onDrop,
     multiple,
   });
+
+  // We must ensure the input's ref is accessible: use a callback ref that captures getInputProps() node
+  const inputProps = getInputProps();
+  const inputRefSetter = (node) => {
+    // assign the file input node to our local ref so manual buttons can trigger click()
+    inputRef.current = node ?? inputRef.current;
+    // also call any existing ref function returned by getInputProps()
+    if (typeof inputProps.ref === "function") inputProps.ref(node);
+  };
 
   const setPreview = (file) => {
     if (!file) return setPreviewSource("");
@@ -104,19 +108,19 @@ export default function Upload({
         URL.revokeObjectURL(previewSource);
       } catch (e) { }
     }
-    const url = URL.createObjectURL(file);
+    const url = typeof file === "string" ? file : URL.createObjectURL(file);
     setPreviewSource(url);
   };
 
   useEffect(() => {
+    // register with react-hook-form. This mirrors previous behavior:
     register(name, { required: required && !viewData && !editData });
-  }, [register, name, viewData, editData, required]);
-
-  useEffect(() => {
+    // ensure form value is set to existing view/edit data if any
     if (!selectedFiles.length) {
       setPreviewSource(viewData ?? editData ?? "");
       setValue(name, viewData ?? editData ?? null);
     }
+    // clean up blob URLs on unmount
     return () => {
       if (previewSource && previewSource.startsWith("blob:")) {
         try {
@@ -124,7 +128,8 @@ export default function Upload({
         } catch (e) { }
       }
     };
-  }, [viewData, editData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClear = () => {
     if (previewSource && previewSource.startsWith("blob:")) {
@@ -142,6 +147,13 @@ export default function Upload({
     }
   };
 
+  // helper to trigger native file dialog
+  const openFileDialog = () => {
+    if (inputRef.current && typeof inputRef.current.click === "function") {
+      inputRef.current.click();
+    }
+  };
+
   return (
     <div className={`flex flex-col space-y-2`}>
       <label className="block text-sm font-semibold text-[#0b1220]" htmlFor={name}>
@@ -154,11 +166,10 @@ export default function Upload({
         className={`relative flex min-h-[220px] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/6 p-4 shadow-sm transition-all ${isDragActive ? "ring-2 ring-offset-2 ring-[#996bec]/30" : ""}`}
         aria-label={label}
       >
+        {/* primary dropzone input (from react-dropzone) */}
         <input
-          {...getInputProps()}
-          ref={(node) => {
-            inputRef.current = node ?? inputRef.current;
-          }}
+          {...inputProps}
+          ref={inputRefSetter}
         />
 
         {previewSource ? (
@@ -192,27 +203,16 @@ export default function Upload({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 justify-end">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
-                Replace
-                <input
-                  type="file"
-                  accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      if (!isFileAllowed(f, fileType)) {
-                        window.alert("Selected file type not allowed.");
-                        return;
-                      }
-                      setSelectedFiles([f]);
-                      setValue(name, multiple ? [f] : f);
-                      setPreview(f);
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
-              ) : (<></>)}
+              {/* show Replace when NOT disabled */}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={openFileDialog}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow"
+                >
+                  Replace
+                </button>
+              )}
 
               {!viewData && !editData && (
                 <button type="button" onClick={handleClear} className="rounded-full border border-white/10 bg-white/4 px-3 py-2 text-sm font-medium text-[#0b1220] hover:bg-white/8 transition">
@@ -231,27 +231,16 @@ export default function Upload({
               <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes"}</p>
             </div>
             <div className="mt-4 flex gap-3">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
-                Browse
-                <input
-                  type="file"
-                  accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      if (!isFileAllowed(f, fileType)) {
-                        window.alert("Selected file type not allowed.");
-                        return;
-                      }
-                      setSelectedFiles([f]);
-                      setValue(name, multiple ? [f] : f);
-                      setPreview(f);
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
-              ) : (<></>)}
+              {/* show Browse when NOT disabled */}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={openFileDialog}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]"
+                >
+                  Browse
+                </button>
+              )}
             </div>
           </div>
         )}
