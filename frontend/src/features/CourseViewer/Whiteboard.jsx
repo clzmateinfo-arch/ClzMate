@@ -1,27 +1,13 @@
-// src/features/courseViewer/Whiteboard.jsx
 import React, { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 
-/**
- * Whiteboard component that persists scene to localStorage and exposes imperative methods.
- *
- * Exposed methods via ref:
- *  - exportJson()
- *  - importFile(file)
- *  - importJson(parsed)
- *  - clear()
- *
- * Props:
- *  - courseId (string) used for localStorage key
- *  - onStatusChange (fn) called with "idle" | "saving" | "saved" | "cleared"
- */
+
 const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatusChange = () => { } }, ref) {
   const excalRef = useRef(null);
   const storageKey = `whiteboard:${courseId}`;
-  const [status, setStatus] = useState("idle"); // idle | saving | saved | cleared
+  const [status, setStatus] = useState("idle");
   const saveTimer = useRef(null);
 
-  // Load initial scene once (on mount)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -30,12 +16,10 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
         excalRef.current.updateScene(parsed);
       }
     } catch (e) {
-      // ignore
+      console.warn("error occurred while phrase", e);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
-  // schedule save (debounced)
   const scheduleSave = useCallback(
     (data) => {
       setStatus("saving");
@@ -67,7 +51,6 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
     [scheduleSave]
   );
 
-  // Expose imperative API to parent
   useImperativeHandle(ref, () => ({
     exportJson: () => {
       try {
@@ -82,7 +65,7 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
         a.remove();
         URL.revokeObjectURL(url);
       } catch (e) {
-        // ignore
+        console.warn("error occurred while phrase", e);
       }
     },
     importFile: (file) => {
@@ -99,7 +82,7 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
             onStatusChange("idle");
           }, 700);
         } catch (err) {
-          // ignore parse errors
+          console.warn("error occurred while phrase", err);
         }
       };
       reader.readAsText(file);
@@ -115,7 +98,7 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
           onStatusChange("idle");
         }, 700);
       } catch (err) {
-        // ignore
+        console.warn("error occurred while phrase", err);
       }
     },
     clear: () => {
@@ -133,13 +116,12 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
           onStatusChange("idle");
         }, 700);
       } catch (e) {
-        // ignore
+        console.warn("error occurred while phrase", e);
       }
     },
     getStatus: () => status,
   }), [courseId, storageKey, onStatusChange, status]);
 
-  // Default initial data: transparent background so underlying UI is visible
   const initialData = {
     elements: [],
     appState: {
