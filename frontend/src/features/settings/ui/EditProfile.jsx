@@ -6,7 +6,7 @@ import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import FieldsetRadio from "@/shared/components/ui/FieldsetRadio";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
-import TextArea from "../../../shared/components/ui/TextArea";
+import TextArea from "../../../shared/components/ui/TextArea.jsx";
 
 const genders = ["Male", "Female", "Non-Binary", "Prefer not to say", "Other"];
 

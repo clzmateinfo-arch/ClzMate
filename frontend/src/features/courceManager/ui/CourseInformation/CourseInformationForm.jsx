@@ -17,7 +17,7 @@ import Upload from "../../../../shared/components/ui/Upload";
 import ChipInput from "../../../../shared/components/ui/ChipInput";
 import RequirementsField from "./RequirementField";
 import Input from "../../../../shared/components/ui/Input";
-import TextArea from "../../../../shared/components/ui/TextArea";
+import TextArea from "../../../../shared/components/ui/TextArea.jsx";
 import Select from "@/shared/components/ui/Select";
 import Button from "../../../../shared/components/ui/Button";
 

@@ -10,7 +10,7 @@ import Upload from "@/shared/components/ui/Upload";
 import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
-import TextArea from "../../../../shared/components/ui/TextArea";
+import TextArea from "../../../../shared/components/ui/TextArea.jsx";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false, disabled = false }) {
   const { register, control, handleSubmit, setValue, reset, formState: { errors }, getValues, watch } = useForm({

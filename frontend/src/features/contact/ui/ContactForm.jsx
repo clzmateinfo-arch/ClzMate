@@ -4,7 +4,7 @@ import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
 import { submitContact } from "@/entities/conatct/model/contactAPI";
-import TextArea from "../../../shared/components/ui/TextArea";
+import TextArea from "../../../shared/components/ui/TextArea.jsx";
 
 export default function ContactUsForm() {
   const [loading, setLoading] = useState(false);
