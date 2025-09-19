@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -48,7 +47,7 @@ const TextArea = forwardRef(
             return () => ro.disconnect();
         }, [localValue, autosize, useLocation().pathname]);
 
-        const baseTextarea =
+        const baseTextArea =
             "block w-full rounded-xl border bg-white/95 text-[#0b1220] placeholder:text-gray-400 transition duration-200 shadow-sm";
 
         const focusClasses = "focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#996bec]/70";
@@ -106,7 +105,7 @@ const TextArea = forwardRef(
                         aria-label={ariaLabel || label || name}
                         aria-invalid={!!error}
                         aria-describedby={helpText || error ? `${uid}-help` : undefined}
-                        className={`${baseTextarea} ${errorClasses} ${focusClasses} ${paddingLeft} ${paddingRight} py-3 resize-none ${inputClass}`}
+                        className={`${baseTextArea} ${errorClasses} ${focusClasses} ${paddingLeft} ${paddingRight} py-3 resize-none ${inputClass}`}
                         {...rest}
                     />
 
