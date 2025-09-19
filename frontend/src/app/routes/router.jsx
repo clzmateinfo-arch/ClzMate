@@ -57,19 +57,19 @@ export default function AppRoutes() {
         return <Navigate to="/dashboard/student" replace />;
     };
 
-    const RedirectToAuth = () => {
-        return <Navigate to="/login" replace />;
-    };
+    // const RedirectToAuth = () => {
+    //     return <Navigate to="/login" replace />;
+    // };
 
-    const RedirectToMain = () => {
-        return <Navigate to="/" replace />;
-    };
+    // const RedirectToMain = () => {
+    //     return <Navigate to="/" replace />;
+    // };
 
     return (
         <Routes>
             {/* Auth */}
             <Route element={<AuthLayout />}>
-                <Route index element={<RedirectToAuth />} />
+                {/* <Route index element={<RedirectToAuth />} /> */}
                 <Route
                     path="/signup"
                     element={
@@ -114,7 +114,7 @@ export default function AppRoutes() {
 
             {/* MainLayout */}
             <Route element={<MainLayout />}>
-                <Route index element={<RedirectToMain />} />
+                {/* <Route index element={<RedirectToMain />} /> */}
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
