@@ -5,9 +5,9 @@ import {
   VscVm,
   VscAdd,
   VscMortarBoard,
-  VscHistory,
-  VscSettings
-} from "react-icons/vsc"
+  VscSettings,
+} from "react-icons/vsc";
+import { MdAdminPanelSettings } from "react-icons/md";
 
 export const sidebarLinks = [
   {
@@ -49,7 +49,7 @@ export const sidebarLinks = [
     name: "Admin Controls",
     path: "/dashboard/admin-controls",
     type: ACCOUNT_TYPE.ADMIN,
-    icon: VscAccount,
+    icon: MdAdminPanelSettings,
   },
   {
     id: 7,
