@@ -34,7 +34,7 @@ export async function buyCourse(
   navigate,
   dispatch
 ) {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   //Fix Before Deploy
   //send successful mail
   sendPaymentSuccessEmail(
@@ -74,7 +74,7 @@ export async function buyCourse(
   //         currency: orderResponse.data.message.currency,
   //         amount: orderResponse.data.message.amount,
   //         order_id: orderResponse.data.message.id,
-  //         name: "Up™",
+  //         name: "Up",
   //         description: "Thank You for Purchasing the Course",
   //         image: rzpLogo,
   //         prefill: {

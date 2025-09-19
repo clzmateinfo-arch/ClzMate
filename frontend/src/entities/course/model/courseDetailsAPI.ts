@@ -20,6 +20,9 @@ const {
   GET_FULL_COURSE_DETAILS_AUTHENTICATED,
   CREATE_RATING_API,
   LECTURE_COMPLETION_API,
+  GET_ASSET_URL_API,
+  GET_NOTES_API,
+  CREATE_NOTES_API,
 } = courseEndpoints;
 
 const initialState = {
@@ -61,25 +64,69 @@ export const {
 
 export default viewCourseSlice.reducer;
 
-/* -------------------------
-   API functions
-   ------------------------- */
 
-export const getAllCourses = async () => {
-  const toastId = toast.loading("Loading...");
-  let result = [];
+export const getAllCourses = async ({
+  categoryId = "",
+  page = 1,
+  limit = 12,
+  search = "",
+  filters = {},
+}: {
+  categoryId?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  filters?: Record<string, any>;
+} = {}) => {
+  const toastId = toast.loading("Loading");
+  console.log("filter for API: ", filters);
+  let result: { data: any[]; total: number; success: boolean } = {
+    data: [],
+    total: 0,
+    success: false,
+  };
 
   try {
-    const response = await apiConnector("GET", GET_ALL_COURSE_API);
+    const params = new URLSearchParams();
+
+    if (categoryId) params.append("categoryId", categoryId);
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+
+    if (search) params.append("search", search);
+
+    if (filters?.price) params.append("price", String(filters.price));
+    if (filters?.level) params.append("level", String(filters.level));
+    if (filters?.sort) params.append("sort", String(filters.sort));
+    if (filters?.instructorId) params.append("instructorId", String(filters.instructorId));
+
+    const url = `${GET_ALL_COURSE_API}?${params.toString()}`;
+
+    const response = await apiConnector("GET", url);
+
+    console.log("GET_ALL_COURSE_API (paginated) RESPONSE............", response);
+
     if (!response?.data?.success) {
-      throw new Error("Could Not Fetch Course Categories");
+      throw new Error(response?.data?.message || "Could not fetch courses");
     }
-    result = response?.data?.data;
-  } catch (error) {
-    console.log("GET_ALL_COURSE_API API ERROR............", error);
-    toast.error(error.message);
+
+    const payload = response.data.data ?? [];
+    if (Array.isArray(payload)) {
+      result = { data: payload, total: payload.length, success: true };
+    } else {
+      result = {
+        data: payload.courses ?? payload.items ?? [],
+        total: Number(payload.total ?? payload.count ?? (payload.courses?.length ?? 0)),
+        success: true,
+      };
+    }
+  } catch (error: any) {
+    console.error("GET_ALL_COURSE_API PAGINATED ERROR............", error);
+    toast.error(error?.message ?? "Failed to load courses");
+  } finally {
+    toast.dismiss(toastId);
   }
-  toast.dismiss(toastId);
+
   return result;
 };
 
@@ -121,7 +168,7 @@ export const fetchCourseCategories = async () => {
 };
 
 export const addCourseDetails = async (data, token) => {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   let result = null;
 
   try {
@@ -147,7 +194,7 @@ export const addCourseDetails = async (data, token) => {
 
 export const editCourseDetails = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", EDIT_COURSE_API, data, {
@@ -172,7 +219,7 @@ export const editCourseDetails = async (data, token) => {
 
 export const createSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", CREATE_SECTION_API, data, {
@@ -196,7 +243,7 @@ export const createSection = async (data, token) => {
 
 export const createSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", CREATE_SUBSECTION_API, data, {
@@ -220,7 +267,7 @@ export const createSubSection = async (data, token) => {
 
 export const updateSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", UPDATE_SECTION_API, data, {
@@ -244,7 +291,7 @@ export const updateSection = async (data, token) => {
 
 export const updateSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", UPDATE_SUBSECTION_API, data, {
@@ -268,7 +315,7 @@ export const updateSubSection = async (data, token) => {
 
 export const deleteSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
 
   try {
     const response = await apiConnector("POST", DELETE_SECTION_API, data, {
@@ -292,7 +339,7 @@ export const deleteSection = async (data, token) => {
 
 export const deleteSubSection = async (data, token) => {
   let result = null;
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   try {
     const response = await apiConnector("POST", DELETE_SUBSECTION_API, data, {
       Authorization: `Bearer ${token}`,
@@ -311,29 +358,46 @@ export const deleteSubSection = async (data, token) => {
   return result;
 };
 
-export const fetchInstructorCourses = async (token) => {
-  let result = [];
+export async function fetchInstructorCourses({
+  token,
+  page = 1,
+  limit = 10,
+  search = "",
+}) {
+  let result = { data: [], total: 0, page, limit, totalPages: 0, success: false };
 
   try {
-    const response = await apiConnector(
-      "GET",
-      GET_ALL_INSTRUCTOR_COURSES_API,
-      null,
-      {
-        Authorization: `Bearer ${token}`,
-      }
-    );
-    console.log("INSTRUCTOR COURSES API RESPONSE", response);
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+    if (String(search || "").trim()) params.append("search", String(search).trim());
+
+    const url = `${GET_ALL_INSTRUCTOR_COURSES_API}?${params.toString()}`;
+
+    const response = await apiConnector("GET", url, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
     if (!response?.data?.success) {
-      throw new Error("Could Not Fetch Instructor Courses");
+      throw new Error(response?.data?.message || "Could not fetch instructor courses");
     }
-    result = response?.data?.data;
+
+    const payload = response.data.data || {};
+    result = {
+      data: payload.courses ?? [],
+      total: payload.total ?? 0,
+      page: payload.page ?? page,
+      limit: payload.limit ?? limit,
+      totalPages: payload.totalPages ?? Math.ceil((payload.total ?? 0) / limit),
+      success: true,
+    };
   } catch (error) {
-    console.log("INSTRUCTOR COURSES API ERROR............", error);
-    toast.error(error.message);
+    console.error("FETCH_INSTRUCTOR_COURSES ERROR", error);
+    toast.error(error?.message ?? "Could not fetch instructor courses");
   }
+
   return result;
-};
+}
 
 export const deleteCourse = async (data, token) => {
   try {
@@ -378,8 +442,8 @@ export const getFullDetailsOfCourse = async (courseId, token) => {
 };
 
 export const markLectureAsComplete = async (data, token) => {
-  let result = null;
-  const toastId = toast.loading("Loading...");
+  let result = false;
+  const toastId = toast.loading("Loading");
   try {
     const response = await apiConnector("POST", LECTURE_COMPLETION_API, data, {
       Authorization: `Bearer ${token}`,
@@ -404,7 +468,7 @@ export const markLectureAsComplete = async (data, token) => {
 };
 
 export const createRating = async (data, token) => {
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Loading");
   let success = false;
   try {
     const response = await apiConnector("POST", CREATE_RATING_API, data, {
@@ -423,4 +487,58 @@ export const createRating = async (data, token) => {
   }
   toast.dismiss(toastId);
   return success;
+};
+
+export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type = "authenticated", expiresInSec = 300, format = null }, token) => {
+  try {
+    const response = await apiConnector("POST", GET_ASSET_URL_API, {
+      publicId,
+      resourceType,
+      type,
+      expiresInSec,
+      format
+    }, {
+      Authorization: `Bearer ${token}`
+    });
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to get asset url");
+    return response.data.url;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const fetchNote = async ({ courseId, sectionId, subSectionId }, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      GET_NOTES_API,
+      { courseId, sectionId, subSectionId },
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to fetch note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("FETCH_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to fetch note" };
+  }
+  return result;
+};
+
+export const saveNote = async (payload, token) => {
+  let result = { success: false, data: null };
+  try {
+    const response = await apiConnector(
+      "POST",
+      CREATE_NOTES_API,
+      payload,
+      token ? { Authorization: `Bearer ${token}` } : {}
+    );
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to save note");
+    result = { success: true, data: response.data.data };
+  } catch (error: any) {
+    console.error("SAVE_NOTE ERROR", error);
+    result = { success: false, message: error?.message || "Failed to save note" };
+  }
+  return result;
 };

@@ -21,7 +21,7 @@ async function sendVerificationEmail(email, otp) {
     try {
         const mailResponse = mailSender(
             email,
-            "Verification Email from Up™",
+            "Verification Email from Up",
             otp
         );
         console.log("Email sent successfully to - ", email);

@@ -64,7 +64,7 @@ exports.signup = async (req, res) => {
         const existingUser = await User.findOne({ email: emailNormalized });
 
         if (existingUser && existingUser.verified) {
-            await OTP.deleteMany({ email: emailNormalized }).catch(() => { });
+            // await OTP.deleteMany({ email: emailNormalized }).catch(() => { });
             return res.status(200).json({
                 success: false,
                 message: "User already registered. Please login",
@@ -86,7 +86,6 @@ exports.signup = async (req, res) => {
             existingUser.accountType = accountType;
             existingUser.approved = approved;
             existingUser.verified = false;
-            existingUser.verifiedAt = new Date();
 
             if (!existingUser.additionalDetails) {
                 const profileDetails = await Profile.create({
@@ -122,7 +121,6 @@ exports.signup = async (req, res) => {
                 additionalDetails: profileDetails._id,
                 approved,
                 verified: false,
-                verifiedAt: new Date(),
                 image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
             });
         }
@@ -242,7 +240,7 @@ exports.verifyOTP = async (req, res) => {
 
         await User.updateOne({ _id: user._id }, { $set: { verified: true } });
 
-        await OTP.deleteMany({ email: emailNormalized });
+        // await OTP.deleteMany({ email: emailNormalized });
 
         return res.status(200).json({
             success: true,

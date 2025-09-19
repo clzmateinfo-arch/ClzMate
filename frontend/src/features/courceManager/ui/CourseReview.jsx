@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { createRating } from "@/entities/course/model/courseDetailsAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
+import { useLocation } from "react-router-dom";
 
 export default function CourseReview({ setReviewModal }) {
   const { user } = useSelector((state) => state.profile);
@@ -23,7 +24,7 @@ export default function CourseReview({ setReviewModal }) {
   useEffect(() => {
     setValue("courseExperience", "");
     setValue("courseRating", 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   const ratingChanged = (newRating) => {
     setValue("courseRating", newRating);
@@ -43,12 +44,12 @@ export default function CourseReview({ setReviewModal }) {
 
   return (
     <div className="fixed inset-0 z-[1000] !mt-0 grid h-screen w-screen place-items-center overflow-auto bg-white bg-opacity-10 backdrop-blur-sm">
-      <div className="my-10 w-11/12 max-w-[700px] rounded-lg border border-richblack-400 bg-richblack-800">
+      <div className="my-10 w-11/12 max-w-[700px] rounded-lg border border-black ">
         {/* Modal Header */}
-        <div className="flex items-center justify-between rounded-t-lg bg-richblack-700 p-5">
-          <p className="text-xl font-semibold text-richblack-5">Add Review</p>
+        <div className="flex items-center justify-between rounded-t-lg  p-5">
+          <p className="text-xl font-semibold text-black">Add Review</p>
           <button onClick={() => setReviewModal(false)}>
-            <RxCross2 className="text-2xl text-richblack-5" />
+            <RxCross2 className="text-2xl text-black" />
           </button>
         </div>
 
@@ -61,10 +62,10 @@ export default function CourseReview({ setReviewModal }) {
               className="aspect-square w-[50px] rounded-full object-cover"
             />
             <div className="">
-              <p className="font-semibold text-richblack-5 capitalize">
+              <p className="font-semibold text-black capitalize">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-sm text-richblack-5">Posting Publicly</p>
+              <p className="text-sm text-black">Posting Publicly</p>
             </div>
           </div>
 
@@ -81,7 +82,7 @@ export default function CourseReview({ setReviewModal }) {
 
             <div className="flex w-11/12 flex-col space-y-2">
               <label
-                className="text-sm text-richblack-5"
+                className="text-sm text-black"
                 htmlFor="courseExperience"
               >
                 Add Your Experience <sup className="text-pink-200">*</sup>
@@ -102,12 +103,12 @@ export default function CourseReview({ setReviewModal }) {
             <div className="mt-6 flex w-11/12 justify-end gap-x-2">
               <button
                 onClick={() => setReviewModal(false)}
-                className={`flex cursor-pointer items-center gap-x-2 rounded-md bg-richblack-300 py-[8px] px-[20px] font-semibold
-                           text-richblack-900 hover:bg-richblack-900 hover:text-richblack-300 duration-300`}
+                className={`flex cursor-pointer items-center gap-x-2 rounded-md  py-[8px] px-[20px] font-semibold
+                           text-black hover: hover:text-black duration-300`}
               >
                 Cancel
               </button>
-              <IconBtn text="Save" />
+              <IconBtn text="Save" customClasses="bg-violet-600"/>
             </div>
           </form>
         </div>

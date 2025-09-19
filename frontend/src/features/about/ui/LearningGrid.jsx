@@ -1,93 +1,93 @@
-import CTAButton from "@/shared/components/ui/Button";
+/* eslint-disable react/prop-types */
+import React from "react";
+import { LinkButton } from "@/shared/components/ui/LinkButton";
 import HighlightText from "@/shared/components/ui/HighlightText";
 
 const LearningGridArray = [
   {
     order: -1,
-    heading: "World-Class Learning for",
+    heading: "World Class Learning for",
     highlightText: "Anyone, Anywhere",
-    description:
-      "Studynotion partners with more than 275+ leading universities and companies to bring flexible, affordable, job-relevant online learning to individuals and organizations worldwide.",
+    description: "'Up' brings flexible, affordable, relevant online learning to individuals worldwide",
     BtnText: "Learn More",
     BtnLink: "/",
   },
   {
-    order: 1,
-    heading: "Curriculum Based on Industry Needs",
-    description:
-      "Save time and money! The Belajar curriculum is made to be easier to understand and in line with industry needs.",
-  },
-  {
     order: 2,
-    heading: "Our Learning Methods",
+    heading: "Active Learning Methods",
     description:
-      "Studynotion partners with more than 275+ leading universities and companies to bring",
+      "our methods focus on doing and building real outcomes students value",
   },
   {
     order: 3,
     heading: "Certification",
     description:
-      "Studynotion partners with more than 275+ leading universities and companies to bring",
+      "Receive verifiable certificates and portfolios that showcase what you actually learned",
   },
   {
     order: 4,
-    heading: `Rating "Auto-grading"`,
+    heading: `Auto grading & Feedback`,
     description:
-      "Studynotion partners with more than 275+ leading universities and companies to bring",
+      "Automated grading, human review and actionable feedback help learners iterate quickly and improve faster",
   },
   {
     order: 5,
     heading: "Ready to Work",
     description:
-      "Studynotion partners with more than 275+ leading universities and companies to bring",
+      "Career prep, interview kits and hiring partners help graduates transition from learning to paid work",
   },
 ];
 
-const LearningGrid = () => {
+export default function LearningGrid() {
   return (
-    <div className="grid mx-auto w-[350px] lg:w-fit grid-cols-1 lg:grid-cols-4 mb-12">
-      {LearningGridArray.map((card, i) => {
-        return (
-          <div
-            key={i}
-            className={`${i === 0 && "lg:col-span-2 lg:h-[294px]"}  ${
-              card.order % 2 === 1
-                ? "bg-richblack-700 h-[294px]"
-                : card.order % 2 === 0
-                ? "bg-richblack-800 h-[294px]"
-                : "bg-transparent"
-            } ${card.order === 3 && "lg:col-start-2"}  `}
-          >
-            {card.order < 0 ? (
-              <div className="lg:w-[90%] flex flex-col gap-3 pb-10 lg:pb-0">
-                <div className="text-4xl font-semibold ">
-                  {card.heading}
-                  <HighlightText text={card.highlightText} />
-                </div>
-                <p className="text-richblack-300 font-medium">
+    <section aria-labelledby="what-you-learn" className="w-full">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 auto-rows-fr">
+        {LearningGridArray.map((card, idx) => {
+          if (card.order < 0) {
+            return (
+              <article
+                key={card.order}
+                className="lg:col-span-2 lg:row-span-2 rounded-2xl p-8 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm"
+                aria-labelledby={`lg-hero-${idx}-title`}
+              >
+                <h3 id={`lg-hero-${idx}-title`} className="text-3xl lg:text-4xl font-semibold text-black leading-tight">
+                  {card.heading} <span className="text-fuchsia-950">{card.highlightText}</span>
+                </h3>
+
+                <p className="mt-4 text-base text-black max-w-prose">
                   {card.description}
                 </p>
 
-                <div className="w-fit mt-2">
-                  <CTAButton active={true} linkto={card.BtnLink}>
-                    {card.BtnText}
-                  </CTAButton>
-                </div>
-              </div>
-            ) : (
-              <div className="p-8 flex flex-col gap-8">
-                <h1 className="text-richblack-5 text-lg">{card.heading}</h1>
+                {card.BtnText && (
+                  <div className="mt-6">
+                    <LinkButton
+                      to={card.BtnLink}
+                      className="inline-flex items-center gap-2 btn-xl btn-purple btn-border-dark rounded-full"
+                    >
+                      {card.BtnText}
+                    </LinkButton>
+                  </div>
+                )}
+              </article>
+            );
+          }
 
-                <p className="text-richblack-300 font-medium">
-                  {card.description}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+          return (
+            <article
+              key={card.order}
+              className="rounded-2xl p-6 bg-white/4 border border-white/10 shadow-sm hover:shadow-lg transition"
+              aria-labelledby={`lg-item-${card.order}-title`}
+            >
+              <h4 id={`lg-item-${card.order}-title`} className="text-lg font-semibold text-black">
+                {card.heading}
+              </h4>
+              <p className="mt-3 text-sm text-black">
+                {card.description}
+              </p>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
-};
-
-export default LearningGrid;
+}

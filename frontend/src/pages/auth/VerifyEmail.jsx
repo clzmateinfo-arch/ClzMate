@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { BiArrowBack } from "react-icons/bi";
 import AuthContent from "@/features/auth/ui/AuthContent";

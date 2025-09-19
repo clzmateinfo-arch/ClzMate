@@ -1,11 +1,15 @@
 import React, { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import OpenRoute from "@/features/auth/ui/OpenRoute";
 import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
 import MainLayout from "@/app/layouts/MainLayout";
+import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
+import CourseLayout from "@/app/layouts/CourseLayout";
 import { ACCOUNT_TYPE } from "@/utils/constants";
+import StudentDashboard from "../../pages/user/StudentDashboard";
+import Loading from "@/shared/components/navigation/Loading";
 
 const SignIn = lazy(() => import("@/pages/auth/SignIn"));
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -23,19 +27,30 @@ const Cart = lazy(() => import("@/pages/main/Cart"));
 const Dashboard = lazy(() => import("@/pages/user/Dashboard"));
 const MyProfile = lazy(() => import("@/pages/user/MyProfile"));
 const Settings = lazy(() => import("@/pages/user/Settings"));
-const Instructor = lazy(() => import("@/pages/user/Instructor"));
+const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
 const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
-const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
-const VideoDetails = lazy(() => import("@/pages/course/VideoDetails"));
+const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));
 
 export default function AppRoutes() {
-    const { user } = useSelector((state) => state.profile);
+    const { user, loading: profileLoading } = useSelector((state) => state.profile);
+
+    const RedirectToRole = () => {
+        if (profileLoading || !user) return <Loading />;
+
+        if (user.accountType === ACCOUNT_TYPE.STUDENT) {
+            return <Navigate to="/dashboard/student" replace />;
+        }
+        if (user.accountType === ACCOUNT_TYPE.INSTRUCTOR) {
+            return <Navigate to="/dashboard/instructor" replace />;
+        }
+        return <Navigate to="/dashboard/student" replace />;
+    };
 
     return (
         <Routes>
@@ -85,62 +100,47 @@ export default function AppRoutes() {
 
             {/* MainLayout */}
             <Route element={<MainLayout />}>
-                {/* Public */}
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/catalog/:catalogName" element={<Catalog />} />
+                <Route path="/catalog/:catalogId" element={<Catalog />} />
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
+                <Route path="/cart" element={<Cart />} />
+            </Route>
 
-                {/* Protected */}
-                <Route
-                    path="/dashboard/*"
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                >
+            {/* UserLayout */}
+            <Route element={<UserLayout />}>
+                <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+                    <Route index element={<RedirectToRole />} />
+
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
 
                     {user?.accountType === ACCOUNT_TYPE.STUDENT && (
                         <>
-                            <Route path="cart" element={<Cart />} />
+                            <Route path="student" element={<StudentDashboard />} />
                             <Route path="enrolled-courses" element={<EnrolledCourses />} />
                         </>
                     )}
 
                     {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
                         <>
-                            <Route path="instructor" element={<Instructor />} />
+                            <Route path="instructor" element={<InstructorDashboard />} />
                             <Route path="add-course" element={<AddCourse />} />
                             <Route path="my-courses" element={<UserCourses />} />
                             <Route path="edit-course/:courseId" element={<EditCourse />} />
                         </>
                     )}
                 </Route>
-
-                <Route
-                    path="/view-course/*"
-                    element={
-                        <ProtectedRoute>
-                            <ViewCourse />
-                        </ProtectedRoute>
-                    }
-                >
-                    {user?.accountType === ACCOUNT_TYPE.STUDENT && (
-                        <Route
-                            path=":courseId/section/:sectionId/sub-section/:subSectionId"
-                            element={<VideoDetails />}
-                        />
-                    )}
-                </Route>
-
-                {/* Errors */}
-                <Route path="*" element={<PageNotFound />} />
             </Route>
 
+            {/* CourseLayout */}
+            <Route path="/view-course/*" element={<ProtectedRoute><CourseLayout /></ProtectedRoute>}>
+                <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<ViewCourse />} />
+            </Route>
+
+            {/* Errors */}
+            <Route path="*" element={<PageNotFound />} />
         </Routes>
     );
 }

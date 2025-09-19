@@ -51,6 +51,14 @@ const courseSchema = new mongoose.Schema({
     instructions: {
         type: [String],
     },
+    features: {
+        type: {
+            sandboxEnabled: { type: Boolean, default: false },
+            sandboxLanguage: { type: String, default: "javascript" },
+            notesEnabled: { type: Boolean, default: true }
+        },
+        default: { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true }
+    },
     status: {
         type: String,
         enum: ["Draft", "Published"],

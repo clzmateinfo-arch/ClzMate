@@ -1,6 +1,6 @@
 import AuthContent from "@/features/auth/ui/AuthContent";
 import AsidePanel from "@/features/auth/ui/AsidePanel";
-import SignUpForm from "@/features/auth/ui/SignUpForm";
+import SignupForm from "@/features/auth/ui/SignupForm";
 import backgroundImg from "@/shared/assets/images/auth/sign-up-right-banner.png";
 
 export default function SignUp() {
@@ -12,7 +12,7 @@ export default function SignUp() {
   return (
     <main className="w-full min-h-screen grid lg:grid-cols-[1fr_32rem] text-gray-700">
       <AuthContent title="Sign up for an Account">
-        <SignUpForm />
+        <SignupForm />
       </AuthContent>
 
       <AsidePanel

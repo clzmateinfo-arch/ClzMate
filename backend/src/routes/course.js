@@ -8,6 +8,7 @@ const {
     editCourse,
     deleteCourse,
     getInstructorCourses,
+    getNote, saveNote
 } = require("../controllers/course");
 const { updateCourseProgress } = require("../controllers/courseProgress");
 const {
@@ -36,6 +37,7 @@ const {
     isInstructor,
     isStudent,
 } = require("../middleware/auth");
+const { getAssetUrl } = require("../controllers/asset");
 
 router.post("/createCourse", auth, isInstructor, createCourse);
 router.post("/addSection", auth, isInstructor, createSection);
@@ -51,13 +53,14 @@ router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses);
 router.post("/editCourse", auth, isInstructor, editCourse);
 router.delete("/deleteCourse", auth, isInstructor, deleteCourse);
 router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
-
 router.post("/createCategory", auth, isAdmin, createCategory);
 router.get("/showAllCategories", showAllCategories);
 router.post("/getCategoryPageDetails", getCategoryPageDetails);
-
 router.post("/createRating", auth, isStudent, createRating);
 router.get("/getAverageRating", getAverageRating);
 router.get("/getReviews", getAllRatingReview);
+router.post("/getAssetUrl", auth, getAssetUrl);
+router.post("/getNote", auth, getNote);
+router.post("/saveNote", auth, saveNote);
 
 module.exports = router;

@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useOnClickOutside from "../../../hooks/useOnClickOutside";
 import Img from "@/shared/components/ui/Img";
 import { logout } from "../../../services/operations/authAPI";
@@ -43,7 +43,7 @@ export default function MobileProfileDropDown() {
 
   useEffect(() => {
     fetchSublinks();
-  }, []);
+  }, [useLocation().pathname]);
 
   return (
     <button className="relative sm:hidden" onClick={() => setOpen(true)}>
@@ -53,45 +53,45 @@ export default function MobileProfileDropDown() {
           alt={`profile-${user?.firstName}`}
           className={"aspect-square w-[30px] rounded-full object-cover"}
         />
-        <AiOutlineCaretDown className="text-sm text-richblack-100" />
+        <AiOutlineCaretDown className="text-sm text-black" />
       </div>
 
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute min-w-[120px] top-[118%] right-0 z-[1000] divide-y-[1px] divide-richblack-700 overflow-hidden rounded-lg border-[1px] border-richblack-700 bg-richblack-800"
+          className="absolute min-w-[120px] top-[118%] right-0 z-[1000] divide-y-[1px] divide-black overflow-hidden rounded-lg border-[1px] border-black "
           ref={ref}
         >
-          <Link to="/dashboard/my-profile" onClick={() => setOpen(false)}>
-            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100">
+          <Link to="/dashboard" onClick={() => setOpen(false)}>
+            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black">
               <VscDashboard className="text-lg" />
               Dashboard
             </div>
           </Link>
 
           <Link to="/" onClick={() => setOpen(false)}>
-            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 border-y border-richblack-700 ">
+            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black border-y border-black ">
               <AiOutlineHome className="text-lg" />
               Home
             </div>
           </Link>
 
           <Link to="/" onClick={() => setOpen(false)}>
-            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100">
+            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black">
               <PiNotebook className="text-lg" />
               Catalog
             </div>
           </Link>
 
           <Link to="/about" onClick={() => setOpen(false)}>
-            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 border-y border-richblack-700 ">
+            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black border-y border-black ">
               <TbMessage2Plus className="text-lg" />
               About Us
             </div>
           </Link>
 
           <Link to="/contact" onClick={() => setOpen(false)}>
-            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 ">
+            <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black ">
               <MdOutlineContactPhone className="text-lg" />
               Contact Us
             </div>
@@ -102,7 +102,7 @@ export default function MobileProfileDropDown() {
               dispatch(logout(navigate));
               setOpen(false);
             }}
-            className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100"
+            className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-black"
           >
             <VscSignOut className="text-lg" />
             Logout
