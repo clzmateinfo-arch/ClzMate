@@ -8,7 +8,7 @@ import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import SocialAuthButton from "@/shared/components/helpers/SocialAuthButton";
 import FieldsetRadio from "@/shared/components/ui/FieldsetRadio";
-import { ACCOUNT_TYPE } from "@/utils/constants";
+import { ACCOUNT_TYPE_PUBLIC } from "@/utils/constants";
 
 export default function SignupForm() {
   const dispatch = useDispatch();
@@ -18,7 +18,7 @@ export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [accountType, setRole] = useState(ACCOUNT_TYPE.STUDENT);
+  const [accountType, setRole] = useState(ACCOUNT_TYPE_PUBLIC.STUDENT);
   const [errors, setErrors] = useState({});
 
   const resetErrors = () => setErrors({ accountType: "", password: "" });
@@ -41,7 +41,7 @@ export default function SignupForm() {
     dispatch(register({ preferredName, firstName: '', lastName: '', email, password, confirmPassword, contactNumber: '', accountType, otp: 0 }, navigate));
   };
 
-  const roleOptions = Object.values(ACCOUNT_TYPE || {});
+  const roleOptions = Object.values(ACCOUNT_TYPE_PUBLIC || {});
 
   return (
     <>
