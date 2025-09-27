@@ -23,6 +23,7 @@ export const studentEndpoints = {
   COURSE_PAYMENT_API: BASE_URL + "/payment/capturePayment",
   COURSE_VERIFY_API: BASE_URL + "/payment/verifyPayment",
   SEND_PAYMENT_SUCCESS_EMAIL_API: BASE_URL + "/payment/sendPaymentSuccessEmail",
+  STUDENT_DASHBOARD_API: BASE_URL + "/student/dashboard",
 }
 
 // COURSE ENDPOINTS
@@ -89,4 +90,8 @@ export const adminEndpoints = {
   GET_CATEGORIES: BASE_URL + "/course/showAllCategories",
   UPDATE_CATEGORY: BASE_URL + "/course/updateCategory",
   DELETE_CATEGORY: BASE_URL + "/course/deleteCategory",
+};
+
+export const cartEndpoints = {
+  CART_API: BASE_URL + "/cart",
 };

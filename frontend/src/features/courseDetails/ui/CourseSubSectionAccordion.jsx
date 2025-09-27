@@ -2,13 +2,21 @@
 import { HiOutlineVideoCamera } from "react-icons/hi";
 import { FaLock } from "react-icons/fa";
 import { BsFillCaretRightFill } from "react-icons/bs";
+import { IoIosDocument } from "react-icons/io";
 
 export default function CourseSubSectionAccordion({ subSec = {} }) {
-  const { title, duration, isPreview, locked } = subSec;
+  const { title, duration, supportMaterials = [] } = subSec;
+
+  const hasMainPdf = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainPdf);
+  const hasMainVideo = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainVideo);
+
+  const showDoc = hasMainPdf && !hasMainVideo;
+  const showPreview = hasMainVideo && !hasMainPdf;
+  const showLocked = !showDoc && !showPreview;
 
   return (
     <div
-      className="w-full rounded-lg border border-[#f3eff9]/30 bg-white p-3 transition hover:shadow-sm flex items-center justify-between"
+      className="w-full rounded-lg border border-[#f3eff9]/30 bg-white p-3 mt-1 transition hover:shadow-sm flex items-center justify-between"
       role="listitem"
       aria-label={title}
     >
@@ -23,19 +31,20 @@ export default function CourseSubSectionAccordion({ subSec = {} }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {isPreview ? (
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7c3aed]/10 text-[#7c3aed] text-xs font-semibold">
-            Preview
-          </span>
-        ) : locked ? (
+      <div name="indicator" className="flex items-center gap-3">
+        {showPreview ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <BsFillCaretRightFill className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Preview</span>
+          </div>
+        ) : showLocked ? (
           <span className="inline-flex items-center gap-2 text-[#9ca3af]" aria-hidden>
             <FaLock />
           </span>
         ) : (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
-            <BsFillCaretRightFill className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Play</span>
+            <IoIosDocument className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Doc</span>
           </div>
         )}
       </div>
