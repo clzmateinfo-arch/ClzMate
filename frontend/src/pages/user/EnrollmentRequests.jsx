@@ -7,6 +7,8 @@ import { fetchCourseEnrollmentRequests, respondEnrollmentRequest } from "@/entit
 import Img from "@/shared/components/ui/Img";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
+import IconBtn from "@/shared/components/ui/IconBtn";
+import { IoArrowBack } from "react-icons/io5";
 
 export default function EnrollmentRequests() {
     const { courseId } = useParams();
@@ -67,9 +69,17 @@ export default function EnrollmentRequests() {
                 background={backImg}
                 showSearch={false}
             />
-
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                 <div className="mx-auto w-11/12 max-w-maxContent mt-2 xl:max-w-[60%] lg:max-w-[85%] md:max-w-[95%] sm:max-w-[100%]">
+                    <div className="mb-6 flex justify-between items-center">
+                        <IconBtn
+                            text="Go Back"
+                            onclick={() => navigate(-1)}
+                            customClasses="bg-violet-600"
+                        >
+                            <IoArrowBack />
+                        </IconBtn>
+                    </div>
                     {requests.length === 0 ? (
                         <div className="space-y-2 items-start min-h-[220px] shadow-md rounded-lg border border-white/8 bg-white/6 p-6">
                             <div className="text-sm text-black/70">
