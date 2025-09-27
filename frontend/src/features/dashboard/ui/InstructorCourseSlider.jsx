@@ -99,11 +99,11 @@ export default function InstructorCourseSlider({
     };
 
     return (
-        <section className="mb-8">
-            <article className="hidden sm:flex flex-col sm:flex-row sm:items-center border border-white/8 bg-white/6 px-4 py-4 rounded-lg transition-all shadow-md">
-                <div className="flex items-start gap-4 w-full sm:w-2/5 cursor-pointer">Course</div>
-                <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">Duration / Price</div>
-                <div className="w-full sm:flex-1 px-2 mt-3 sm:mt-0 text-sm text-richblack-600">Status / Actions</div>
+        <section className="mb-8 rounded-xl">
+            <article className="hidden sm:flex flex-row items-center border border-white/8 bg-white/6 px-4 py-3 rounded-lg transition-all shadow-md">
+                <div className="flex items-start gap-4 w-2/5">Course</div>
+                <div className="flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">Duration / Price</div>
+                <div className="flex-1 px-2 text-sm text-richblack-600">Status / Actions</div>
             </article>
 
             {loading && courses.length === 0 ? (
@@ -113,61 +113,79 @@ export default function InstructorCourseSlider({
                     ))}
                 </div>
             ) : (
-                <div className="space-y-2 shadow-md rounded-lg border border-white/8 bg-white/6 px-4 py-4">
+                <div className="space-y-3 shadow-md rounded-xl border border-white/8 bg-white/6 px-3 py-3">
                     {courses.length > 0 ? (
-                        <>
-                            {courses.map((course, idx) => (
-                                <div key={course._id ?? idx} className="py-3 flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-3 min-w-0 sm:w-2/5">
-                                        <div className="w-20 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                                            <Img src={course.thumbnail} alt={course.courseName} className="w-full h-full object-cover" />
+                        courses.map((course, idx) => (
+                            <article
+                                key={course._id ?? idx}
+                                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3 px-2 border-b border-b-fuchsia-100 last:border-b-0 transition-all hover:shadow-xs"
+                            >
+                                <div
+                                    role="link"
+                                    tabIndex={0}
+                                    onClick={() => navigate(`/courses/${course._id}`)}
+                                    onKeyDown={(e) => { if (e.key === "Enter") navigate(`/courses/${course._id}`); }}
+                                    className="flex items-start gap-3 w-full sm:w-2/5 cursor-pointer"
+                                    aria-label={`Open ${course?.courseName || "course"}`}
+                                >
+                                    <div className="h-14 w-14 sm:w-20 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                                        <Img src={course.thumbnail} alt={course.courseName} className="h-full w-full object-cover" />
+                                    </div>
+
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-medium text-black line-clamp-1">{safe(course.courseName, "Untitled course")}</h3>
+                                        <p className="text-xs text-richblack-600 mt-1 line-clamp-2">{safe(course.courseDescription, "")}</p>
+                                        <div className="text-sm font-semibold text-black">{course.published ? "Published" : "Draft"}</div>
+                                        <div className="text-xs text-richblack-500">{(course.studentsEnrolled?.length ?? 0) + " students"}</div>
+                                    </div>
+                                </div>
+
+                                <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-sm font-semibold text-black">{safe(course.totalDuration, "0m")}</span>
+                                        <span className="text-xs text-richblack-600 mt-1">Rs. {safe(course.price, 0)}</span>
+                                    </div>
+                                </div>
+
+                                <div className="w-full sm:flex-1 px-1 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 w-full sm:w-auto">
+                                        <div className="min-w-[120px]">
+                                            {course.requiresApproval && (
+                                                <div className="w-full sm:w-auto">
+                                                    <IconBtn
+                                                        text="Requests"
+                                                        onclick={() => navigate(`/dashboard/course/${course._id}/requests`)}
+                                                        customClasses="bg-amber-500 w-full"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                            <path d="M12 20v-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                            <path d="M8 10h8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </IconBtn>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="min-w-0">
-                                            <Link to={`/courses/${course._id}`} className="text-sm font-medium text-black line-clamp-1 hover:underline">
-                                                {safe(course.courseName, "Untitled course")}
-                                            </Link>
-                                            <p className="text-xs text-richblack-600 mt-1 line-clamp-2">
-                                                {safe(course.courseDescription, "")}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-sm font-semibold text-black">{safe(course.totalDuration, "0m")}</span>
-                                            <span className="text-xs text-richblack-600 mt-1">Rs. {safe(course.price, 0)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="w-full sm:flex-1 px-2 mt-3 sm:mt-0 flex items-center justify-end gap-3">
-                                        <div className="text-xs text-richblack-600 mr-3 text-right">
-                                            <div className="text-sm font-semibold text-black">
-                                                {course.published ? "Published" : "Draft"}
-                                            </div>
-                                            <div className="text-xs text-richblack-500">{(course.studentsEnrolled?.length ?? 0) + " students"}</div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <IconBtn text="Edit" onclick={() => handleEdit(course._id)} customClasses="bg-violet-600">
+                                        <div className="w-full sm:w-auto">
+                                            <IconBtn text="Edit" onclick={() => handleEdit(course._id)} customClasses="bg-violet-600 w-full sm:w-auto">
                                                 <RiEditBoxLine />
                                             </IconBtn>
-                                            {course.requiresApproval && (
-                                                <IconBtn text="Requests" onclick={() => navigate(`/dashboard/course/${course._id}/requests`)} customClasses="bg-amber-500">
-                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                        <path d="M12 20v-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                        <path d="M8 10h8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                    </svg>
-                                                </IconBtn>
-                                            )}
+                                        </div>
+
+                                        <div className="w-full sm:w-auto">
                                             <IconBtn
-                                                text="Delete" customClasses="bg-red-500" onClick={() => handleDelete(course._id)}
+                                                text="Delete"
+                                                customClasses="bg-red-500 w-full sm:w-auto"
+                                                onClick={() => handleDelete(course._id)}
                                             >
                                                 <FiTrash2 />
                                             </IconBtn>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </>
+                            </article>
+                        ))
                     ) : (
                         <div className="py-12 text-center">
                             <p className="text-sm text-black/70">You have not created any courses yet</p>
