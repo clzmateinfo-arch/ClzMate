@@ -109,7 +109,7 @@ export default function UpdatePassword() {
               id="confirmNewPassword"
               name="confirmNewPassword"
               type="password"
-              value={form.newPassword}
+              value={form.confirmNewPassword}
               onChange={handleChange("confirmNewPassword")}
               placeholder="Confirm your new password"
               required
