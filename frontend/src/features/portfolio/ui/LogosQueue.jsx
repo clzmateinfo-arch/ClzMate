@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export function LogosQueue({
     logos = [],
@@ -42,10 +43,8 @@ export function LogosQueue({
                                 key={key}
                             >
                                 {item.href ? (
-                                    <a
-                                        href={item.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    <Link
+                                        to={item.href}
                                         className="relative block before:content-[''] before:absolute before:inset-0 before:z-[-1] before:scale-90 before:rounded-full hover:before:scale-100 before:transition-all hover:before:bg-violet-50"
                                         aria-label={item.alt || undefined}
                                     >
@@ -57,7 +56,7 @@ export function LogosQueue({
                                             height="32"
                                             loading="lazy"
                                         />
-                                    </a>
+                                    </Link>
                                 ) : (
                                     <img
                                         src={item.src}
