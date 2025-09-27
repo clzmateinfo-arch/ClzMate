@@ -1,17 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchInstructorCourses } from "@/entities/course/model/courseDetailsAPI";
+import { fetchInstructorCourses, toggleCoursePublish } from "@/entities/course/model/courseDetailsAPI";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
 import { RiEditBoxLine } from "react-icons/ri";
-import { FiTrash2 } from "react-icons/fi";
 
-export default function InstructorCourseSlider({
-    searchTerm = "",
-    pageSize = 10,
-}) {
+export default function InstructorCourseSlider({ searchTerm = "", pageSize = 10 }) {
     const { token } = useSelector((state) => state.auth);
     const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
@@ -52,12 +48,8 @@ export default function InstructorCourseSlider({
                 else setCourses((prev) => [...prev, ...received]);
 
                 setTotal(totalCount);
-
-                if (typeof totalCount === "number") {
-                    setHasMore(page * pageSize < totalCount);
-                } else {
-                    setHasMore(received.length === pageSize);
-                }
+                if (typeof totalCount === "number") setHasMore(page * pageSize < totalCount);
+                else setHasMore(received.length === pageSize);
             } catch (err) {
                 console.error("Failed loading instructor courses", err);
             } finally {
@@ -66,36 +58,39 @@ export default function InstructorCourseSlider({
         }
 
         load();
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, [page, searchTerm, token, pageSize]);
 
     useEffect(() => {
         if (observerRef.current) observerRef.current.disconnect();
-
         observerRef.current = new IntersectionObserver(
             (entries) => {
                 const first = entries[0];
-                if (first.isIntersecting && hasMore && !loading) {
-                    setPage((p) => p + 1);
-                }
+                if (first.isIntersecting && hasMore && !loading) setPage((p) => p + 1);
             },
             { root: null, rootMargin: "200px", threshold: 0.1 }
         );
-
         const current = sentinelRef.current;
         if (current) observerRef.current.observe(current);
-
         return () => observerRef.current?.disconnect();
     }, [hasMore, loading]);
 
     const safe = (v, fallback = "-") => (v === undefined || v === null || v === "" ? fallback : v);
 
     const handleEdit = (courseId) => navigate(`/dashboard/edit-course/${courseId}`);
-    const handleDelete = (courseId) => {
-        console.log("delete course", courseId);
-        setCourses((prev) => prev.filter((c) => c._id !== courseId));
+
+    const handleTogglePublish = async (courseId, currentStatus) => {
+        try {
+            const updated = await toggleCoursePublish(courseId, token, !currentStatus);
+            if (updated) {
+                const newPublished = updated.published ?? (updated.updatedCourse?.status === "Published");
+                setCourses((prev) =>
+                    prev.map((c) => (c._id === courseId ? { ...c, published: newPublished, status: updated.updatedCourse?.status ?? c.status } : c))
+                );
+            }
+        } catch (err) {
+            console.error("Failed to update publish status", err);
+        }
     };
 
     return (
@@ -116,10 +111,7 @@ export default function InstructorCourseSlider({
                 <div className="space-y-3 shadow-md rounded-xl border border-white/8 bg-white/6 px-3 py-3">
                     {courses.length > 0 ? (
                         courses.map((course, idx) => (
-                            <article
-                                key={course._id ?? idx}
-                                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3 px-2 border-b border-b-fuchsia-100 last:border-b-0 transition-all hover:shadow-xs"
-                            >
+                            <article key={course._id ?? idx} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3 px-2 border-b border-b-fuchsia-100 last:border-b-0 transition-all hover:shadow-xs">
                                 <div
                                     role="link"
                                     tabIndex={0}
@@ -148,7 +140,6 @@ export default function InstructorCourseSlider({
                                 </div>
 
                                 <div className="w-full sm:flex-1 px-1 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 w-full sm:w-auto">
                                         <div className="min-w-[120px]">
                                             {course.requiresApproval && (
@@ -157,29 +148,22 @@ export default function InstructorCourseSlider({
                                                         text="Requests"
                                                         onclick={() => navigate(`/dashboard/course/${course._id}/requests`)}
                                                         customClasses="bg-amber-500 w-full"
-                                                    >
-                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                            <path d="M12 20v-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                            <path d="M8 10h8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    </IconBtn>
+                                                    />
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="w-full sm:w-auto">
-                                            <IconBtn text="Edit" onclick={() => handleEdit(course._id)} customClasses="bg-violet-600 w-full sm:w-auto">
-                                                <RiEditBoxLine />
-                                            </IconBtn>
+                                            <IconBtn
+                                                text={course.status == "Published" ? "Unpublish" : "Publish"}
+                                                customClasses={`w-full sm:w-auto ${course.status == "Published" ? "bg-amber-500" : "bg-green-600"}`}
+                                                onClick={() => handleTogglePublish(course._id, course.status == "Published")}
+                                            />
                                         </div>
 
                                         <div className="w-full sm:w-auto">
-                                            <IconBtn
-                                                text="Delete"
-                                                customClasses="bg-red-500 w-full sm:w-auto"
-                                                onClick={() => handleDelete(course._id)}
-                                            >
-                                                <FiTrash2 />
+                                            <IconBtn text="Edit" onclick={() => handleEdit(course._id)} customClasses="bg-violet-600 w-full sm:w-auto">
+                                                <RiEditBoxLine />
                                             </IconBtn>
                                         </div>
                                     </div>

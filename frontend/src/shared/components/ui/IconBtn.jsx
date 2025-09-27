@@ -31,8 +31,8 @@ export default function IconBtn({
     >
       {children ? (
         <>
-          <span className="truncate">{text}</span>
           <span className="flex items-center justify-center">{children}</span>
+          <span className="truncate">{text}</span>
         </>
       ) : (
         <span className="truncate">{text}</span>

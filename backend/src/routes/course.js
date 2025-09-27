@@ -6,6 +6,7 @@ const {
     getAllCourses,
     getFullCourseDetails,
     editCourse,
+    toggleCoursePublish,
     deleteCourse,
     getInstructorCourses,
     getNote,
@@ -58,6 +59,7 @@ router.post("/getCourseDetails", getCourseDetails);
 router.post("/getFullCourseDetails", auth, getFullCourseDetails);
 router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses);
 router.post("/editCourse", auth, isInstructor, editCourse);
+router.post("/togglePublish", auth, isInstructor, toggleCoursePublish);
 router.delete("/deleteCourse", auth, isInstructor, deleteCourse);
 router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
 router.post("/createCategory", auth, isAdmin, createCategory);
