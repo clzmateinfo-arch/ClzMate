@@ -1,6 +1,3 @@
-/* StudentDashboard.jsx
-   Student dashboard matching the app theme used in Instructor & EditProfile
-*/
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
@@ -9,11 +6,8 @@ import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import Img from "@/shared/components/ui/Img";
 import Button from "@/shared/components/ui/Button";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
+import { fetchStudentDashboard } from "@/entities/student/model/studentFeaturesAPI";
 
-// Replace these with your actual data-fetching functions.
-// I kept names aligned with the Instructor example; swap if your API names differ.
-//import { fetchEnrolledCourses } from "@/entities/course/model/courseDetailsAPI";
-//import { getStudentData } from "@/entities/user/model/userAPI";
 
 export default function StudentDashboard() {
     const { token } = useSelector((s) => s.auth);
@@ -21,23 +15,28 @@ export default function StudentDashboard() {
     const location = useLocation();
 
     const [loading, setLoading] = useState(false);
-    const [studentData, setStudentData] = useState(null); // arbitrary student-metrics
+    const [studentData, setStudentData] = useState(null);
     const [courses, setCourses] = useState([]);
 
-    // fetch data on mount / when location changes (ensures back/forward activates load)
     useEffect(() => {
         let mounted = true;
         (async () => {
+            if (!token) return; // wait for auth token
             setLoading(true);
             try {
-                const sd = []; //await getStudentData(token); // get totals, certificates etc.
-                const result = []; //await fetchEnrolledCourses(token); // array of course objects
+                const data = await fetchStudentDashboard(token);
                 if (!mounted) return;
-                setStudentData(sd || null);
-                setCourses(Array.isArray(result) ? result : []);
+                if (data) {
+                    setStudentData(data.studentData ?? null);
+                    setCourses(Array.isArray(data.courses) ? data.courses : []);
+                } else {
+                    setStudentData(null);
+                    setCourses([]);
+                }
             } catch (err) {
-                // eslint-disable-next-line no-console
                 console.error("Student dashboard load failed", err);
+                setStudentData(null);
+                setCourses([]);
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -47,7 +46,7 @@ export default function StudentDashboard() {
         };
     }, [location.pathname, token]);
 
-    // derived stats
+
     const totalEnrolled = courses.length;
     const completedCount = useMemo(
         () => courses.filter((c) => c.progress >= 100).length,
@@ -61,7 +60,6 @@ export default function StudentDashboard() {
     const totalSpent = studentData?.totalSpent ?? 0;
     const certificates = studentData?.certificates ?? 0;
 
-    // skeleton small card
     const SkeletonCard = () => (
         <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm animate-pulse">
             <div className="h-6 w-1/3 rounded bg-gray-200/30" />
@@ -88,7 +86,6 @@ export default function StudentDashboard() {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {/* top stats */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 shadow-sm">
                                 <p className="text-xs text-black/70">Enrolled</p>
@@ -115,9 +112,7 @@ export default function StudentDashboard() {
                             </div>
                         </div>
 
-                        {/* main grid: progress list + summary */}
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-                            {/* progress / enrolled list */}
                             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm my-5">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-bold text-black">Learning Progress</h3>
@@ -165,7 +160,6 @@ export default function StudentDashboard() {
                                 )}
                             </div>
 
-                            {/* right summary */}
                             <aside className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm my-5">
                                 <p className="text-lg font-bold text-black mb-3">Summary</p>
 
@@ -199,7 +193,6 @@ export default function StudentDashboard() {
                             </aside>
                         </div>
 
-                        {/* enrolled preview cards */}
                         <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-lg font-bold text-black">Enrolled Courses</p>

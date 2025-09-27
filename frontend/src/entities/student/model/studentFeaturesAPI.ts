@@ -9,6 +9,7 @@ const {
   //COURSE_PAYMENT_API, //Fix Before Deploy
   COURSE_VERIFY_API,
   SEND_PAYMENT_SUCCESS_EMAIL_API,
+  STUDENT_DASHBOARD_API,
 } = studentEndpoints;
 
 
@@ -85,7 +86,23 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
   }
 }
 
+export async function fetchStudentDashboard(token) {
+  try {
+    const response = await apiConnector("GET", STUDENT_DASHBOARD_API, null, {
+      Authorization: `Bearer ${token}`,
+    });
 
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to fetch dashboard");
+    }
+
+    return response.data.data; // { studentData, courses }
+  } catch (error) {
+    console.error("FETCH_STUDENT_DASHBOARD ERROR", error);
+    toast.error(error?.message ?? "Could not fetch dashboard");
+    return null;
+  }
+}
 
 
 

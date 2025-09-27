@@ -15,6 +15,7 @@ const paymentRoutes = require('./src/routes/payments');
 const courseRoutes = require('./src/routes/course');
 const adminRoutes = require('./src/routes/admin');
 const cartRoutes = require("./src/routes/cart");
+const studentRoutes = require("./src/routes/student");
 
 
 app.use(express.json());
@@ -47,6 +48,7 @@ app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/student", studentRoutes);
 
 app.get('/', (req, res) => {
     res.send(`<div>
