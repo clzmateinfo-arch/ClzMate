@@ -147,6 +147,8 @@ exports.getAllCourses = async (req, res) => {
 
         const match = {};
 
+        match.status = "Published";
+
         const cat = categoryId || category;
         if (cat) {
             if (mongoose.Types.ObjectId.isValid(cat)) {
@@ -539,6 +541,42 @@ exports.editCourse = async (req, res) => {
             message: "Error while updating course",
             error: error.message,
         });
+    }
+};
+
+exports.toggleCoursePublish = async (req, res) => {
+    try {
+        const { courseId, publish } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId is required" });
+        if (typeof publish !== "boolean") return res.status(400).json({ success: false, message: "publish must be boolean" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        course.status = publish ? "Published" : "Draft";
+        course.updatedAt = Date.now();
+        await course.save();
+
+        const updatedCourse = await Course.findById(courseId)
+            .populate({ path: "courseContent", populate: { path: "subSection" } })
+            .populate({ path: "instructor", select: "firstName lastName email image" })
+            .populate("category")
+            .lean();
+
+        updatedCourse.published = updatedCourse.status === "Published";
+
+        return res.status(200).json({
+            success: true,
+            message: "Course publish status updated",
+            data: { updatedCourse, published: updatedCourse.published },
+        });
+    } catch (err) {
+        console.error("toggleCoursePublish error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to update publish status" });
     }
 };
 
@@ -992,3 +1030,5 @@ exports.getMyEnrollmentRequests = async (req, res) => {
         return res.status(500).json({ success: false, message: err.message || "Failed to fetch enrollment requests" });
     }
 };
+
+

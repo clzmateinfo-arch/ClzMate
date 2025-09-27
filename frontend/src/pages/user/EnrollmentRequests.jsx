@@ -9,6 +9,8 @@ import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import { IoArrowBack } from "react-icons/io5";
+import { RiCloseCircleLine } from "react-icons/ri";
+import { MdDone } from "react-icons/md";
 
 export default function EnrollmentRequests() {
     const { courseId } = useParams();
@@ -110,16 +112,28 @@ export default function EnrollmentRequests() {
                                     </div>
 
                                     <div className="w-full sm:flex-1 px-2 mt-3 sm:mt-0 flex items-center justify-between gap-3">
-                                        <div className="text-xs text-richblack-600">
+                                        <div className="text-xs text-richblack-600 mr-5">
                                             <div>Status: <span className={`font-semibold ${r.status === "Approved" ? "text-green-600" : r.status === "Rejected" ? "text-red-600" : "text-yellow-600"}`}>{r.status}</span></div>
                                             {r.responder && <div className="text-xs text-richblack-500">Responded by: {r.responder}</div>}
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 ml-5">
                                             {r.status === "Pending" ? (
                                                 <>
-                                                    <Button disabled={processing === r._id} onClick={() => handleRespond(r._id, "approve")} className="bg-green-600 text-white text-sm">Approve</Button>
-                                                    <Button disabled={processing === r._id} onClick={() => handleRespond(r._id, "reject")} className="bg-red-600 text-white text-sm">Reject</Button>
+                                                    <IconBtn
+                                                        text="Approve"
+                                                        onclick={() => handleRespond(r._id, "approve")}
+                                                        customClasses="bg-green-600"
+                                                    >
+                                                        <MdDone />
+                                                    </IconBtn>
+                                                    <IconBtn
+                                                        text="Reject"
+                                                        onclick={() => handleRespond(r._id, "reject")}
+                                                        customClasses="bg-red-600"
+                                                    >
+                                                        <RiCloseCircleLine />
+                                                    </IconBtn>
                                                 </>
                                             ) : (
                                                 <></>

@@ -49,7 +49,7 @@ export const courseEndpoints = {
   RESPOND_ENROLLMENT_REQUEST: BASE_URL + "/course/enrollmentRequests",
   REQUEST_ENROLLMENT: BASE_URL + "/course/requestEnrollment",
   GET_USER_ENROLLMENT_REQUESTS: BASE_URL + "/course/enrollment-requests",
-
+  TOGGLE_PUBLISH_API: BASE_URL + "/course/togglePublish"
 }
 
 // RATINGS AND REVIEWS
