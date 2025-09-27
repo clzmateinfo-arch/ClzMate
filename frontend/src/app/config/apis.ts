@@ -45,6 +45,11 @@ export const courseEndpoints = {
   GET_ASSET_URL_API: BASE_URL + "/course/getAssetUrl",
   GET_NOTES_API: BASE_URL + "/course/getNote",
   CREATE_NOTES_API: BASE_URL + "/course/saveNote",
+  GET_ENROLLMENT_REQUESTS: BASE_URL + "/course/enrollmentRequests",
+  RESPOND_ENROLLMENT_REQUEST: BASE_URL + "/course/enrollmentRequests",
+  REQUEST_ENROLLMENT: BASE_URL + "/course/requestEnrollment",
+  GET_USER_ENROLLMENT_REQUESTS: BASE_URL + "/course/enrollment-requests",
+
 }
 
 // RATINGS AND REVIEWS
@@ -74,6 +79,7 @@ export const settingsEndpoints = {
   DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
 }
 
+// ADMIN
 export const adminEndpoints = {
   GET_USERS: BASE_URL + "/admin/getAllUsers",
   UPDATE_USER: BASE_URL + "/admin/updateUser",

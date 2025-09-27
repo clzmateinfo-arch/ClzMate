@@ -7,7 +7,7 @@ import {
   VscMortarBoard,
   VscSettings,
 } from "react-icons/vsc";
-import { MdAdminPanelSettings } from "react-icons/md";
+import { MdOutlinePendingActions ,MdAdminPanelSettings } from "react-icons/md";
 
 export const sidebarLinks = [
   {
@@ -16,7 +16,7 @@ export const sidebarLinks = [
     path: "/dashboard/instructor",
     type: ACCOUNT_TYPE.INSTRUCTOR,
     icon: VscDashboard,
-  },{
+  }, {
     id: 2,
     name: "Dashboard",
     path: "/dashboard/student",
@@ -29,6 +29,13 @@ export const sidebarLinks = [
     path: "/dashboard/my-courses",
     type: ACCOUNT_TYPE.INSTRUCTOR,
     icon: VscVm,
+  },
+  {
+    id: 9,
+    name: "Pending Enrollments",
+    path: "/dashboard/enrollments/pending",
+    type: ACCOUNT_TYPE.STUDENT,
+    icon: MdOutlinePendingActions,
   },
   {
     id: 4,

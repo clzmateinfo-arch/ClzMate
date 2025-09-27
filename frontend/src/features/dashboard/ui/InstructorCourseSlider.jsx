@@ -150,7 +150,14 @@ export default function InstructorCourseSlider({
                                             <IconBtn text="Edit" onclick={() => handleEdit(course._id)} customClasses="bg-violet-600">
                                                 <RiEditBoxLine />
                                             </IconBtn>
-
+                                            {course.requiresApproval && (
+                                                <IconBtn text="Requests" onclick={() => navigate(`/dashboard/course/${course._id}/requests`)} customClasses="bg-amber-500">
+                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                        <path d="M12 20v-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        <path d="M8 10h8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </IconBtn>
+                                            )}
                                             <IconBtn
                                                 text="Delete" customClasses="bg-red-500" onClick={() => handleDelete(course._id)}
                                             >
