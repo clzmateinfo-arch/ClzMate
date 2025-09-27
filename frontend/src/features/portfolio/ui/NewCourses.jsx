@@ -65,6 +65,8 @@ export function NewCourses() {
         console.log("add", course);
     }
 
+    console.log("courses", courses);
+
     return (
         <section className="relative bg-white py-10 xl:py-10 overflow-visible">
             <div className="mt-20 relative container mx-auto px-4 sm:px-6 lg:px-8">

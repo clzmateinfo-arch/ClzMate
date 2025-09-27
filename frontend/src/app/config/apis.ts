@@ -1,5 +1,10 @@
 const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
+// COMMAN ENDPOINTS
+export const commanEndpoints = {
+  SITE_STATS_API: BASE_URL + "/site/stats",
+}
+
 // AUTH ENDPOINTS
 export const endpoints = {
   SENDOTP_API: BASE_URL + "/auth/sendotp",

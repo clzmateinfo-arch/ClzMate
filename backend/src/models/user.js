@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
         accountType: {
             type: String,
             enum: ["Admin", "Instructor", "Student"],
-            required: true, // fixed typo
+            required: true,
         },
         active: {
             type: Boolean,
