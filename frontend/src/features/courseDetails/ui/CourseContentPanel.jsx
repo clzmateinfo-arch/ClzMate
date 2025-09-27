@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useMemo, useState, useCallback } from "react";
 import { HiOutlineChevronDown } from "react-icons/hi";
 import CourseAccordionBar from "@/features/courseDetails/ui/CourseAccordionBar";
@@ -39,7 +38,6 @@ export default function CourseContentPanel({
     }, [sectionCount, totalLectures]);
 
     return (
-        // full width on mobile, centered with max width on larger screens
         <section
             className={`w-full mx-auto bg-white rounded-2xl border border-[#efe7ff] p-6 shadow-md hover:shadow-2xl overflow-hidden ${className}`}
         >
@@ -72,7 +70,7 @@ export default function CourseContentPanel({
                             const id = section._id ?? section.id ?? `section-${i}`;
                             const open = activeState.includes(id);
                             return (
-                                <div key={id} className="w-full min-w-0">
+                                <div key={id} className="w-full min-w-0 mt-3">
                                     <CourseAccordionBar
                                         course={section}
                                         isActive={activeState}

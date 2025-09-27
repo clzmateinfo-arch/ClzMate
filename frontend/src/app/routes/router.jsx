@@ -51,7 +51,7 @@ export default function AppRoutes() {
         if (profileLoading || !user) return <Loading />;
 
         if (user.accountType === ACCOUNT_TYPE.ADMIN) {
-            return <Navigate to="/dashboard/admin-controls" replace />;
+            return <Navigate to="/dashboard/admin-controls/users" replace />;
         }
         if (user.accountType === ACCOUNT_TYPE.STUDENT) {
             return <Navigate to="/dashboard/student" replace />;

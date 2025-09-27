@@ -90,3 +90,7 @@ export const adminEndpoints = {
   UPDATE_CATEGORY: BASE_URL + "/course/updateCategory",
   DELETE_CATEGORY: BASE_URL + "/course/deleteCategory",
 };
+
+export const cartEndpoints = {
+  CART_API: BASE_URL + "/cart",
+};
