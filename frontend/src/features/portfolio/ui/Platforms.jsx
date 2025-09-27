@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 
 const defaultPlatforms = [
-    { name: "Computing", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/computing" },
-    { name: "Information Communication Technology", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/ict" },
-    { name: "Java Script", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/javascript" },
-    { name: "Python", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/python" },
-    { name: "Web Development", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/web-development" },
+    { name: "Computing", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Information Communication Technology", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Java Script", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Python", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Web Development", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/web-all" },
     { name: "Network Security", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/network-security" },
 ];
 

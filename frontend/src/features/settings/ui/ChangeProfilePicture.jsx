@@ -62,7 +62,7 @@ export default function ChangeProfilePicture() {
         />
 
         <div className="space-y-2">
-          <p className="font-semibold text-sm text-black/80">
+          <p className=" ml-1 font-semibold text-sm text-black/80">
             Change Profile Picture
           </p>
 
@@ -75,26 +75,25 @@ export default function ChangeProfilePicture() {
               accept="image/png, image/gif, image/jpeg, image/jpg"
             />
 
-            <div className="mt-3">
-              <IconBtn
-                text="Select"
-                onClick={handleClick}
-                disabled={loading}
-                className="m-1"
-                customClasses="bg-violet-600"
-              />
+            <IconBtn
+              text="Select"
+              onClick={handleClick}
+              disabled={loading}
+              className="mr-1"
+              customClasses="bg-violet-600"
+            />
 
-              <IconBtn
-                text={loading ? "Uploading..." : "Upload"}
-                onClick={handleFileUpload}
-                disabled={loading}
-                className="m-1"
-                customClasses="bg-violet-600"
-              >
-                {!loading && <FiUpload className="text-lg" />}
-              </IconBtn>
-            </div>
+            <IconBtn
+              text={loading ? "Uploading..." : "Upload"}
+              onClick={handleFileUpload}
+              disabled={loading}
+              className="mr-1"
+              customClasses="bg-violet-600"
+            >
+              {!loading && <FiUpload className="text-lg" />}
+            </IconBtn>
           </div>
+
         </div>
       </div>
     </div>
