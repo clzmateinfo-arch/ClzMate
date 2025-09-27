@@ -69,7 +69,7 @@ export default function Catalog() {
 
   if (!loading && !catalogPageData) {
     return (
-      <div className="text-white text-4xl flex justify-center items-center mt-[20%]">
+      <div className="text-black text-m flex justify-center items-center mt-[20%]">
         No Courses found for selected Category
       </div>
     );

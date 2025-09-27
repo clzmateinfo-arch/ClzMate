@@ -10,7 +10,7 @@ import Upload from "@/shared/components/ui/Upload";
 import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
-import TextArea from "@/shared/components/ui/TextArea";
+import Textarea from "../../../../shared/components/ui/Textarea";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false, disabled = false }) {
   const { register, control, handleSubmit, setValue, reset, formState: { errors }, getValues, watch } = useForm({
@@ -312,7 +312,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               viewData={view ? getValues().lectureVideo : null}
               editData={edit ? getValues().lectureVideo : null}
               previewHeight={320}
-              disabled={!view}
+              disabled={view}
             />
           </div>
 
@@ -328,7 +328,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               viewData={view ? getValues().lecturePdf : null}
               editData={edit ? getValues().lecturePdf : null}
               previewHeight={320}
-              disabled={!view}
+              disabled={view}
             />
           </div>
 
@@ -372,7 +372,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               control={control}
               rules={{ required: !view }}
               render={({ field }) => (
-                <TextArea
+                <Textarea
                   id="lectureDesc"
                   label="Lecture Description"
                   placeholder="Enter Lecture Description"

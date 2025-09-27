@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { editCourseDetails } from "@/entities/course/model/courseDetailsAPI";
@@ -11,6 +11,7 @@ export default function PublishCourse() {
   const { register, handleSubmit, setValue, getValues, watch } = useForm({
     defaultValues: {
       public: false,
+      requiresApproval: false,
       sandboxEnabled: false,
       sandboxLanguage: "javascript",
       notesEnabled: true,
@@ -19,6 +20,7 @@ export default function PublishCourse() {
 
   const sandboxEnabled = watch("sandboxEnabled");
   const notesEnabled = watch("notesEnabled");
+  const requiresApproval = watch("requiresApproval");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,6 +39,9 @@ export default function PublishCourse() {
       setValue("sandboxLanguage", course.features.sandboxLanguage || "javascript");
       setValue("notesEnabled", typeof course.features.notesEnabled === "boolean" ? course.features.notesEnabled : true);
     }
+
+    setValue("requiresApproval", typeof course.requiresApproval === "boolean" ? course.requiresApproval : true);
+
   }, [course, location.pathname]);
 
   const goBack = () => dispatch(setStep(2));
@@ -57,7 +62,7 @@ export default function PublishCourse() {
     const formData = new FormData();
     formData.append("courseId", course._id);
     formData.append("status", publicFlag ? COURSE_STATUS.PUBLISHED : COURSE_STATUS.DRAFT);
-    // add features as JSON string (backend handles parse)
+    formData.append("requiresApproval", getValues("requiresApproval") ? "true" : "false");
     formData.append("features", JSON.stringify(features));
 
     try {
@@ -117,7 +122,21 @@ export default function PublishCourse() {
         <div className="border border-white/6 rounded-lg p-4 bg-white/2">
           <p className="text-sm font-medium text-black mb-3">Course Features</p>
 
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" {...register("requiresApproval")} className="sr-only peer" />
+            <div className="w-10 h-6 rounded-full p-1 bg-[#000000]/15 peer-checked:bg-gradient-to-tr peer-checked:from-[#ba7bf0] peer-checked:to-[#5046e4] transition">
+              <span className="block w-4 h-4 rounded-full bg-white transform peer-checked:translate-x-4 transition" />
+            </div>
+            <div>
+              <div className="text-sm text-black font-medium">Require Instructor Approval for Enrollment</div>
+              <div className="text-xs text-slate-400">Students must be approved by the instructor before access is granted</div>
+            </div>
+          </label>
+
+          <hr className="my-3 border-t border-white/5" />
+
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" {...register("sandboxEnabled")} className="sr-only peer" />
               <div className="w-10 h-6 rounded-full p-1 bg-[#000000]/15 peer-checked:bg-gradient-to-r peer-checked:from-[#ba7bf0] peer-checked:to-[#5046e4] transition">

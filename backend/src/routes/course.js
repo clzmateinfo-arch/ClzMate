@@ -6,15 +6,23 @@ const {
     getAllCourses,
     getFullCourseDetails,
     editCourse,
+    toggleCoursePublish,
     deleteCourse,
     getInstructorCourses,
-    getNote, saveNote
+    getNote,
+    saveNote,
+    requestEnrollment,
+    getEnrollmentRequests,
+    respondEnrollmentRequest,
+    getMyEnrollmentRequests
 } = require("../controllers/course");
 const { updateCourseProgress } = require("../controllers/courseProgress");
 const {
     createCategory,
     showAllCategories,
     getCategoryPageDetails,
+    updateCategory,
+    deleteCategory
 } = require("../controllers/category");
 const {
     createSection,
@@ -51,9 +59,12 @@ router.post("/getCourseDetails", getCourseDetails);
 router.post("/getFullCourseDetails", auth, getFullCourseDetails);
 router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses);
 router.post("/editCourse", auth, isInstructor, editCourse);
+router.post("/togglePublish", auth, isInstructor, toggleCoursePublish);
 router.delete("/deleteCourse", auth, isInstructor, deleteCourse);
 router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
 router.post("/createCategory", auth, isAdmin, createCategory);
+router.post("/updateCategory", auth, isAdmin, updateCategory);
+router.post("/deleteCategory", auth, isAdmin, deleteCategory);
 router.get("/showAllCategories", showAllCategories);
 router.post("/getCategoryPageDetails", getCategoryPageDetails);
 router.post("/createRating", auth, isStudent, createRating);
@@ -62,5 +73,9 @@ router.get("/getReviews", getAllRatingReview);
 router.post("/getAssetUrl", auth, getAssetUrl);
 router.post("/getNote", auth, getNote);
 router.post("/saveNote", auth, saveNote);
+router.post("/requestEnrollment", auth, isStudent, requestEnrollment);
+router.get("/enrollmentRequests/:courseId", auth, isInstructor, getEnrollmentRequests);
+router.post("/enrollmentRequests/:courseId/:requestId/respond", auth, isInstructor, respondEnrollmentRequest);
+router.get("/enrollment-requests", auth, isStudent, getMyEnrollmentRequests);
 
 module.exports = router;

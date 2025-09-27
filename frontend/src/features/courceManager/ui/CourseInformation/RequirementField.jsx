@@ -36,12 +36,11 @@ export default function RequirementsField({ name, label, register, setValue, err
 
       <div className="flex items-center gap-3">
         <Input value={requirement} onChange={(e) => setRequirement(e.target.value)} className="flex-1" placeholder="Add requirement" />
-        {/* <button type="button" onClick={handleAddRequirement} className="font-semibold text-violet-600">Add</button> */}
         <div className="mt-2">
           <Button
             type="button"
             classes="text-m ml-2" o
-            nClick={handleAddRequirement}
+            onClick={handleAddRequirement}
             animated={false}
           >
             Add

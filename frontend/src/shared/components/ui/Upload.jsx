@@ -192,7 +192,7 @@ export default function Upload({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 justify-end">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
+              {!disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
                 Replace
                 <input
                   type="file"
@@ -231,7 +231,7 @@ export default function Upload({
               <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes"}</p>
             </div>
             <div className="mt-4 flex gap-3">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
+              {!disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
                 Browse
                 <input
                   type="file"

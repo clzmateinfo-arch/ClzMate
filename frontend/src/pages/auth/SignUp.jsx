@@ -5,7 +5,7 @@ import backgroundImg from "@/shared/assets/images/auth/sign-up-right-banner.png"
 
 export default function SignUp() {
   const asideQuote = {
-    lines: ["Education is not preparation for life,", "education is life itself"],
+    lines: ["Education is not preparation for life,", " education is life itself"],
     cite: "John Dewey",
   };
 

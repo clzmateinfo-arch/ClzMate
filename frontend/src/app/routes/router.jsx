@@ -30,12 +30,17 @@ const Settings = lazy(() => import("@/pages/user/Settings"));
 const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
+const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
+
 const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
-const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
+const InstructorCourses = lazy(() => import("@/pages/course/InstructorCourses"));
 const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
+const EnrollmentRequests = lazy(() => import("@/pages/user/EnrollmentRequests"));
+
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));
+const PendingEnrollments = lazy(() => import("@/pages/user/PendingEnrollments"));
 
 export default function AppRoutes() {
     const { user, loading: profileLoading } = useSelector((state) => state.profile);
@@ -43,6 +48,9 @@ export default function AppRoutes() {
     const RedirectToRole = () => {
         if (profileLoading || !user) return <Loading />;
 
+        if (user.accountType === ACCOUNT_TYPE.ADMIN) {
+            return <Navigate to="/dashboard/admin-controls" replace />;
+        }
         if (user.accountType === ACCOUNT_TYPE.STUDENT) {
             return <Navigate to="/dashboard/student" replace />;
         }
@@ -52,10 +60,19 @@ export default function AppRoutes() {
         return <Navigate to="/dashboard/student" replace />;
     };
 
+    // const RedirectToAuth = () => {
+    //     return <Navigate to="/login" replace />;
+    // };
+
+    // const RedirectToMain = () => {
+    //     return <Navigate to="/" replace />;
+    // };
+
     return (
         <Routes>
             {/* Auth */}
             <Route element={<AuthLayout />}>
+                {/* <Route index element={<RedirectToAuth />} /> */}
                 <Route
                     path="/signup"
                     element={
@@ -100,6 +117,7 @@ export default function AppRoutes() {
 
             {/* MainLayout */}
             <Route element={<MainLayout />}>
+                {/* <Route index element={<RedirectToMain />} /> */}
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
@@ -116,10 +134,17 @@ export default function AppRoutes() {
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
 
+                    {user?.accountType === ACCOUNT_TYPE.ADMIN && (
+                        <>
+                            <Route path="admin-controls" element={<AdminPage />} />
+                        </>
+                    )}
+
                     {user?.accountType === ACCOUNT_TYPE.STUDENT && (
                         <>
                             <Route path="student" element={<StudentDashboard />} />
                             <Route path="enrolled-courses" element={<EnrolledCourses />} />
+                            <Route path="enrollments/pending" element={<PendingEnrollments />} />
                         </>
                     )}
 
@@ -127,8 +152,9 @@ export default function AppRoutes() {
                         <>
                             <Route path="instructor" element={<InstructorDashboard />} />
                             <Route path="add-course" element={<AddCourse />} />
-                            <Route path="my-courses" element={<UserCourses />} />
+                            <Route path="my-courses" element={<InstructorCourses />} />
                             <Route path="edit-course/:courseId" element={<EditCourse />} />
+                            <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
                         </>
                     )}
                 </Route>

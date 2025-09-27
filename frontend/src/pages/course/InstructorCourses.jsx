@@ -1,4 +1,3 @@
-// UserCourses.jsx
 import React, { useState, useCallback } from "react";
 import { VscAdd } from "react-icons/vsc";
 import { useSelector } from "react-redux";
@@ -7,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import IconBtn from "@/shared/components/ui/IconBtn";
-import InstructorCourseSlider from "../../features/dashboard/ui/InstructorCourseSlider";
+import InstructorCourseSlider from "@/features/dashboard/ui/InstructorCourseSlider";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 
-export default function UserCourses() {
+export default function InstructorCourses() {
   const { user } = useSelector((s) => s.profile);
   const navigate = useNavigate();
 

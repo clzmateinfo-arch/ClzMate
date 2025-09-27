@@ -178,13 +178,13 @@ function CourseDetails() {
     studentsEnrolled,
     createdAt,
     tag,
+    requiresApproval,
   } = response?.data?.courseDetails || {};
 
   const handleBuyCourse = () => {
-    console.log("Buy");
     if (token) {
       const coursesId = [courseId];
-      buyCourse(token, coursesId, user, navigate, dispatch);
+      buyCourse(token, coursesId, requiresApproval, user, navigate, dispatch);
       return;
     }
     setConfirmationModal({
@@ -233,6 +233,13 @@ function CourseDetails() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-h-[420px] py-8 mr-5">
             <div className="lg:col-span-8">
+              {response?.data?.courseDetails?.requiresApproval && (
+                <div className="mb-4 p-3 rounded-xl bg-yellow-50 border border-yellow-300">
+                  <p className="text-sm font-medium text-yellow-700">
+                    This course requires instructor approval to follow
+                  </p>
+                </div>
+              )}
               <CourseDetailsHeader
                 courseName={courseName}
                 courseDescription={courseDescription}

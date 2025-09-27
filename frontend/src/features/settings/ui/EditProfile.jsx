@@ -2,12 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { updateProfile } from "@/entities/settings/model/SettingsAPI";
-import IconBtn from "@/shared/components/ui/IconBtn";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import FieldsetRadio from "@/shared/components/ui/FieldsetRadio";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
-import TextArea from "@/shared/components/ui/TextArea";
+import Textarea from "../../../shared/components/ui/Textarea";
 
 const genders = ["Male", "Female", "Non-Binary", "Prefer not to say", "Other"];
 
@@ -163,7 +162,7 @@ export default function EditProfile() {
           {errors.contactNumber && <span className="error-text">{errors.contactNumber}</span>}
         </div>
         <div className="flex flex-col gap-2 w-full ml-1 mt-5">
-          <TextArea
+          <Textarea
             label="About"
             name="about"
             value={form.about}

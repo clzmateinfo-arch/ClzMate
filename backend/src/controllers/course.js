@@ -11,6 +11,8 @@ const {
     deleteResourceFromCloudinary,
 } = require("../utils/fileUploader");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
+const mailSender = require("../utils/mailSender");
+const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEmail");
 
 exports.createCourse = async (req, res) => {
     try {
@@ -145,6 +147,8 @@ exports.getAllCourses = async (req, res) => {
 
         const match = {};
 
+        match.status = "Published";
+
         const cat = categoryId || category;
         if (cat) {
             if (mongoose.Types.ObjectId.isValid(cat)) {
@@ -208,23 +212,35 @@ exports.getAllCourses = async (req, res) => {
                 },
                 { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
                 {
+                    $lookup: {
+                        from: "categories",
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+                {
                     $project: {
                         courseName: 1,
                         courseDescription: 1,
                         price: 1,
                         thumbnail: 1,
+                        level: 1,
+                        createdAt: 1,
+                        enrolledCount: 1,
+                        studentsEnrolled: 1,
+                        ratingAndReviews: 1,
                         instructor: {
                             firstName: "$instructor.firstName",
                             lastName: "$instructor.lastName",
                             email: "$instructor.email",
                             image: "$instructor.image"
                         },
-                        ratingAndReviews: 1,
-                        studentsEnrolled: 1,
-                        level: 1,
-                        category: 1,
-                        createdAt: 1,
-                        enrolledCount: 1
+                        category: {
+                            _id: "$category._id",
+                            name: "$category.name"
+                        }
                     }
                 }
             ];
@@ -240,7 +256,7 @@ exports.getAllCourses = async (req, res) => {
                     limit: lim,
                     totalPages: Math.ceil(total / lim),
                 },
-                message: "Data for courses fetched successfully",
+                message: "Data for courses fetched successfully with category details",
             });
         }
 
@@ -260,6 +276,10 @@ exports.getAllCourses = async (req, res) => {
                 path: "instructor",
                 select: "firstName lastName email image",
             })
+            .populate({
+                path: "category",
+                select: "name",
+            })
             .sort(sortOption)
             .skip(skip)
             .limit(lim)
@@ -274,7 +294,7 @@ exports.getAllCourses = async (req, res) => {
                 limit: lim,
                 totalPages: Math.ceil(total / lim),
             },
-            message: "Data for courses fetched successfully",
+            message: "Data for courses fetched successfully with category names",
         });
     } catch (error) {
         console.error("Error while fetching courses:", error);
@@ -524,6 +544,42 @@ exports.editCourse = async (req, res) => {
     }
 };
 
+exports.toggleCoursePublish = async (req, res) => {
+    try {
+        const { courseId, publish } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId is required" });
+        if (typeof publish !== "boolean") return res.status(400).json({ success: false, message: "publish must be boolean" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        course.status = publish ? "Published" : "Draft";
+        course.updatedAt = Date.now();
+        await course.save();
+
+        const updatedCourse = await Course.findById(courseId)
+            .populate({ path: "courseContent", populate: { path: "subSection" } })
+            .populate({ path: "instructor", select: "firstName lastName email image" })
+            .populate("category")
+            .lean();
+
+        updatedCourse.published = updatedCourse.status === "Published";
+
+        return res.status(200).json({
+            success: true,
+            message: "Course publish status updated",
+            data: { updatedCourse, published: updatedCourse.published },
+        });
+    } catch (err) {
+        console.error("toggleCoursePublish error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to update publish status" });
+    }
+};
+
 exports.getInstructorCourses = async (req, res) => {
     try {
         const instructorId = req.user.id;
@@ -735,3 +791,244 @@ exports.saveNote = async (req, res) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 };
+
+exports.requestEnrollment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId required" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if ((course.studentsEnrolled || []).some((s) => s.toString() === userId.toString())) {
+            return res.status(400).json({ success: false, message: "Already enrolled" });
+        }
+
+        const existing = (course.enrollmentRequests || []).find((r) => r.user.toString() === userId.toString());
+        if (existing) {
+            if (existing.status === "Pending") {
+                return res.status(200).json({ success: true, message: "Enrollment request already pending" });
+            }
+            existing.status = "Pending";
+            existing.requestedAt = Date.now();
+            existing.respondedAt = null;
+            existing.responder = null;
+            existing.note = "";
+        } else {
+            course.enrollmentRequests.push({ user: userId, status: "Pending", requestedAt: Date.now() });
+        }
+
+        await course.save();
+
+        try {
+            const instructor = await User.findById(course.instructor);
+            if (instructor) {
+                await mailSender(
+                    instructor.email,
+                    `Enrollment request for ${course.courseName}`,
+                    `A student has requested enrollment in ${course.courseName}. Please review in the instructor dashboard.`
+                );
+            }
+        } catch (e) {
+            console.warn("Failed to notify instructor about enrollment request:", e.message);
+        }
+
+        return res.status(200).json({ success: true, message: "Enrollment request submitted and pending instructor approval" });
+    } catch (err) {
+        console.error("requestEnrollment error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getEnrollmentRequests = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+
+        const course = await Course.findById(courseId)
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email image",
+            });
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found",
+            });
+        }
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden",
+            });
+        }
+
+        const enrollmentRequests = course.enrollmentRequests.map((req) => ({
+            ...req.toObject(),
+            responder: req.responder
+                ? `${req.responder.firstName} ${req.responder.lastName}`
+                : null,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            data: { enrollmentRequests },
+        });
+    } catch (err) {
+        console.error("getEnrollmentRequests error", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+
+exports.respondEnrollmentRequest = async (req, res) => {
+    try {
+        const { courseId, requestId } = req.params;
+        const { action, note } = req.body;
+        if (!["approve", "reject"].includes(action)) return res.status(400).json({ success: false, message: "Invalid action" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        const reqIndex = (course.enrollmentRequests || []).findIndex((r) => r._id && r._id.toString() === requestId.toString());
+        if (reqIndex === -1) return res.status(404).json({ success: false, message: "Request not found" });
+
+        const reqObj = course.enrollmentRequests[reqIndex];
+
+        if (action === "approve") {
+            const userId = reqObj.user;
+            if (!course.studentsEnrolled.some((s) => s.toString() === userId.toString())) {
+                course.studentsEnrolled.push(userId);
+            }
+            reqObj.status = "Approved";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+
+            await course.save();
+
+            try {
+                const cp = await CourseProgress.create({ courseID: courseId, userId: userId, completedVideos: [] });
+                await User.findByIdAndUpdate(userId, { $push: { courses: courseId, courseProgress: cp._id } });
+            } catch (e) {
+                console.warn("Failed to create course progress on approval:", e.message);
+            }
+
+            try {
+                const student = await User.findById(userId);
+                if (student) {
+                    await mailSender(student.email, `Enrollment approved: ${course.courseName}`, `Your enrollment request for ${course.courseName} has been approved.`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Student approved and enrolled" });
+        } else {
+            reqObj.status = "Rejected";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+            await course.save();
+
+            try {
+                const student = await User.findById(reqObj.user);
+                if (student) {
+                    await mailSender(student.email, `Enrollment rejected: ${course.courseName}`, `Your enrollment request for ${course.courseName} was rejected. ${note || ""}`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student about rejection:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Request rejected" });
+        }
+    } catch (err) {
+        console.error("respondEnrollmentRequest error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getMyEnrollmentRequests = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const courses = await Course.find({ "enrollmentRequests.user": userId })
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email",
+            })
+            .lean();
+
+        const requests = [];
+
+        for (const course of courses) {
+            let totalDurationInSeconds = 0;
+            if (Array.isArray(course.courseContent)) {
+                for (const sec of course.courseContent) {
+                    if (Array.isArray(sec.subSection)) {
+                        for (const sub of sec.subSection) {
+                            const dur = parseInt(sub.timeDuration || 0, 10) || 0;
+                            totalDurationInSeconds += dur;
+                        }
+                    }
+                }
+            }
+            const totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+
+            const reqObj = (course.enrollmentRequests || []).find((r) =>
+                r.user && String(r.user._id ? r.user._id : r.user) === String(userId)
+            );
+
+            if (!reqObj) continue;
+
+            requests.push({
+                _id: reqObj._id,
+                course: {
+                    _id: course._id,
+                    courseName: course.courseName,
+                    courseDescription: course.courseDescription,
+                    thumbnail: course.thumbnail,
+                    totalDuration,
+                },
+                requestedAt: reqObj.requestedAt,
+                status: reqObj.status,
+                responder: reqObj.responder ? {
+                    _id: reqObj.responder._id || reqObj.responder,
+                    firstName: reqObj.responder.firstName,
+                    lastName: reqObj.responder.lastName,
+                    email: reqObj.responder.email,
+                } : null,
+                note: reqObj.note || "",
+            });
+        }
+
+        return res.status(200).json({ success: true, data: { requests } });
+    } catch (err) {
+        console.error("getMyEnrollmentRequests error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to fetch enrollment requests" });
+    }
+};
+
+

@@ -5,9 +5,9 @@ import {
   VscVm,
   VscAdd,
   VscMortarBoard,
-  VscHistory,
-  VscSettings
-} from "react-icons/vsc"
+  VscSettings,
+} from "react-icons/vsc";
+import { MdOutlinePendingActions ,MdAdminPanelSettings } from "react-icons/md";
 
 export const sidebarLinks = [
   {
@@ -16,7 +16,7 @@ export const sidebarLinks = [
     path: "/dashboard/instructor",
     type: ACCOUNT_TYPE.INSTRUCTOR,
     icon: VscDashboard,
-  },{
+  }, {
     id: 2,
     name: "Dashboard",
     path: "/dashboard/student",
@@ -29,6 +29,13 @@ export const sidebarLinks = [
     path: "/dashboard/my-courses",
     type: ACCOUNT_TYPE.INSTRUCTOR,
     icon: VscVm,
+  },
+  {
+    id: 9,
+    name: "Pending Enrollments",
+    path: "/dashboard/enrollments/pending",
+    type: ACCOUNT_TYPE.STUDENT,
+    icon: MdOutlinePendingActions,
   },
   {
     id: 4,
@@ -44,21 +51,21 @@ export const sidebarLinks = [
     type: ACCOUNT_TYPE.STUDENT,
     icon: VscMortarBoard,
   },
-  // {
-  //   id: 6,
-  //   name: "Purchase History",
-  //   path: "/dashboard/purchase-history",
-  //   type: ACCOUNT_TYPE.STUDENT,
-  //   icon: VscHistory,
-  // },
   {
-    id: 1,
+    id: 6,
+    name: "Admin Controls",
+    path: "/dashboard/admin-controls",
+    type: ACCOUNT_TYPE.ADMIN,
+    icon: MdAdminPanelSettings,
+  },
+  {
+    id: 7,
     name: "My Profile",
     path: "/dashboard/my-profile",
     icon: VscAccount,
   },
   {
-    id: 7,
+    id: 8,
     name: "Settings",
     path: "/dashboard/settings",
     icon: VscSettings,

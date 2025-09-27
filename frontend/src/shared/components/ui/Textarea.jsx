@@ -1,8 +1,7 @@
-/* eslint-disable react/prop-types */
 import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-const TextArea = forwardRef(
+const Textarea = forwardRef(
     (
         {
             id,
@@ -140,4 +139,4 @@ const TextArea = forwardRef(
     }
 );
 
-export default TextArea;
+export default Textarea;
