@@ -70,7 +70,6 @@ exports.capturePayment = async (req, res) => {
   }
 };
 
-// ================ verify the payment ================
 exports.verifyPayment = async (req, res) => {
   const razorpay_order_id = req.body?.razorpay_order_id;
   const razorpay_payment_id = req.body?.razorpay_payment_id;
@@ -78,8 +77,10 @@ exports.verifyPayment = async (req, res) => {
   const courses = req.body?.coursesId;
   const userId = req.user.id;
 
-  await enrollStudents(courses, userId, res); //Fix Before Deploy
-  return res.status(200).json({ success: true, message: "Payment Verified" }); //Fix Before Deploy
+  // await enrollStudents(courses, userId, res); //Fix Before Deploy
+  // return res.status(200).json({ success: true,  }); //Fix Before Deploy
+  const results = await enrollStudents(courses, userId, res);
+  return res.status(200).json({ success: true, results, message: "Payment Verified" });
 
   if (
     !razorpay_order_id ||
@@ -116,8 +117,51 @@ const enrollStudents = async (courses, userId, res) => {
     });
   }
 
+  const results = [];
+
   for (const courseId of courses) {
     try {
+      const course = await Course.findById(courseId);
+      if (!course) {
+        results.push({ courseId, success: false, message: "Course not found" });
+        continue;
+      }
+
+      const uid = new mongoose.Types.ObjectId(userId);
+      if (course.studentsEnrolled && course.studentsEnrolled.some((s) => s.toString() === uid.toString())) {
+        results.push({ courseId, success: false, message: "Student already enrolled" });
+        continue;
+      }
+
+      if (course.requiresApproval) {
+        const existing = (course.enrollmentRequests || []).find((r) => r.user && r.user.toString() === uid.toString());
+        if (existing) {
+          existing.status = "Pending";
+          existing.requestedAt = Date.now();
+          existing.respondedAt = null;
+          existing.responder = null;
+        } else {
+          course.enrollmentRequests.push({ user: uid, status: "Pending", requestedAt: Date.now() });
+        }
+        await course.save();
+
+        try {
+          const instructor = await User.findById(course.instructor);
+          if (instructor) {
+            await mailSender(
+              instructor.email,
+              `Enrollment request for ${course.courseName}`,
+              `Student requested enrollment in ${course.courseName}. Please review on your instructor dashboard.`
+            );
+          }
+        } catch (e) {
+          console.warn("Failed to notify instructor:", e.message);
+        }
+
+        results.push({ courseId, success: true, status: "pending", message: "Enrollment pending instructor approval" });
+        continue;
+      }
+
       const enrolledCourse = await Course.findOneAndUpdate(
         { _id: courseId },
         { $push: { studentsEnrolled: userId } },
@@ -125,9 +169,8 @@ const enrollStudents = async (courses, userId, res) => {
       );
 
       if (!enrolledCourse) {
-        return res
-          .status(500)
-          .json({ success: false, message: "Course not Found" });
+        results.push({ courseId, success: false, message: "Course not found" });
+        continue;
       }
 
       const courseProgress = await CourseProgress.create({
@@ -147,19 +190,24 @@ const enrollStudents = async (courses, userId, res) => {
         { new: true }
       );
 
-      const emailResponse = await mailSender(
-        enrolledStudent.email,
-        `Successfully Enrolled into ${enrolledCourse.courseName}`,
-        courseEnrollmentEmail(
-          enrolledCourse.courseName,
-          `${enrolledStudent.firstName}`
-        )
-      );
+      try {
+        await mailSender(
+          enrolledStudent.email,
+          `Successfully Enrolled into ${enrolledCourse.courseName}`,
+          courseEnrollmentEmail(enrolledCourse.courseName, `${enrolledStudent.firstName}`)
+        );
+      } catch (e) {
+        console.warn("Failed to send enrollment email:", e.message);
+      }
+
+      results.push({ courseId, success: true, status: "enrolled", message: "Enrolled successfully" });
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ success: false, message: error.message });
+      results.push({ courseId, success: false, message: error.message });
     }
   }
+
+  return results;
 };
 
 exports.sendPaymentSuccessEmail = async (req, res) => {

@@ -37,7 +37,10 @@ const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
 const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
 const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
+const EnrollmentRequests = lazy(() => import("@/pages/user/EnrollmentRequests"));
+
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));
+const PendingEnrollments = lazy(() => import("@/pages/user/PendingEnrollments"));
 
 export default function AppRoutes() {
     const { user, loading: profileLoading } = useSelector((state) => state.profile);
@@ -141,6 +144,7 @@ export default function AppRoutes() {
                         <>
                             <Route path="student" element={<StudentDashboard />} />
                             <Route path="enrolled-courses" element={<EnrolledCourses />} />
+                            <Route path="enrollments/pending" element={<PendingEnrollments />} />
                         </>
                     )}
 
@@ -150,6 +154,7 @@ export default function AppRoutes() {
                             <Route path="add-course" element={<AddCourse />} />
                             <Route path="my-courses" element={<UserCourses />} />
                             <Route path="edit-course/:courseId" element={<EditCourse />} />
+                            <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
                         </>
                     )}
                 </Route>

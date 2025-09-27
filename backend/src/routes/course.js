@@ -8,7 +8,11 @@ const {
     editCourse,
     deleteCourse,
     getInstructorCourses,
-    getNote, saveNote
+    getNote,
+    saveNote,
+    requestEnrollment,
+    getEnrollmentRequests,
+    respondEnrollmentRequest
 } = require("../controllers/course");
 const { updateCourseProgress } = require("../controllers/courseProgress");
 const {
@@ -66,5 +70,9 @@ router.get("/getReviews", getAllRatingReview);
 router.post("/getAssetUrl", auth, getAssetUrl);
 router.post("/getNote", auth, getNote);
 router.post("/saveNote", auth, saveNote);
+router.post("/requestEnrollment", auth, isStudent, requestEnrollment);
+router.get("/enrollmentRequests/:courseId", auth, isInstructor, getEnrollmentRequests);
+router.post("/enrollmentRequests/:courseId/:requestId/respond", auth, isInstructor, respondEnrollmentRequest);
+
 
 module.exports = router;

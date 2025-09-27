@@ -11,6 +11,8 @@ const {
     deleteResourceFromCloudinary,
 } = require("../utils/fileUploader");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
+const mailSender = require("../utils/mailSender");
+const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEmail");
 
 exports.createCourse = async (req, res) => {
     try {
@@ -732,6 +734,146 @@ exports.saveNote = async (req, res) => {
         return res.status(200).json({ success: true, data: note });
     } catch (err) {
         console.error("SAVE_NOTE error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.requestEnrollment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId required" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if ((course.studentsEnrolled || []).some((s) => s.toString() === userId.toString())) {
+            return res.status(400).json({ success: false, message: "Already enrolled" });
+        }
+
+        const existing = (course.enrollmentRequests || []).find((r) => r.user.toString() === userId.toString());
+        if (existing) {
+            if (existing.status === "Pending") {
+                return res.status(200).json({ success: true, message: "Enrollment request already pending" });
+            }
+            existing.status = "Pending";
+            existing.requestedAt = Date.now();
+            existing.respondedAt = null;
+            existing.responder = null;
+            existing.note = "";
+        } else {
+            course.enrollmentRequests.push({ user: userId, status: "Pending", requestedAt: Date.now() });
+        }
+
+        await course.save();
+
+        try {
+            const instructor = await User.findById(course.instructor);
+            if (instructor) {
+                await mailSender(
+                    instructor.email,
+                    `Enrollment request for ${course.courseName}`,
+                    `A student has requested enrollment in ${course.courseName}. Please review in the instructor dashboard.`
+                );
+            }
+        } catch (e) {
+            console.warn("Failed to notify instructor about enrollment request:", e.message);
+        }
+
+        return res.status(200).json({ success: true, message: "Enrollment request submitted and pending instructor approval" });
+    } catch (err) {
+        console.error("requestEnrollment error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getEnrollmentRequests = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const course = await Course.findById(courseId).populate({
+            path: "enrollmentRequests.user",
+            select: "firstName lastName email image",
+        });
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        return res.status(200).json({ success: true, data: { enrollmentRequests: course.enrollmentRequests } });
+    } catch (err) {
+        console.error("getEnrollmentRequests error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.respondEnrollmentRequest = async (req, res) => {
+    try {
+        const { courseId, requestId } = req.params;
+        const { action, note } = req.body;
+        if (!["approve", "reject"].includes(action)) return res.status(400).json({ success: false, message: "Invalid action" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        const reqIndex = (course.enrollmentRequests || []).findIndex((r) => r._id && r._id.toString() === requestId.toString());
+        if (reqIndex === -1) return res.status(404).json({ success: false, message: "Request not found" });
+
+        const reqObj = course.enrollmentRequests[reqIndex];
+
+        if (action === "approve") {
+            const userId = reqObj.user;
+            if (!course.studentsEnrolled.some((s) => s.toString() === userId.toString())) {
+                course.studentsEnrolled.push(userId);
+            }
+            reqObj.status = "Approved";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+
+            await course.save();
+
+            try {
+                const cp = await CourseProgress.create({ courseID: courseId, userId: userId, completedVideos: [] });
+                await User.findByIdAndUpdate(userId, { $push: { courses: courseId, courseProgress: cp._id } });
+            } catch (e) {
+                console.warn("Failed to create course progress on approval:", e.message);
+            }
+
+            try {
+                const student = await User.findById(userId);
+                if (student) {
+                    await mailSender(student.email, `Enrollment approved: ${course.courseName}`, `Your enrollment request for ${course.courseName} has been approved.`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Student approved and enrolled" });
+        } else {
+            reqObj.status = "Rejected";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+            await course.save();
+
+            try {
+                const student = await User.findById(reqObj.user);
+                if (student) {
+                    await mailSender(student.email, `Enrollment rejected: ${course.courseName}`, `Your enrollment request for ${course.courseName} was rejected. ${note || ""}`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student about rejection:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Request rejected" });
+        }
+    } catch (err) {
+        console.error("respondEnrollmentRequest error", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 };

@@ -174,7 +174,7 @@ exports.sendOTP = async (req, res) => {
             .map((part) => part.replace(/\d+/g, ""))
             .join(" ");
 
-        //await mailSender(emailNormalized, "OTP Verification Email", otpTemplate(otp, name));
+        await mailSender(emailNormalized, "OTP Verification Email", otpTemplate(otp, name));
 
         await OTP.create({ email: emailNormalized, otp });
 
@@ -363,14 +363,14 @@ exports.changePassword = async (req, res) => {
         );
 
         try {
-            // await mailSender(
-            //     updatedUserDetails.email,
-            //     "Password for your account has been updated",
-            //     passwordUpdated(
-            //         updatedUserDetails.email,
-            //         `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
-            //     )
-            // );
+            await mailSender(
+                updatedUserDetails.email,
+                "Password for your account has been updated",
+                passwordUpdated(
+                    updatedUserDetails.email,
+                    `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
+                )
+            );
         } catch (error) {
             console.error("Error occurred while sending email:", error);
         }
