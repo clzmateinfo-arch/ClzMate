@@ -12,7 +12,8 @@ const {
     saveNote,
     requestEnrollment,
     getEnrollmentRequests,
-    respondEnrollmentRequest
+    respondEnrollmentRequest,
+    getMyEnrollmentRequests
 } = require("../controllers/course");
 const { updateCourseProgress } = require("../controllers/courseProgress");
 const {
@@ -73,6 +74,6 @@ router.post("/saveNote", auth, saveNote);
 router.post("/requestEnrollment", auth, isStudent, requestEnrollment);
 router.get("/enrollmentRequests/:courseId", auth, isInstructor, getEnrollmentRequests);
 router.post("/enrollmentRequests/:courseId/:requestId/respond", auth, isInstructor, respondEnrollmentRequest);
-
+router.get("/enrollment-requests", auth, isStudent, getMyEnrollmentRequests);
 
 module.exports = router;

@@ -1,10 +1,9 @@
-// EnrollmentRequests.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
 import Button from "@/shared/components/ui/Button";
-import { fetchCourseEnrollmentRequests, respondEnrollmentRequest } from "@/entities/course/model/enrollmentAPI";
+import { fetchCourseEnrollmentRequests, respondEnrollmentRequest } from "@/entities/course/model/courseDetailsAPI";
 import Img from "@/shared/components/ui/Img";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
@@ -98,8 +97,6 @@ export default function EnrollmentRequests() {
                                     </div>
 
                                     <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">
-                                        {/* placeholder for future column (e.g course) */}
-                                        <div className="text-sm">—</div>
                                     </div>
 
                                     <div className="w-full sm:flex-1 px-2 mt-3 sm:mt-0 flex items-center justify-between gap-3">
@@ -115,7 +112,7 @@ export default function EnrollmentRequests() {
                                                     <Button disabled={processing === r._id} onClick={() => handleRespond(r._id, "reject")} className="bg-red-600 text-white text-sm">Reject</Button>
                                                 </>
                                             ) : (
-                                                <Button onClick={() => navigate(-1)} variant="light">Back</Button>
+                                                <></>
                                             )}
                                         </div>
                                     </div>

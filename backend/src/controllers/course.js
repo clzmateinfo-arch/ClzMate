@@ -210,23 +210,35 @@ exports.getAllCourses = async (req, res) => {
                 },
                 { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
                 {
+                    $lookup: {
+                        from: "categories",
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+                {
                     $project: {
                         courseName: 1,
                         courseDescription: 1,
                         price: 1,
                         thumbnail: 1,
+                        level: 1,
+                        createdAt: 1,
+                        enrolledCount: 1,
+                        studentsEnrolled: 1,
+                        ratingAndReviews: 1,
                         instructor: {
                             firstName: "$instructor.firstName",
                             lastName: "$instructor.lastName",
                             email: "$instructor.email",
                             image: "$instructor.image"
                         },
-                        ratingAndReviews: 1,
-                        studentsEnrolled: 1,
-                        level: 1,
-                        category: 1,
-                        createdAt: 1,
-                        enrolledCount: 1
+                        category: {
+                            _id: "$category._id",
+                            name: "$category.name"
+                        }
                     }
                 }
             ];
@@ -242,7 +254,7 @@ exports.getAllCourses = async (req, res) => {
                     limit: lim,
                     totalPages: Math.ceil(total / lim),
                 },
-                message: "Data for courses fetched successfully",
+                message: "Data for courses fetched successfully with category details",
             });
         }
 
@@ -262,6 +274,10 @@ exports.getAllCourses = async (req, res) => {
                 path: "instructor",
                 select: "firstName lastName email image",
             })
+            .populate({
+                path: "category",
+                select: "name",
+            })
             .sort(sortOption)
             .skip(skip)
             .limit(lim)
@@ -276,7 +292,7 @@ exports.getAllCourses = async (req, res) => {
                 limit: lim,
                 totalPages: Math.ceil(total / lim),
             },
-            message: "Data for courses fetched successfully",
+            message: "Data for courses fetched successfully with category names",
         });
     } catch (error) {
         console.error("Error while fetching courses:", error);
@@ -790,20 +806,48 @@ exports.requestEnrollment = async (req, res) => {
 exports.getEnrollmentRequests = async (req, res) => {
     try {
         const courseId = req.params.courseId;
-        const course = await Course.findById(courseId).populate({
-            path: "enrollmentRequests.user",
-            select: "firstName lastName email image",
-        });
-        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
 
-        if (req.user.id.toString() !== course.instructor.toString()) {
-            return res.status(403).json({ success: false, message: "Forbidden" });
+        const course = await Course.findById(courseId)
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email image",
+            });
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found",
+            });
         }
 
-        return res.status(200).json({ success: true, data: { enrollmentRequests: course.enrollmentRequests } });
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden",
+            });
+        }
+
+        const enrollmentRequests = course.enrollmentRequests.map((req) => ({
+            ...req.toObject(),
+            responder: req.responder
+                ? `${req.responder.firstName} ${req.responder.lastName}`
+                : null,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            data: { enrollmentRequests },
+        });
     } catch (err) {
         console.error("getEnrollmentRequests error", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
     }
 };
 
@@ -875,5 +919,76 @@ exports.respondEnrollmentRequest = async (req, res) => {
     } catch (err) {
         console.error("respondEnrollmentRequest error", err);
         return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getMyEnrollmentRequests = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const courses = await Course.find({ "enrollmentRequests.user": userId })
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email",
+            })
+            .lean();
+
+        const requests = [];
+
+        for (const course of courses) {
+            let totalDurationInSeconds = 0;
+            if (Array.isArray(course.courseContent)) {
+                for (const sec of course.courseContent) {
+                    if (Array.isArray(sec.subSection)) {
+                        for (const sub of sec.subSection) {
+                            const dur = parseInt(sub.timeDuration || 0, 10) || 0;
+                            totalDurationInSeconds += dur;
+                        }
+                    }
+                }
+            }
+            const totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+
+            const reqObj = (course.enrollmentRequests || []).find((r) =>
+                r.user && String(r.user._id ? r.user._id : r.user) === String(userId)
+            );
+
+            if (!reqObj) continue;
+
+            requests.push({
+                _id: reqObj._id,
+                course: {
+                    _id: course._id,
+                    courseName: course.courseName,
+                    courseDescription: course.courseDescription,
+                    thumbnail: course.thumbnail,
+                    totalDuration,
+                },
+                requestedAt: reqObj.requestedAt,
+                status: reqObj.status,
+                responder: reqObj.responder ? {
+                    _id: reqObj.responder._id || reqObj.responder,
+                    firstName: reqObj.responder.firstName,
+                    lastName: reqObj.responder.lastName,
+                    email: reqObj.responder.email,
+                } : null,
+                note: reqObj.note || "",
+            });
+        }
+
+        return res.status(200).json({ success: true, data: { requests } });
+    } catch (err) {
+        console.error("getMyEnrollmentRequests error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to fetch enrollment requests" });
     }
 };

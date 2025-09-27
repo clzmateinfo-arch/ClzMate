@@ -30,6 +30,7 @@ const {
 export async function buyCourse(
   token,
   coursesId,
+  requiresApproval,
   userDetails,
   navigate,
   dispatch
@@ -43,7 +44,7 @@ export async function buyCourse(
     token
   );
   //verifyPayment
-  verifyPayment({ coursesId }, token, navigate, dispatch);
+  verifyPayment({ coursesId, requiresApproval }, token, navigate, dispatch);
 
   // try {
   //     //load the script
@@ -137,7 +138,8 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
       throw new Error(response.data.message);
     }
     toast.success("payment Successful, you are addded to the course");
-    navigate("/dashboard/enrolled-courses");
+    bodyData?.requiresApproval ? navigate("/dashboard/enrollments/pending") : navigate("/dashboard/enrolled-courses");
+
     dispatch(resetCart());
   } catch (error) {
     console.log("PAYMENT VERIFY ERROR....", error);

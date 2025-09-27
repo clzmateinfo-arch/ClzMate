@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
-import { fetchMyEnrollmentRequests } from "@/entities/course/model/enrollmentAPI";
+import { fetchMyEnrollmentRequests } from "@/entities/course/model/courseDetailsAPI";
 import Button from "@/shared/components/ui/Button";
 import Img from "@/shared/components/ui/Img";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 
@@ -36,7 +36,6 @@ export default function PendingEnrollments() {
         return () => { mounted = false; };
     }, [token]);
 
-    // small helper
     const safe = (v, fallback = "-") => (v === undefined || v === null || v === "" ? fallback : v);
 
     if (loading) return <Loading />;
@@ -68,7 +67,8 @@ export default function PendingEnrollments() {
                                 return (
                                     <article
                                         key={r._id ?? idx}
-                                        className="flex flex-col sm:flex-row sm:items-center border-b last:border-b-0 px-2 py-3 transition-all hover:shadow-xs"
+                                        className="flex flex-col sm:flex-row sm:items-center border-b border-b-fuchsia-100 last:border-b-0 px-2 py-3 transition-all hover:shadow-xs"
+                                        onClick={() => navigate(`/courses/${course._id}`)}
                                     >
                                         <div
                                             role="link"
@@ -95,10 +95,6 @@ export default function PendingEnrollments() {
                                             <div className="text-xs text-richblack-600">
                                                 <div className="mb-1">Requested: <span className="font-medium text-black">{new Date(r.requestedAt).toLocaleString()}</span></div>
                                                 <div>Status: <span className={`font-semibold ${r.status === "Approved" ? "text-green-600" : r.status === "Rejected" ? "text-red-600" : "text-yellow-600"}`}>{r.status}</span></div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <Button onClick={() => navigate(`/courses/${course._id}`)} variant="light" className="text-sm">View Course</Button>
                                             </div>
                                         </div>
                                     </article>
