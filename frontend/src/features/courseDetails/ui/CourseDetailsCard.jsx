@@ -64,7 +64,8 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
     return p ?? "Free";
   };
 
-  const safeHref = `/courses/${_id ?? id ?? ""}`;
+
+  const safeHref = `/view-course/${course?._id}/section/${course?.courseContent[0]?._id}/sub-section/${course?.courseContent[0]?.subSection[0]?._id}`;
 
   const timeAgo = formatTimeAgo(updatedAt === null ? createdAt : updatedAt);
 
@@ -174,7 +175,7 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
         <div className="mt-4 flex items-center gap-3">
           <Button onClick={
             user && course?.studentsEnrolled?.includes(user?._id)
-              ? () => navigate(`/view-course/${course?._id}`)
+              ? () => navigate(safeHref)
               : handleBuyCourse
           } className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
             {user && course?.studentsEnrolled?.includes(user?._id) ? (
