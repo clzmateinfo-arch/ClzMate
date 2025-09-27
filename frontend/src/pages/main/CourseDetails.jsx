@@ -12,7 +12,7 @@ import { fetchCourseDetails } from "@/entities/course/model/courseDetailsAPI";
 import { buyCourse } from "@/entities/student/model/studentFeaturesAPI";
 import GetAvgRating from "@/utils/avgRating";
 import { ACCOUNT_TYPE } from "@/utils/constants";
-import { addToCart } from "@/entities/cart/model/cartSlice";
+import { setCart } from "@/entities/cart/model/cartSlice";
 
 import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHeader";
 import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPanel";
@@ -203,7 +203,7 @@ function CourseDetails() {
       return;
     }
     if (token) {
-      dispatch(addToCart(response?.data.courseDetails));
+      dispatch(setCart(response?.data.courseDetails));
       toast.success("Added to cart");
       return;
     }
@@ -215,6 +215,10 @@ function CourseDetails() {
       btn1Handler: () => navigate("/login"),
       btn2Handler: () => setConfirmationModal(null),
     });
+  };
+
+  const onViewProfile = () => {
+    navigate(`/profile/public/${instructor._id}`);
   };
 
   return (
@@ -262,7 +266,7 @@ function CourseDetails() {
                   handleBuyCourse={handleBuyCourse}
                 />
 
-                <CourseAuthorCard instructor={instructor} />
+                <CourseAuthorCard instructor={instructor} onViewProfile={onViewProfile} />
               </div>
             </aside>
           </div>

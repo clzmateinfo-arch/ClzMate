@@ -11,46 +11,135 @@ const { convertSecondsToDuration } = require("../utils/secToDuration");
 exports.updateProfile = async (req, res) => {
     try {
         const {
-            gender = "",
-            dateOfBirth = "",
-            about = "",
-            contactNumber = "",
             firstName,
             lastName,
+            gender: rootGender,
+            dateOfBirth: rootDOB,
+            about: rootAbout,
+            contactNumber: rootContact,
         } = req.body;
+
+        const additional = req.body.additionalDetails || {};
+
+        const gender = (additional.gender ?? rootGender) || "";
+        const dateOfBirth = (additional.dateOfBirth ?? rootDOB) || "";
+        const about = (additional.about ?? rootAbout) || "";
+        let contactNumber = additional.contactNumber ?? rootContact ?? null;
+
+        if (contactNumber && typeof contactNumber === "object") {
+            contactNumber =
+                contactNumber.number ||
+                contactNumber.value ||
+                contactNumber.phone ||
+                String(contactNumber).trim();
+        } else if (contactNumber !== null && contactNumber !== undefined) {
+            contactNumber = String(contactNumber).trim();
+            if (contactNumber === "") contactNumber = null;
+        }
+
+        const protectMe = typeof additional.protectMe !== "undefined" ? Boolean(additional.protectMe) : undefined;
+
         const userId = req.user.id;
+
         const userDetails = await User.findById(userId);
-        const profileId = userDetails.additionalDetails;
-        const profileDetails = await Profile.findById(profileId);
+        if (!userDetails) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-        userDetails.firstName = firstName;
-        userDetails.lastName = lastName;
-
+        if (typeof firstName === "string") userDetails.firstName = firstName;
+        if (typeof lastName === "string") userDetails.lastName = lastName;
         await userDetails.save();
+
+        let profileDetails = null;
+        if (userDetails.additionalDetails) {
+            profileDetails = await Profile.findById(userDetails.additionalDetails);
+        } else {
+            profileDetails = new Profile({});
+            await profileDetails.save();
+            userDetails.additionalDetails = profileDetails._id;
+            await userDetails.save();
+        }
 
         profileDetails.gender = gender;
         profileDetails.dateOfBirth = dateOfBirth;
         profileDetails.about = about;
         profileDetails.contactNumber = contactNumber;
-
+        if (typeof protectMe !== "undefined") profileDetails.protectMe = protectMe;
         await profileDetails.save();
 
-        const updatedUserDetails = await User.findById(userId).populate({
-            path: "additionalDetails",
-        });
+        const updatedUserDetails = await User.findById(userId)
+            .populate({ path: "additionalDetails" })
+            .lean();
 
-        res.status(200).json({
+        if (updatedUserDetails) {
+            delete updatedUserDetails.password;
+            delete updatedUserDetails.token;
+            delete updatedUserDetails.resetPasswordTokenExpires;
+        }
+
+        return res.status(200).json({
             success: true,
             updatedUserDetails,
             message: "Profile updated successfully",
         });
     } catch (error) {
-        console.log("Error while updating profile");
-        console.log(error);
-        res.status(500).json({
+        console.error("Error while updating profile", error);
+        return res.status(500).json({
             success: false,
             error: error.message,
             message: "Error while updating profile",
+        });
+    }
+};
+
+exports.getPublicProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ success: false, message: "User id required" });
+        }
+
+        const userDetails = await User.findById(id)
+            .populate("additionalDetails")
+            .lean();
+
+        if (!userDetails) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isProtected = !!(userDetails.additionalDetails && userDetails.additionalDetails.protectMe);
+
+        if (isProtected) {
+            const minimal = {
+                preferredName: userDetails.preferredName || `${userDetails.firstName || ""} ${userDetails.lastName || ""}`.trim(),
+                accountType: userDetails.accountType || "Student",
+                image: userDetails.image || null,
+            };
+            return res.status(200).json({
+                success: true,
+                data: { isProtected: true, user: minimal },
+                message: "Public profile (protected) fetched successfully",
+            });
+        }
+
+        const publicUser = { ...userDetails };
+        delete publicUser.password;
+        delete publicUser.token;
+        delete publicUser.resetPasswordTokenExpires;
+        delete publicUser.__v;
+
+        return res.status(200).json({
+            success: true,
+            data: { isProtected: false, user: publicUser },
+            message: "Public profile fetched successfully",
+        });
+    } catch (error) {
+        console.error("Error while fetching public profile", error);
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+            message: "Error while fetching public profile",
         });
     }
 };

@@ -27,6 +27,7 @@ const Cart = lazy(() => import("@/pages/main/Cart"));
 const Dashboard = lazy(() => import("@/pages/user/Dashboard"));
 const MyProfile = lazy(() => import("@/pages/user/MyProfile"));
 const Settings = lazy(() => import("@/pages/user/Settings"));
+const PublicProfile = lazy(() => import("@/pages/user/PublicProfile"));
 const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
@@ -50,7 +51,7 @@ export default function AppRoutes() {
         if (profileLoading || !user) return <Loading />;
 
         if (user.accountType === ACCOUNT_TYPE.ADMIN) {
-            return <Navigate to="/dashboard/admin-controls" replace />;
+            return <Navigate to="/dashboard/admin-controls/users" replace />;
         }
         if (user.accountType === ACCOUNT_TYPE.STUDENT) {
             return <Navigate to="/dashboard/student" replace />;
@@ -125,6 +126,7 @@ export default function AppRoutes() {
                 <Route path="/catalog/:catalogId" element={<Catalog />} />
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/profile/public/:id" element={<PublicProfile />} />
             </Route>
 
             {/* UserLayout */}

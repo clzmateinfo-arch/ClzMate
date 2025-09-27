@@ -15,6 +15,7 @@ export const profileEndpoints = {
   GET_USER_DETAILS_API: BASE_URL + "/profile/getUserDetails",
   GET_USER_ENROLLED_COURSES_API: BASE_URL + "/profile/getEnrolledCourses",
   GET_INSTRUCTOR_DATA_API: BASE_URL + "/profile/instructorDashboard",
+  GET_PUBLIC_PROFILE_API: BASE_URL + "/profile/public",
 }
 
 // STUDENTS ENDPOINTS
@@ -22,6 +23,7 @@ export const studentEndpoints = {
   COURSE_PAYMENT_API: BASE_URL + "/payment/capturePayment",
   COURSE_VERIFY_API: BASE_URL + "/payment/verifyPayment",
   SEND_PAYMENT_SUCCESS_EMAIL_API: BASE_URL + "/payment/sendPaymentSuccessEmail",
+  STUDENT_DASHBOARD_API: BASE_URL + "/student/dashboard",
 }
 
 // COURSE ENDPOINTS
@@ -88,4 +90,8 @@ export const adminEndpoints = {
   GET_CATEGORIES: BASE_URL + "/course/showAllCategories",
   UPDATE_CATEGORY: BASE_URL + "/course/updateCategory",
   DELETE_CATEGORY: BASE_URL + "/course/deleteCategory",
+};
+
+export const cartEndpoints = {
+  CART_API: BASE_URL + "/cart",
 };

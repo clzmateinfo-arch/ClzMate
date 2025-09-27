@@ -1,7 +1,7 @@
 import { toast } from "react-hot-toast";
 import { setUser } from "@/entities/user/model/userSlice";
 import { apiConnector } from "@/shared/services/api/apiConnector";
-import { settingsEndpoints } from "@/app/config/apis";
+import { settingsEndpoints, profileEndpoints } from "@/app/config/apis";
 import { logout } from "@/entities/auth/model/authAPI";
 
 const {
@@ -11,112 +11,167 @@ const {
   DELETE_PROFILE_API,
 } = settingsEndpoints;
 
-export function updateUserProfileImage(token, formData) {
-  return async (dispatch) => {
-    const toastId = toast.loading("Loading");
+const {
+  GET_USER_DETAILS_API,
+} = profileEndpoints;
 
+export const fetchUserDetailsApi = async (token) => {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const resp = await apiConnector("GET", GET_USER_DETAILS_API, null, headers);
+    if (!resp?.data?.success) throw new Error(resp?.data?.message || "Failed to get user details");
+    return resp.data.data;
+  } catch (err) {
+    console.error("fetchUserDetailsApi error", err);
+    toast.error(err?.message || "Failed to fetch profile");
+    throw err;
+  }
+};
+
+export function fetchAndSetUserDetails(token: string) {
+  return async (dispatch: any) => {
     try {
-      const response = await apiConnector(
-        "PUT",
-        UPDATE_DISPLAY_PICTURE_API,
-        formData,
-        {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        }
-      );
-      console.log(
-        "UPDATE_DISPLAY_PICTURE_API API RESPONSE............",
-        response
-      );
-
-      if (!response.data.success) {
-        throw new Error(response.data.message);
+      const data = await fetchUserDetailsApi(token);
+      if (data) {
+        const userImage =
+          data?.image ||
+          `https://api.dicebear.com/5.x/initials/svg?seed=${encodeURIComponent(
+            `${data.firstName || ""} ${data.lastName || ""}`.trim()
+          )}`;
+        const payloadToSet = { ...data, image: userImage };
+        dispatch(setUser(payloadToSet));
+        localStorage.setItem("user", JSON.stringify(payloadToSet));
+        return payloadToSet;
       }
-      toast.success("Display Picture Updated Successfully");
-      dispatch(setUser(response.data.data));
-      localStorage.setItem("user", JSON.stringify(response.data.data));
-    } catch (error) {
-      console.log("UPDATE_DISPLAY_PICTURE_API API ERROR............", error);
-      toast.error("Could Not Update Profile Picture");
+      return null;
+    } catch (err) {
+      console.error("fetchAndSetUserDetails error", err);
+      return null;
     }
-    toast.dismiss(toastId);
   };
 }
 
-export function updateProfile(token, formData) {
-  return async (dispatch) => {
-    const toastId = toast.loading("Loading");
+export function updateUserProfileImage(token: string, formData: FormData) {
+  return async (dispatch: any) => {
+    const toastId = toast.loading("Updating profile image...");
     try {
-      const response = await apiConnector("PUT", UPDATE_PROFILE_API, formData, {
+      const response = await apiConnector("PUT", UPDATE_DISPLAY_PICTURE_API, formData, {
         Authorization: `Bearer ${token}`,
       });
-      console.log("UPDATE_PROFILE_API API RESPONSE............", response);
 
-      if (!response.data.success) {
-        throw new Error(response.data.message);
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.message || "Failed to update profile image");
       }
-      const userImage = response.data?.updatedUserDetails?.image
-        ? response.data.updatedUserDetails?.image
-        : `https://api.dicebear.com/5.x/initials/svg?seed=${response.data.updatedUserDetails.firstName} ${response.data.updatedUserDetails.lastName}`;
 
-      dispatch(
-        setUser({ ...response.data.updatedUserDetails, image: userImage })
-      );
+      const updated = response.data.data || response.data.updatedUserDetails || response.data.updatedUser;
+      if (updated) {
+        dispatch(setUser(updated));
+        localStorage.setItem("user", JSON.stringify(updated));
+      }
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          ...response.data.updatedUserDetails,
-          image: userImage,
-        })
-      );
-      toast.success("Profile Updated Successfully");
-    } catch (error) {
-      console.log("UPDATE_PROFILE_API API ERROR............", error);
-      toast.error("Could Not Update Profile");
+      toast.success("Display Picture Updated Successfully");
+      return updated;
+    } catch (error: any) {
+      console.error("UPDATE_DISPLAY_PICTURE_API ERROR", error);
+      toast.error(error?.message || "Could Not Update Profile Picture");
+      return null;
+    } finally {
+      toast.dismiss(toastId);
     }
-    toast.dismiss(toastId);
   };
 }
 
-export async function changePassword(token, formData) {
-  const toastId = toast.loading("Loading");
+export function updateProfile(token: string, payload: any) {
+  return async (dispatch: any) => {
+    const toastId = toast.loading("Updating profile...");
+    try {
+      const response = await apiConnector("PUT", UPDATE_PROFILE_API, payload, {
+        Authorization: `Bearer ${token}`,
+      });
+
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.message || "Failed to update profile");
+      }
+
+      const updatedFromResponse = response.data.updatedUserDetails || response.data.data || response.data.updatedUser;
+
+      let finalUser = updatedFromResponse;
+      if (!finalUser) {
+        try {
+          const fetchRes = await apiConnector("GET", profileEndpoints.GET_USER_DETAILS_API, null, {
+            Authorization: `Bearer ${token}`,
+          });
+          if (fetchRes?.data?.success) {
+            finalUser = fetchRes.data.data;
+          }
+        } catch (e) {
+          console.warn("Failed to re-fetch user details after update", e);
+        }
+      }
+
+      if (finalUser) {
+        const userImage =
+          finalUser?.image ||
+          `https://api.dicebear.com/5.x/initials/svg?seed=${encodeURIComponent(
+            `${finalUser.firstName || ""} ${finalUser.lastName || ""}`.trim()
+          )}`;
+
+        const payloadToSet = { ...finalUser, image: userImage };
+        dispatch(setUser(payloadToSet));
+        localStorage.setItem("user", JSON.stringify(payloadToSet));
+      }
+
+      toast.success("Profile Updated Successfully");
+      return finalUser;
+    } catch (error: any) {
+      console.error("UPDATE_PROFILE_API ERROR", error);
+      toast.error(error?.message || "Could Not Update Profile");
+      return null;
+    } finally {
+      toast.dismiss(toastId);
+    }
+  };
+}
+
+export async function changePassword(token: string, formData: any) {
+  const toastId = toast.loading("Changing password...");
   try {
     const response = await apiConnector("POST", CHANGE_PASSWORD_API, formData, {
       Authorization: `Bearer ${token}`,
     });
-    console.log("CHANGE_PASSWORD_API API RESPONSE............", response);
-
-    if (!response.data.success) {
-      throw new Error(response.data.message);
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message);
     }
     toast.success("Password Changed Successfully");
-  } catch (error) {
-    console.log("CHANGE_PASSWORD_API API ERROR............", error);
-    toast.error(error.response.data.message);
+    return true;
+  } catch (error: any) {
+    console.error("CHANGE_PASSWORD_API ERROR", error);
+    toast.error(error?.response?.data?.message || "Could not change password");
+    return false;
+  } finally {
+    toast.dismiss(toastId);
   }
-  toast.dismiss(toastId);
 }
 
-export function deleteProfile(token, navigate) {
-  return async (dispatch) => {
-    const toastId = toast.loading("Loading");
+export function deleteProfile(token: string, navigate: any) {
+  return async (dispatch: any) => {
+    const toastId = toast.loading("Deleting profile...");
     try {
       const response = await apiConnector("DELETE", DELETE_PROFILE_API, null, {
         Authorization: `Bearer ${token}`,
       });
-      console.log("DELETE_PROFILE_API API RESPONSE............", response);
-
-      if (!response.data.success) {
-        throw new Error(response.data.message);
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.message);
       }
       toast.success("Profile Deleted Successfully");
       dispatch(logout(navigate));
-    } catch (error) {
-      console.log("DELETE_PROFILE_API API ERROR............", error);
+      return true;
+    } catch (error: any) {
+      console.error("DELETE_PROFILE_API ERROR", error);
       toast.error("Could Not Delete Profile");
+      return false;
+    } finally {
+      toast.dismiss(toastId);
     }
-    toast.dismiss(toastId);
   };
 }

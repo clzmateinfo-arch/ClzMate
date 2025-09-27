@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { BsFillCaretRightFill } from "react-icons/bs";
 import { FaShareSquare, FaCheck } from "react-icons/fa";
-import { addToCart } from "@/entities/cart/model/cartSlice";
+import { setCart } from "@/entities/cart/model/cartSlice";
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import Img from "@/shared/components/ui/Img";
 import Button from "@/shared/components/ui/Button";
@@ -79,7 +79,7 @@ export default function CourseDetailsCard({ course, setConfirmationModal, handle
       return;
     }
     if (token) {
-      dispatch(addToCart(course));
+      dispatch(setCart(course));
       toast.success("Added to cart");
       return;
     }
