@@ -217,6 +217,10 @@ function CourseDetails() {
     });
   };
 
+  const onViewProfile = () => {
+    navigate(`/profile/public/${instructor._id}`);
+  };
+
   return (
     <div>
       <div className="relative w-full mt-15">
@@ -262,7 +266,7 @@ function CourseDetails() {
                   handleBuyCourse={handleBuyCourse}
                 />
 
-                <CourseAuthorCard instructor={instructor} />
+                <CourseAuthorCard instructor={instructor} onViewProfile={onViewProfile} />
               </div>
             </aside>
           </div>
