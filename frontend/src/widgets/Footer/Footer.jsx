@@ -39,7 +39,7 @@ const flyColumns = [
       { title: "Customers", link: "/customers" },
       { title: "Support", link: "/docs/support/" },
       { title: "Support Metrics", link: "/support/" },
-      { title: "Status", link: "https://status.flyio.net/" },
+      { title: "Status", link: "https://status.fly.io/" },
     ],
   },
   {
@@ -65,18 +65,22 @@ const isExternal = (u = "") => /^https?:\/\//i.test(u);
 
 function FooterLink({ to, children }) {
   if (!to) return <span className="text-[#aa87e7]">{children}</span>;
+
+  // Use Link for both internal and external as requested.
+  // For external URLs, keep target and rel so they open in a new tab.
   if (isExternal(to)) {
     return (
-      <a
-        href={to}
+      <Link
+        to={to}
         target="_blank"
         rel="noopener noreferrer"
         className="hover:text-violet-400 transition-colors text-[#aa87e7]"
       >
         {children}
-      </a>
+      </Link>
     );
   }
+
   return (
     <Link to={to} className="hover:text-violet-400 transition-colors text-[#aa87e7]">
       {children}
@@ -102,22 +106,23 @@ export default function Footer({
           backgroundRepeat: "repeat",
           backgroundSize: "100px auto",
           maskImage: "radial-gradient(125% 100%, rgba(255,255,255,.025) 25%, rgba(255,255,255,1))",
-          WebkitMaskImage: "radial-gradient(125% 100%, rgba(255,255,255,.025) 25%, rgba(255,255,255,1))",
+          WebkitMaskImage:
+            "radial-gradient(125% 100%, rgba(255,255,255,.025) 25%, rgba(255,255,255,1))",
         }}
       />
 
       <div
         className="w-full"
         style={{
-          background: "linear-gradient(135deg, rgba(17,24,39,0.95) 0%, rgba(10,12,20,0.95) 60%, rgba(7,8,15,0.96) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(17,24,39,0.95) 0%, rgba(10,12,20,0.95) 60%, rgba(7,8,15,0.96) 100%)",
           paddingTop: "3rem",
           paddingBottom: "2rem",
         }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6 lg:pb-12">
           <div className="grid md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
-            <div className="justify-self-start">
-            </div>
+            <div className="justify-self-start">{/* You can place Logo here if needed */}</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
               {columns.map((col, idx) => (
                 <dl key={idx}>
@@ -156,39 +161,41 @@ export default function Footer({
             </div>
 
             <div className="text-center text-xs text-[#575757]">
-              <div className="mb-1 md:mb-0">Made with ❤️ by Xelavon Dev Team &nbsp;&nbsp;&nbsp; Copyright © {new Date().getFullYear()} Up</div>
+              <div className="mb-1 md:mb-0">
+                Made with ❤️ by Xelavon Dev Team &nbsp;&nbsp;&nbsp; Copyright © {new Date().getFullYear()} Up
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <a
-                href="https://www.linkedin.com/in/clzmate-a48800231/"
+              <Link
+                to="https://www.linkedin.com/in/clzmate-a48800231/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white p-2 rounded-full hover:bg-white/6 transition"
                 aria-label="LinkedIn"
               >
                 <ImLinkedin2 size={16} />
-              </a>
+              </Link>
 
-              <a
-                href="https://www.github.com/clzmate"
+              <Link
+                to="https://www.github.com/clzmate"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white p-2 rounded-full hover:bg-white/6 transition"
                 aria-label="GitHub"
               >
                 <ImGithub size={16} />
-              </a>
+              </Link>
 
-              <a
-                href="https://twitter.com/flydotio"
+              <Link
+                to="https://twitter.com/flydotio"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white p-2 rounded-full hover:bg-white/6 transition"
                 aria-label="Twitter"
               >
                 <FaTwitter size={14} />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

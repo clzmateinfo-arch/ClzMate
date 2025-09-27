@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import { Link } from "react-router-dom";
 import * as IconBi from "react-icons/bi";
 import * as IconIo from "react-icons/io5";
 import * as IconHi from "react-icons/hi2";
@@ -85,12 +86,16 @@ const ContactDetails = () => {
                   {ele.heading}
                 </h4>
                 <p className="text-sm text-black mt-1">{ele.description}</p>
-                <a
-                  href={ele.href}
+
+                <Link
+                  to={ele.href}
                   className="mt-2 inline-block text-sm font-medium text-navy-300 underline underline-offset-2 decoration-navy-300/30 hover:text-violet-500 transition truncate"
+                  // keep mailto / tel clickable in new tab behavior when needed
+                  target={ele.href.startsWith("http") ? "_blank" : undefined}
+                  rel={ele.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 >
                   {ele.details}
-                </a>
+                </Link>
               </div>
             </div>
           );
@@ -106,15 +111,15 @@ const ContactDetails = () => {
           {socials.map((s, i) => {
             const Icon = IconFa[s.icon];
             return (
-              <a
+              <Link
                 key={i}
-                href={s.href}
+                to={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-full px-4 py-2 bg-white/6 hover:bg-white/12 transition text-sm font-medium text-black"
               >
                 <Icon size={16} /> {s.label}
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -124,12 +129,12 @@ const ContactDetails = () => {
         <h4 className="text-base font-semibold text-black mb-2">Partnerships & Press</h4>
         <p className="text-sm text-black">
           For collaboration, sponsorship, or press inquiries, email{" "}
-          <a
-            href="mailto:partnerships@clzmate.com"
+          <Link
+            to="mailto:partnerships@clzmate.com"
             className="font-semibold text-black underline underline-offset-2 decoration-navy-300/30 hover:text-violet-600 transition"
           >
             partnerships@clzmate.com
-          </a>
+          </Link>
           .
         </p>
       </div>

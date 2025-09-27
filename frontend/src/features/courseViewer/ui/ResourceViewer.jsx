@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 
 export default function ResourceViewer({
@@ -81,14 +82,14 @@ export default function ResourceViewer({
           >
             <div className="p-6 text-center text-slate-400">
               Preview unavailable —{" "}
-              <a
+              <Link
                 className="text-indigo-400 underline"
-                href={signedUrl || resource.url}
+                to={signedUrl || resource.url}
                 target="_blank"
                 rel="noreferrer"
               >
                 Open file
-              </a>
+              </Link>
             </div>
           </object>
         </div>
@@ -120,14 +121,14 @@ export default function ResourceViewer({
       >
         <div className="p-6 text-center text-slate-400">
           Preview unavailable —{" "}
-          <a
+          <Link
             className="text-indigo-400 underline"
-            href={signedUrl || resource.url}
+            to={signedUrl || resource.url}
             target="_blank"
             rel="noreferrer"
           >
             Open file
-          </a>
+          </Link>
         </div>
       </object>
     );

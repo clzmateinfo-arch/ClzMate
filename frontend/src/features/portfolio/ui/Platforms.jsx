@@ -1,22 +1,23 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 
-const platforms = [
-    { name: "Computing", src: "/shared/assets/images/porfolio/advertisment.png" },
-    { name: "Information Communication Technology", src: "/shared/assets/images/porfolio/advertisment.png" },
-    { name: "Java Script", src: "/shared/assets/images/porfolio/advertisment.png" },
-    { name: "Python", src: "/shared/assets/images/porfolio/advertisment.png" },
-    { name: "Web Development", src: "/shared/assets/images/porfolio/advertisment.png" },
-    { name: "Network Security", src: "/shared/assets/images/porfolio/advertisment.png" },
+const defaultPlatforms = [
+    { name: "Computing", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Information Communication Technology", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Java Script", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Python", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/all" },
+    { name: "Web Development", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/web-all" },
+    { name: "Network Security", src: "/shared/assets/images/porfolio/advertisment.png", href: "/catalog/network-security" },
 ];
 
-export function PlatformsGrid() {
+export function PlatformsGrid({ platforms = defaultPlatforms }) {
     return (
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 lg:gap-5">
             {platforms.map((p) => (
                 <li key={p.name}>
-                    <a
-                        href={p.href ?? "#"}
+                    <Link
+                        to={p.href ?? "#"}
                         className="group h-full grid place-items-center px-4 py-8 rounded-2xl bg-white/6 backdrop-blur-sm hover:scale-105 focus:scale-105 transform transition will-change-transform ring-1 ring-white/6"
                         aria-label={p.name}
                     >
@@ -28,14 +29,14 @@ export function PlatformsGrid() {
                             width="150"
                             height="28"
                         />
-                    </a>
+                    </Link>
                 </li>
             ))}
         </ul>
     );
 };
 
-export function Platforms({ platforms = [] }) {
+export function Platforms({ platforms = defaultPlatforms }) {
     return (
         <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">

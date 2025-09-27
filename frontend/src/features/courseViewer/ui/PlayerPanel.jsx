@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import useKeyboardShortcuts from "@/shared/hooks/useKeyboardShortcuts";
 
@@ -159,9 +160,9 @@ export default function PlayerPanel({
             <object data={url} type="application/pdf" className="w-full h-full">
                 <div className="p-6 text-center text-slate-400">
                     Preview unavailable —{" "}
-                    <a className="text-indigo-400 underline" href={url} target="_blank" rel="noreferrer">
+                    <Link className="text-indigo-400 underline" to={url} target="_blank" rel="noreferrer">
                         Open file
-                    </a>
+                    </Link>
                 </div>
             </object>
         );

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 import { MdOutlineVerified } from "react-icons/md";
+import { Link } from "react-router-dom";
 import Img from "@/shared/components/ui/Img";
 
 export default function CourseAuthorCard({
@@ -17,8 +18,13 @@ export default function CourseAuthorCard({
         socials = {},
     } = instructor || {};
 
+    const profileUrl = socials.linkedin ?? socials.website ?? "#";
+
     return (
-        <aside className={`bg-white rounded-2xl border border-[#efe7ff] shadow-md p-6 mt-8 shadow-md hover:shadow-2xl overflow-hidden ${className}`} aria-label="Course author">
+        <aside
+            className={`bg-white rounded-2xl border border-[#efe7ff] shadow-md p-6 mt-8 shadow-md hover:shadow-2xl overflow-hidden ${className}`}
+            aria-label="Course author"
+        >
             <h3 className="text-lg font-semibold text-[#0b1220]">Author</h3>
 
             <div className="flex items-start gap-4 mt-4">
@@ -32,7 +38,9 @@ export default function CourseAuthorCard({
 
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                        <p className="text-base font-semibold text-[#0b1220] truncate">{preferredName || "Unknown Author"}</p>
+                        <p className="text-base font-semibold text-[#0b1220] truncate">
+                            {preferredName || "Unknown Author"}
+                        </p>
 
                         {isVerified && (
                             <span className="inline-flex items-center text-sm text-sky-600" title="Verified instructor" aria-hidden>
@@ -56,15 +64,13 @@ export default function CourseAuthorCard({
                             View profile
                         </button>
 
-                        <a
-                            href={socials.linkedin ?? socials.website ?? "#"}
-                            target="_blank"
-                            rel="noreferrer"
+                        <Link
+                            to={profileUrl}
                             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/6 text-[#4c1d95] text-sm font-medium hover:bg-white/8 transition"
                             aria-label="Author website or LinkedIn"
                         >
                             Profile
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -8,6 +8,7 @@ import {
   VscSettings,
 } from "react-icons/vsc";
 import { MdOutlinePendingActions ,MdAdminPanelSettings } from "react-icons/md";
+import { BiCategoryAlt } from "react-icons/bi";
 
 export const sidebarLinks = [
   {
@@ -52,11 +53,18 @@ export const sidebarLinks = [
     icon: VscMortarBoard,
   },
   {
-    id: 6,
-    name: "Admin Controls",
-    path: "/dashboard/admin-controls",
+    id: 10,
+    name: "Users",
+    path: "/dashboard/admin-controls/users",
     type: ACCOUNT_TYPE.ADMIN,
     icon: MdAdminPanelSettings,
+  },
+  {
+    id: 11,
+    name: "Categories",
+    path: "/dashboard/admin-controls/categories",
+    type: ACCOUNT_TYPE.ADMIN,
+    icon: BiCategoryAlt,
   },
   {
     id: 7,

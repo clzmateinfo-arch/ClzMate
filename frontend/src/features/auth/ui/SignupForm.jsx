@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { register } from "@/entities/auth/model/authAPI";
 import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
 import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
@@ -38,7 +38,12 @@ export default function SignupForm() {
     }
     if (hasError) return;
 
-    dispatch(register({ preferredName, firstName: '', lastName: '', email, password, confirmPassword, contactNumber: '', accountType, otp: 0 }, navigate));
+    dispatch(
+      register(
+        { preferredName, firstName: "", lastName: "", email, password, confirmPassword, contactNumber: "", accountType, otp: 0 },
+        navigate
+      )
+    );
   };
 
   const roleOptions = Object.values(ACCOUNT_TYPE_PUBLIC || {});
@@ -46,23 +51,25 @@ export default function SignupForm() {
   return (
     <>
       <div className="flex flex-col sm:flex-row gap-2">
-        <SocialAuthButton
-          href="/app/auth/facebook?state=phoenix"
-          logo={fbLogo}
-          label="Continue with Facebook"
-          theme="facebook"
-          className="justify-center"
-          ariaLabel="Continue with Facebook"
-        />
+        <Link to="/app/auth/facebook?state=phoenix" aria-label="Continue with Facebook" className="w-full">
+          <SocialAuthButton
+            logo={fbLogo}
+            label="Continue with Facebook"
+            theme="facebook"
+            className="justify-center"
+            ariaLabel="Continue with Facebook"
+          />
+        </Link>
 
-        <SocialAuthButton
-          href="/app/auth/google?state=phoenix"
-          logo={googleLogo}
-          label="Continue with Google"
-          theme="google"
-          className="justify-center"
-          ariaLabel="Continue with Google"
-        />
+        <Link to="/app/auth/google?state=phoenix" aria-label="Continue with Google" className="w-full">
+          <SocialAuthButton
+            logo={googleLogo}
+            label="Continue with Google"
+            theme="google"
+            className="justify-center"
+            ariaLabel="Continue with Google"
+          />
+        </Link>
       </div>
 
       <div className="relative my-2 mt-5 mb-5">
@@ -157,28 +164,28 @@ export default function SignupForm() {
 
         <div className="text-center text-sm mt-2">
           <span>Creating an account means you agree to our </span>
-          <a
+          <Link
             className="text-navy underline underline-offset-2 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
-            href="/legal/terms-of-service/"
+            to="/legal/terms-of-service/"
             target="_blank"
             rel="noreferrer"
           >
             terms
-          </a>
+          </Link>
           <span> and </span>
-          <a
+          <Link
             className="text-navy underline underline-offset-2 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
-            href="/legal/privacy-policy/"
+            to="/legal/privacy-policy/"
             target="_blank"
             rel="noreferrer"
           >
             privacy policy
-          </a>
+          </Link>
         </div>
 
-        <a href="/login" className="block text-center text-sm text-violet-600 mt-2">
+        <Link to="/login" className="block text-center text-sm text-violet-600 mt-2">
           Already have an account?
-        </a>
+        </Link>
       </form>
     </>
   );

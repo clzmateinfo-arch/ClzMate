@@ -139,7 +139,7 @@ export default function InstructorCourseSlider({ searchTerm = "", pageSize = 10 
                                     </div>
                                 </div>
 
-                                <div className="w-full sm:flex-1 px-1 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="w-full sm:flex-1 px-1 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center justify-end gap-3">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 w-full sm:w-auto">
                                         <div className="min-w-[120px]">
                                             {course.requiresApproval && (
