@@ -34,7 +34,7 @@ const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
 
 const EditCourse = lazy(() => import("@/pages/course/EditCourse"));
 const AddCourse = lazy(() => import("@/pages/course/AddCourse"));
-const UserCourses = lazy(() => import("@/pages/course/UserCourses"));
+const InstructorCourses = lazy(() => import("@/pages/course/InstructorCourses"));
 const ViewCourse = lazy(() => import("@/pages/course/ViewCourse"));
 
 const EnrollmentRequests = lazy(() => import("@/pages/user/EnrollmentRequests"));
@@ -152,7 +152,7 @@ export default function AppRoutes() {
                         <>
                             <Route path="instructor" element={<InstructorDashboard />} />
                             <Route path="add-course" element={<AddCourse />} />
-                            <Route path="my-courses" element={<UserCourses />} />
+                            <Route path="my-courses" element={<InstructorCourses />} />
                             <Route path="edit-course/:courseId" element={<EditCourse />} />
                             <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
                         </>

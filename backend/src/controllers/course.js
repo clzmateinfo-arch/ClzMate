@@ -147,6 +147,8 @@ exports.getAllCourses = async (req, res) => {
 
         const match = {};
 
+        match.status = "Published";
+
         const cat = categoryId || category;
         if (cat) {
             if (mongoose.Types.ObjectId.isValid(cat)) {

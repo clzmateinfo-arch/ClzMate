@@ -135,7 +135,7 @@ export default function InstructorCourseSlider({
                                     <div className="min-w-0">
                                         <h3 className="text-sm font-medium text-black line-clamp-1">{safe(course.courseName, "Untitled course")}</h3>
                                         <p className="text-xs text-richblack-600 mt-1 line-clamp-2">{safe(course.courseDescription, "")}</p>
-                                        <div className="text-sm font-semibold text-black">{course.published ? "Published" : "Draft"}</div>
+                                        <div className="text-sm font-semibold text-black">{course.status}</div>
                                         <div className="text-xs text-richblack-500">{(course.studentsEnrolled?.length ?? 0) + " students"}</div>
                                     </div>
                                 </div>
