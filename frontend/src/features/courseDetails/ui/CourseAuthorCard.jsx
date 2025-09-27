@@ -63,14 +63,6 @@ export default function CourseAuthorCard({
                         >
                             View profile
                         </button>
-
-                        <Link
-                            to={profileUrl}
-                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/6 text-[#4c1d95] text-sm font-medium hover:bg-white/8 transition"
-                            aria-label="Author website or LinkedIn"
-                        >
-                            Profile
-                        </Link>
                     </div>
                 </div>
             </div>

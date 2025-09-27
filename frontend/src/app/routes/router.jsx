@@ -27,6 +27,7 @@ const Cart = lazy(() => import("@/pages/main/Cart"));
 const Dashboard = lazy(() => import("@/pages/user/Dashboard"));
 const MyProfile = lazy(() => import("@/pages/user/MyProfile"));
 const Settings = lazy(() => import("@/pages/user/Settings"));
+const PublicProfile = lazy(() => import("@/pages/user/PublicProfile"));
 const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
@@ -125,6 +126,7 @@ export default function AppRoutes() {
                 <Route path="/catalog/:catalogId" element={<Catalog />} />
                 <Route path="/courses/:courseId" element={<CourseDetails />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/profile/public/:id" element={<PublicProfile />} />
             </Route>
 
             {/* UserLayout */}
