@@ -34,12 +34,12 @@ export default function CourseSubSectionAccordion({ subSec = {} }) {
         {showPreview ? (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
             <FaVideo className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Preview</span>
+            <span className="whitespace-nowrap">Prev</span>
           </div>
         ) : showLocked ? (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
             <FaFileVideo className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Doc + Preview</span>
+            <span className="whitespace-nowrap">Doc + Prev</span>
           </div>
         ) : (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
