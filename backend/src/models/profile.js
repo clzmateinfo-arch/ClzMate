@@ -1,4 +1,3 @@
-// backend/src/models/profile.js
 const mongoose = require("mongoose");
 
 const profileSchema = new mongoose.Schema({

@@ -7,12 +7,13 @@ import {
   VscMortarBoard,
   VscSettings,
 } from "react-icons/vsc";
-import { MdOutlinePendingActions ,MdAdminPanelSettings } from "react-icons/md";
+import { MdOutlinePendingActions, MdAdminPanelSettings } from "react-icons/md";
 import { BiCategoryAlt } from "react-icons/bi";
+import { SiGoogleclassroom } from "react-icons/si";
 
 export const sidebarLinks = [
   {
-    id: 2,
+    id: 1,
     name: "Dashboard",
     path: "/dashboard/instructor",
     type: ACCOUNT_TYPE.INSTRUCTOR,
@@ -51,6 +52,20 @@ export const sidebarLinks = [
     path: "/dashboard/enrolled-courses",
     type: ACCOUNT_TYPE.STUDENT,
     icon: VscMortarBoard,
+  },
+  {
+    id: 4,
+    name: "Classrooms",
+    path: "/dashboard/classrooms",
+    type: ACCOUNT_TYPE.INSTRUCTOR,
+    icon: SiGoogleclassroom,
+  },
+  {
+    id: 4,
+    name: "My Classroom",
+    path: "/dashboard/my-classrooms",
+    type: ACCOUNT_TYPE.STUDENT,
+    icon: SiGoogleclassroom,
   },
   {
     id: 10,

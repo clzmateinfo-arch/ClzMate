@@ -1,7 +1,7 @@
-const User = require("../models/user");
-const Course = require("../models/course");
-const RatingAndReview = require("../models/ratingAndReview");
 const mongoose = require("mongoose");
+const User = require("../models/User");
+const Course = require("../models/Course");
+const RatingAndReview = require("../models/RatingAndReview");
 
 exports.createRating = async (req, res) => {
     try {

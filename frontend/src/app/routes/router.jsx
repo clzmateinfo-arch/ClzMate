@@ -1,12 +1,14 @@
 import React, { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 import OpenRoute from "@/features/auth/ui/OpenRoute";
 import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
 import MainLayout from "@/app/layouts/MainLayout";
 import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
 import CourseLayout from "@/app/layouts/CourseLayout";
+
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import StudentDashboard from "../../pages/user/StudentDashboard";
 import Loading from "@/shared/components/navigation/Loading";
@@ -44,6 +46,9 @@ const EnrollmentRequests = lazy(() => import("@/pages/user/EnrollmentRequests"))
 const PageNotFound = lazy(() => import("@/pages/common/PageNotFound"));
 const PendingEnrollments = lazy(() => import("@/pages/user/PendingEnrollments"));
 
+const InstructorClassrooms = lazy(() => import("@/pages/classroom/InstructorClassrooms"));
+const StudentClassrooms = lazy(() => import("@/pages/classroom/StudentClassrooms"));
+
 export default function AppRoutes() {
     const { user, loading: profileLoading } = useSelector((state) => state.profile);
 
@@ -62,64 +67,19 @@ export default function AppRoutes() {
         return <Navigate to="/dashboard/student" replace />;
     };
 
-    // const RedirectToAuth = () => {
-    //     return <Navigate to="/login" replace />;
-    // };
-
-    // const RedirectToMain = () => {
-    //     return <Navigate to="/" replace />;
-    // };
-
     return (
         <Routes>
             {/* Auth */}
             <Route element={<AuthLayout />}>
-                {/* <Route index element={<RedirectToAuth />} /> */}
-                <Route
-                    path="/signup"
-                    element={
-                        <OpenRoute>
-                            <SignUp />
-                        </OpenRoute>
-                    }
-                />
-                <Route
-                    path="/login"
-                    element={
-                        <OpenRoute>
-                            <SignIn />
-                        </OpenRoute>
-                    }
-                />
-                <Route
-                    path="/forgot-password"
-                    element={
-                        <OpenRoute>
-                            <ForgotPassword />
-                        </OpenRoute>
-                    }
-                />
-                <Route
-                    path="/verify-email"
-                    element={
-                        <OpenRoute>
-                            <VerifyEmail />
-                        </OpenRoute>
-                    }
-                />
-                <Route
-                    path="/update-password/:id"
-                    element={
-                        <ProtectedRoute>
-                            <UpdatePassword />
-                        </ProtectedRoute>
-                    }
-                />
+                <Route path="/signup" element={<OpenRoute><SignUp /></OpenRoute>} />
+                <Route path="/login" element={<OpenRoute><SignIn /></OpenRoute>} />
+                <Route path="/forgot-password" element={<OpenRoute><ForgotPassword /></OpenRoute>} />
+                <Route path="/verify-email" element={<OpenRoute><VerifyEmail /></OpenRoute>} />
+                <Route path="/update-password/:id" element={<ProtectedRoute><UpdatePassword /></ProtectedRoute>} />
             </Route>
 
             {/* MainLayout */}
             <Route element={<MainLayout />}>
-                {/* <Route index element={<RedirectToMain />} /> */}
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
@@ -149,6 +109,7 @@ export default function AppRoutes() {
                             <Route path="student" element={<StudentDashboard />} />
                             <Route path="enrolled-courses" element={<EnrolledCourses />} />
                             <Route path="enrollments/pending" element={<PendingEnrollments />} />
+                            <Route path="my-classrooms" element={<StudentClassrooms />} />
                         </>
                     )}
 
@@ -159,6 +120,7 @@ export default function AppRoutes() {
                             <Route path="my-courses" element={<InstructorCourses />} />
                             <Route path="edit-course/:courseId" element={<EditCourse />} />
                             <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
+                            <Route path="classrooms" element={<InstructorClassrooms />} />
                         </>
                     )}
                 </Route>

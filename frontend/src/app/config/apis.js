@@ -100,3 +100,9 @@ export const adminEndpoints = {
 export const cartEndpoints = {
   CART_API: BASE_URL + "/cart",
 };
+
+export const classroomEndpoints = {
+  CREATE_CLASSROOM_API: BASE_URL + "/classroom/create",
+  GET_MY_CLASSROOMS_API: BASE_URL + "/classroom/my",
+  JOIN_CLASSROOM_API: BASE_URL + "/classroom/join",
+};
