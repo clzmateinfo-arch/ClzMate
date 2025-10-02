@@ -37,10 +37,10 @@ export default function StatsComponenet() {
         if (res?.data?.success && res.data.data) {
           const d = res.data.data;
           const mapped = [
-            { count: d.totalStudents != null ? String(d.totalStudents) : "—", label: "Active students" },
-            { count: d.mentors != null ? String(d.mentors) : "—", label: "Mentors" },
-            { count: d.courses != null ? String(d.courses) : "—", label: "Courses" },
-            { count: d.awards != null ? String(d.awards) : "—", label: "Compltions" },
+            { count: d.totalStudents != null ? String(d.totalStudents) : " ", label: "Active students" },
+            { count: d.mentors != null ? String(d.mentors) : " ", label: "Mentors" },
+            { count: d.courses != null ? String(d.courses) : " ", label: "Courses" },
+            { count: d.awards != null ? String(d.awards) : " ", label: "Compltions" },
           ];
           setStats(mapped);
         } else {
@@ -48,7 +48,7 @@ export default function StatsComponenet() {
         }
       } catch (err) {
         console.error("Failed to load stats", err);
-        toast.error("Could not load site stats — showing defaults");
+        toast.error("Could not load site stats   showing defaults");
         setStats(FALLBACK);
       } finally {
         if (mounted) setLoading(false);

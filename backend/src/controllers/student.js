@@ -17,7 +17,7 @@ exports.getStudentDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Load user (optional — useful if you store payments)
+        // Load user (optional   useful if you store payments)
         const user = await User.findById(userId).lean();
 
         // Find all courses where the student is enrolled

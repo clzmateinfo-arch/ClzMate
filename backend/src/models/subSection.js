@@ -20,6 +20,7 @@ const subSectionSchema = new mongoose.Schema(
             type: [supportMaterialSchema],
             default: [],
         },
+        externalVideoUrl: { type: String, default: null },
 
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date },

@@ -11,6 +11,7 @@ import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
 import Textarea from "../../../../shared/components/ui/Textarea";
+import ExternalVideo from "@/shared/components/ui/ExternalVideo";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false, disabled = false }) {
   const { register, control, handleSubmit, setValue, reset, formState: { errors }, getValues, watch } = useForm({
@@ -19,6 +20,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
       lectureDesc: "",
       lectureVideo: null,
       lecturePdf: null,
+      lectureExternalUrl: "",
       supportMaterials: { existing: [], new: [], remove: [] },
     },
   });
@@ -54,6 +56,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         lectureDesc: modalData?.description ?? "",
         lectureVideo: null,
         lecturePdf: null,
+        lectureExternalUrl: modalData?.externalVideoUrl ?? "",
         supportMaterials: {
           existing: normalizeSupportForForm(modalData?.supportMaterials),
           new: [],
@@ -98,6 +101,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         lectureDesc: "",
         lectureVideo: null,
         lecturePdf: null,
+        lectureExternalUrl: "",
         supportMaterials: { existing: [], new: [], remove: [] },
       });
     }
@@ -108,6 +112,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
 
     const origVideo = modalData?.videoUrl ?? null;
     const origPdf = modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null;
+    const origExternal = modalData?.externalVideoUrl ?? null;
 
     if ((current.lectureTitle ?? "") !== (modalData?.title ?? "")) return true;
     if ((current.lectureDesc ?? "") !== (modalData?.description ?? "")) return true;
@@ -119,6 +124,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     const curPdf = current.lecturePdf;
     if (curPdf && typeof curPdf !== "string") return true;
     if ((curPdf ?? null) !== (origPdf ?? null)) return true;
+
+    const curExternal = (current.lectureExternalUrl ?? null);
+    if ((curExternal ?? null) !== (origExternal ?? null)) return true;
 
     const support = current.supportMaterials ?? { existing: [], new: [], remove: [] };
     const newFiles = Array.isArray(support.new) ? support.new : [];
@@ -189,8 +197,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
   const handleEditSubsection = async () => {
     const currentValues = getValues();
 
-    if (!currentValues.lectureVideo && !currentValues.lecturePdf) {
-      toast.error("Please upload either a video (MP4) or a PDF before saving.");
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
+      toast.error("Please upload either a video (MP4), a PDF, or provide an external video URL before saving.");
       return;
     }
 
@@ -205,6 +213,13 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
     if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
       formData.append("pdf", currentValues.lecturePdf);
+    }
+
+    const lectureExternal = currentValues.lectureExternalUrl ?? null;
+    if (lectureExternal && typeof lectureExternal === "string" && lectureExternal.trim()) {
+      formData.append("externalVideoUrl", lectureExternal.trim());
+    } else {
+      formData.append("externalVideoUrl", "");
     }
 
     const support = currentValues.supportMaterials ?? { existing: [], new: [], remove: [] };
@@ -238,8 +253,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     if (view) return;
 
     const currentValues = getValues();
-    if (!currentValues.lectureVideo && !currentValues.lecturePdf) {
-      toast.error("Please upload either a video (MP4) or a PDF.");
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
+      toast.error("Please upload either a video (MP4), a PDF, or provide an external video URL.");
       return;
     }
 
@@ -262,6 +277,11 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
     if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
       formData.append("pdf", currentValues.lecturePdf);
+    }
+
+    const lectureExternal = currentValues.lectureExternalUrl ?? null;
+    if (lectureExternal && typeof lectureExternal === "string" && lectureExternal.trim()) {
+      formData.append("externalVideoUrl", lectureExternal.trim());
     }
 
     const support = currentValues.supportMaterials ?? { existing: [], new: [], remove: [] };
@@ -288,6 +308,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
 
   const watchedVideo = watch("lectureVideo");
   const watchedPdf = watch("lecturePdf");
+  const watchedExternal = watch("lectureExternalUrl");
 
   return (
     <div className="fixed inset-0 z-[1000] grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -300,6 +321,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+
           <div className="my-3">
             <Upload
               name="lectureVideo"
@@ -330,6 +352,33 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               previewHeight={320}
               disabled={view}
             />
+          </div>
+
+          <div className="my-3">
+            <Controller
+              name="lectureExternalUrl"
+              control={control}
+              rules={{ required: !view }}
+              render={({ field }) => (
+                <Input
+                  id="lectureExternalUrl"
+                  label="Public Video Url (YouTube, Vimeo, etc.)"
+                  placeholder="Enter External Video Url If Any"
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  error={errors.lectureExternalUrl?.message}
+                  disabled={view || loading}
+                />
+              )}
+            />
+            {watchedExternal && (
+              <div className="mt-3">
+                <div className="w-full rounded-xl overflow-hidden border">
+                  <ExternalVideo url={getValues().lectureExternalUrl} height={320} />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="my-3">

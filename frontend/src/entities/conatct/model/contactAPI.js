@@ -27,7 +27,7 @@ export async function submitContact(payload) {
             throw new Error(response?.data?.message || "Failed to send message");
         }
 
-        toast.success(response.data.message || "Message sent — we'll reply shortly.");
+        toast.success(response.data.message || "Message sent   we'll reply shortly.");
         showToast("Message sent, we'll reply shortly", "success");
         return response.data;
     } catch (error) {

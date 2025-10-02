@@ -2,22 +2,40 @@ export function generateLayout({
     features = { sandboxEnabled: false, notesEnabled: true },
     currentSub = null,
     sectionWidth = 15,
+}: {
+    features?: { sandboxEnabled?: boolean; notesEnabled?: boolean };
+    currentSub?: any;
+    sectionWidth?: number;
 }) {
-    // helpers
-    const hasPdf = !!(currentSub && Array.isArray(currentSub.supportMaterials) &&
-        currentSub.supportMaterials.find(s => (s.mimeType || "").toLowerCase() === "application/pdf" || s.isMainPdf || (s.originalName || "").toLowerCase().endsWith(".pdf")));
-    const hasVideo = !!(currentSub && Array.isArray(currentSub.supportMaterials) &&
-        currentSub.supportMaterials.find(s => s.isMainVideo || (s.resourceType || "").startsWith("video") || (s.mimeType || "").startsWith("video")));
-    const panels = [];
+    const hasPdf = !!(currentSub &&
+        Array.isArray(currentSub.supportMaterials) &&
+        currentSub.supportMaterials.find(
+            (s: any) =>
+                (s.mimeType || "").toLowerCase() === "application/pdf" ||
+                !!s.isMainPdf ||
+                (s.originalName || "").toLowerCase().endsWith(".pdf")
+        ));
+    const hasVideo = !!(currentSub &&
+        Array.isArray(currentSub.supportMaterials) &&
+        currentSub.supportMaterials.find(
+            (s: any) =>
+                !!s.isMainVideo ||
+                (s.resourceType || "").startsWith("video") ||
+                (s.mimeType || "").startsWith("video")
+        ));
+    const hasExternal = !!(currentSub && (currentSub.externalVideoUrl || "").toString().trim());
 
+    const panels: Array<{ id: string; type?: string }> = [];
+
+    if (hasExternal) panels.push({ id: "external", type: "external" });
     if (hasVideo) panels.push({ id: "video", type: "video" });
     if (hasPdf) panels.push({ id: "pdf", type: "pdf" });
     if (features.notesEnabled) panels.push({ id: "notes", type: "notes" });
     panels.push({ id: "support", type: "support" });
     if (features.sandboxEnabled) panels.push({ id: "sandbox", type: "sandbox" });
 
-    const panelIdsSeen = new Set();
-    const uniqPanels = [];
+    const panelIdsSeen = new Set<string>();
+    const uniqPanels: Array<{ id: string; type?: string }> = [];
     for (const p of panels) {
         if (!panelIdsSeen.has(p.id)) {
             panelIdsSeen.add(p.id);
@@ -26,7 +44,7 @@ export function generateLayout({
     }
 
     const contentWidth = Math.max(0, 100 - sectionWidth);
-    const out = [];
+    const out: Array<any> = [];
 
     out.push({
         id: "section",
@@ -39,13 +57,13 @@ export function generateLayout({
 
     const pcount = uniqPanels.length;
 
-    const addTile = (id, relTop, relLeft, relW, relH, title, type) => {
+    const addTile = (id: string, relTop: number, relLeft: number, relW: number, relH: number, title?: string, type?: string) => {
         out.push({
             id,
             title: title || id.charAt(0).toUpperCase() + id.slice(1),
             type: type || id,
-            top: relTop * 100 / 100,
-            left: sectionWidth + relLeft * contentWidth / 100,
+            top: (relTop * 100) / 100,
+            left: sectionWidth + (relLeft * contentWidth) / 100,
             width: (relW * contentWidth) / 100,
             height: relH,
             visible: true,
@@ -54,7 +72,6 @@ export function generateLayout({
     };
 
     if (pcount === 0) {
-        // nothing else
         return out;
     }
 
@@ -64,7 +81,7 @@ export function generateLayout({
     }
 
     if (pcount === 2) {
-        const topH = (uniqPanels[0].type === "video") ? 60 : 50;
+        const topH = (uniqPanels[0].type === "video" || uniqPanels[0].type === "external") ? 60 : 50;
         addTile(uniqPanels[0].id, 0, 0, 100, topH);
         addTile(uniqPanels[1].id, topH, 0, 100, 100 - topH);
         return out;

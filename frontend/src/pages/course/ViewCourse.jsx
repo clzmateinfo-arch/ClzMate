@@ -5,6 +5,7 @@ import NotePanel from "../../features/courseViewer/ui/NotePanel";
 import SandboxPanel from "../../features/courseViewer/ui/SandboxPanel";
 import SupportFilesPanel from "../../features/courseViewer/ui/SupportFilesPanel";
 import SectionSidebar from "../../features/courseViewer/ui/SectionSidebar";
+import ExternalVideo from "../../shared/components/ui/ExternalVideo";
 import Box from "../../features/courseViewer/ui/Box";
 import Whiteboard from "../../features/courseViewer/ui/Whiteboard";
 import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
@@ -13,10 +14,10 @@ import {
   setEntireCourseData,
   setCompletedLectures,
   setTotalNoOfLectures,
+  setDrawMode,
 } from "../../entities/course/model/courseSlice";
 import ResourceViewer from "../../features/courseViewer/ui/ResourceViewer";
 import { generateLayout } from "../../shared/utils/generateLayout";
-import { setDrawMode } from "../../entities/course/model/courseSlice";
 
 const DEFAULT_SECTION_WIDTH = 15;
 
@@ -85,6 +86,16 @@ export default function ViewCourse() {
           z: 300,
           component: SectionSidebar,
           componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
+        };
+      }
+
+      if (tile.id === "external") {
+        return {
+          ...tile,
+          visible: true,
+          z: 210,
+          component: ExternalVideo,
+          componentProps: { url: currentSub?.externalVideoUrl ?? null },
         };
       }
 
@@ -281,12 +292,12 @@ export default function ViewCourse() {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "d" || e.key === "D") {
-        setDrawMode((v) => !v);
+        dispatch(setDrawMode(!drawMode));
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [dispatch, drawMode]);
 
   return (
     <div className="w-screen h-screen bg-slate-900 text-white relative overflow-hidden">

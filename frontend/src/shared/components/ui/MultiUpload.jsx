@@ -91,7 +91,7 @@ export default function MultiUpload({
         const allowed = added.filter(isAllowed);
         const rejected = added.length - allowed.length;
         if (rejected > 0) {
-            window.alert("Some files were rejected — only images, videos, PDF and ZIP files are allowed.");
+            window.alert("Some files were rejected   only images, videos, PDF and ZIP files are allowed.");
         }
 
         if (!allowed.length) return;
