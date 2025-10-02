@@ -27,7 +27,7 @@
     "start:prod": "cross-env NODE_ENV=production node server.js",
     "start:dev": "cross-env NODE_ENV=development node server.js",
     "start:render": "node server.js",
-    "dev": "cross-env NODE_ENV=development server.js --watch",
+    "dev": "cross-env NODE_ENV=development node server.js --watch",
     "prod": "nodemon server.js --watch",
     "build": "node scripts/build.js",
     "build:render": "",

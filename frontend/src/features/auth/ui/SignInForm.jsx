@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "@/entities/auth/model/authAPI";
 import fbLogo from "@/shared/assets/images/social_media/facebook-logo.png";
 import googleLogo from "@/shared/assets/images/social_media/google-logo.png";
@@ -68,7 +68,6 @@ export default function SignInForm() {
         />
 
         <div>
-
           <Input
             label="Password"
             id="password"
@@ -83,39 +82,50 @@ export default function SignInForm() {
             inputClass="mt-2 mb-5 p-2.5"
           />
 
-          <a href="/forgot-password" className="text-violet-600 hover:text-violet-700 text-sm transition-colors inline-block mt-0 mb-5">
+          <Link
+            to="/forgot-password"
+            className="text-violet-600 hover:text-violet-700 text-sm transition-colors inline-block mt-0 mb-5"
+          >
             Forgotten password?
-          </a>
+          </Link>
         </div>
 
-        <Button type="submit" classes="w-full" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}>
+        <Button
+          type="submit"
+          className="w-full"
+          style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={true}
+        >
           Sign In
         </Button>
 
         <div className="text-center text-sm mt-5">
           <span>By signing in you agree to our </span>
-          <a
+          <Link
             className="text-navy underline underline-offset-2 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
-            href="/legal/terms-of-service/"
+            to="/legal/terms-of-service/"
             target="_blank"
             rel="noreferrer"
           >
             terms of service
-          </a>
+          </Link>
           <span> and </span>
-          <a
+          <Link
             className="text-navy underline underline-offset-2 decoration-1 decoration-navy-300 hover:text-violet-600 transition-all"
-            href="/legal/privacy-policy/"
+            to="/legal/privacy-policy/"
             target="_blank"
             rel="noreferrer"
           >
             privacy policy
-          </a>
+          </Link>
         </div>
 
-        <a href="/signup" className="btn btn-link w-full block text-center text-sm text-violet-600 mt-2">
+        <Link
+          to="/signup"
+          className="btn btn-link w-full block text-center text-sm text-violet-600 mt-2"
+        >
           Need an Account?
-        </a>
+        </Link>
       </form>
     </>
   );

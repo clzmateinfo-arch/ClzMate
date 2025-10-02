@@ -1,14 +1,18 @@
+const mongoose = require("mongoose");
 const Course = require("../models/course");
 const User = require("../models/user");
 const Category = require("../models/category");
 const Section = require("../models/section");
 const SubSection = require("../models/subSection");
 const CourseProgress = require("../models/courseProgress");
+const Note = require("../models/note");
 const {
-    uploadImageToCloudinary,
+    uploadFileToCloudinary,
     deleteResourceFromCloudinary,
-} = require("../utils/imageUploader");
+} = require("../utils/fileUploader");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
+const mailSender = require("../utils/mailSender");
+const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEmail");
 
 exports.createCourse = async (req, res) => {
     try {
@@ -21,7 +25,18 @@ exports.createCourse = async (req, res) => {
             instructions: _instructions,
             status,
             tag: _tag,
+            features: _features
         } = req.body;
+
+        let features = { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
+        try {
+            if (_features) {
+                if (typeof _features === "string") features = JSON.parse(_features);
+                else features = _features;
+            }
+        } catch (e) {
+            console.log("set default features");
+        }
 
         const tag = JSON.parse(_tag);
         const instructions = JSON.parse(_instructions);
@@ -56,10 +71,11 @@ exports.createCourse = async (req, res) => {
             });
         }
 
-        const thumbnailDetails = await uploadImageToCloudinary(
+        const thumbnailDetails = await uploadFileToCloudinary(
             thumbnail,
             process.env.FOLDER_NAME
         );
+
         const newCourse = await Course.create({
             courseName,
             courseDescription,
@@ -70,6 +86,7 @@ exports.createCourse = async (req, res) => {
             tag,
             status,
             instructions,
+            features,
             thumbnail: thumbnailDetails.secure_url,
             createdAt: Date.now(),
         });
@@ -112,36 +129,179 @@ exports.createCourse = async (req, res) => {
 
 exports.getAllCourses = async (req, res) => {
     try {
-        const allCourses = await Course.find(
-            {},
-            {
-                courseName: true,
-                courseDescription: true,
-                price: true,
-                thumbnail: true,
-                instructor: true,
-                ratingAndReviews: true,
-                studentsEnrolled: true,
+        const {
+            categoryId,
+            category,
+            page = "1",
+            limit = "10",
+            search = "",
+            price = "all",
+            level = "all",
+            sort = "newest",
+            instructorId,
+        } = req.query;
+
+        const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+        const lim = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+        const skip = (pageNum - 1) * lim;
+
+        const match = {};
+
+        match.status = "Published";
+
+        const cat = categoryId || category;
+        if (cat) {
+            if (mongoose.Types.ObjectId.isValid(cat)) {
+                match.category = new mongoose.Types.ObjectId(cat);
+            } else {
+                match.category = cat;
             }
-        )
+        }
+
+        if (instructorId && mongoose.Types.ObjectId.isValid(instructorId)) {
+            match.instructor = new mongoose.Types.ObjectId(instructorId);
+        }
+
+        if (price === "free") match.price = 0;
+        else if (price === "paid") match.price = { $gt: 0 };
+
+        if (level && level !== "all") {
+            match.level = level;
+        }
+
+        if (search.trim()) {
+            match.$or = [
+                { courseName: { $regex: search, $options: "i" } },
+                { courseDescription: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const total = await Course.countDocuments(match);
+
+        let sortOption = { createdAt: -1 };
+        if (sort === "oldest") sortOption = { createdAt: 1 };
+        else if (sort === "price_asc") sortOption = { price: 1 };
+        else if (sort === "price_desc") sortOption = { price: -1 };
+
+        if (sort === "popular" || sort === "students_desc" || sort === "students_asc") {
+            const direction = sort === "students_asc" ? 1 : -1;
+
+            const pipeline = [
+                { $match: match },
+                {
+                    $addFields: {
+                        enrolledCount: {
+                            $cond: {
+                                if: { $isArray: "$studentsEnrolled" },
+                                then: { $size: "$studentsEnrolled" },
+                                else: { $ifNull: ["$studentsEnrolled", 0] }
+                            }
+                        }
+                    }
+                },
+                { $sort: { enrolledCount: direction, createdAt: -1 } },
+                { $skip: skip },
+                { $limit: lim },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "instructor",
+                        foreignField: "_id",
+                        as: "instructor"
+                    }
+                },
+                { $unwind: { path: "$instructor", preserveNullAndEmptyArrays: true } },
+                {
+                    $lookup: {
+                        from: "categories",
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
+                { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+                {
+                    $project: {
+                        courseName: 1,
+                        courseDescription: 1,
+                        price: 1,
+                        thumbnail: 1,
+                        level: 1,
+                        createdAt: 1,
+                        enrolledCount: 1,
+                        studentsEnrolled: 1,
+                        ratingAndReviews: 1,
+                        instructor: {
+                            firstName: "$instructor.firstName",
+                            lastName: "$instructor.lastName",
+                            email: "$instructor.email",
+                            image: "$instructor.image"
+                        },
+                        category: {
+                            _id: "$category._id",
+                            name: "$category.name"
+                        }
+                    }
+                }
+            ];
+
+            const courses = await Course.aggregate(pipeline).exec();
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    courses,
+                    total,
+                    page: pageNum,
+                    limit: lim,
+                    totalPages: Math.ceil(total / lim),
+                },
+                message: "Data for courses fetched successfully with category details",
+            });
+        }
+
+        const courses = await Course.find(match, {
+            courseName: 1,
+            courseDescription: 1,
+            price: 1,
+            thumbnail: 1,
+            instructor: 1,
+            ratingAndReviews: 1,
+            studentsEnrolled: 1,
+            level: 1,
+            category: 1,
+            createdAt: 1,
+        })
             .populate({
                 path: "instructor",
                 select: "firstName lastName email image",
             })
+            .populate({
+                path: "category",
+                select: "name",
+            })
+            .sort(sortOption)
+            .skip(skip)
+            .limit(lim)
             .exec();
 
         return res.status(200).json({
             success: true,
-            data: allCourses,
-            message: "Data for all courses fetched successfully",
+            data: {
+                courses,
+                total,
+                page: pageNum,
+                limit: lim,
+                totalPages: Math.ceil(total / lim),
+            },
+            message: "Data for courses fetched successfully with category names",
         });
     } catch (error) {
-        console.log("Error while fetching data of all courses");
-        console.log(error);
-        res.status(500).json({
+        console.error("Error while fetching courses:", error);
+        return res.status(500).json({
             success: false,
             error: error.message,
-            message: "Error while fetching data of all courses",
+            message: "Error while fetching courses",
         });
     }
 };
@@ -275,17 +435,14 @@ exports.editCourse = async (req, res) => {
         const rawBody = req.body;
         const { courseId } = rawBody;
 
-        // Normalize updates: if body is a JSON string (common with some multipart clients), parse it.
         let updates = rawBody;
         if (typeof updates === "string") {
             try {
                 updates = JSON.parse(updates);
             } catch (e) {
-                // leave as-is (we'll treat non-object below)
             }
         }
 
-        // Ensure updates is a plain object; otherwise make it an empty object
         if (!updates || typeof updates !== "object") {
             updates = {};
         }
@@ -295,12 +452,10 @@ exports.editCourse = async (req, res) => {
             return res.status(404).json({ error: "Course not found" });
         }
 
-        // Handle thumbnail upload (support req.file, req.files, req.files.thumbnailImage)
         let thumbnailFile = null;
         if (req.file) {
             thumbnailFile = req.file;
         } else if (req.files) {
-            // multer with fields can give req.files as object of arrays
             if (req.files.thumbnailImage) {
                 thumbnailFile = Array.isArray(req.files.thumbnailImage)
                     ? req.files.thumbnailImage[0]
@@ -311,26 +466,22 @@ exports.editCourse = async (req, res) => {
         }
 
         if (thumbnailFile) {
-            const thumbnailImage = await uploadImageToCloudinary(
+            const thumbnailImage = await uploadFileToCloudinary(
                 thumbnailFile,
                 process.env.FOLDER_NAME
             );
             course.thumbnail = thumbnailImage.secure_url;
         }
 
-        // Prevent accidental overwrite of courseId and file field names from updates
         delete updates.courseId;
         delete updates.thumbnailImage;
-        delete updates.thumbnail; // if client sent it
+        delete updates.thumbnail;
 
-        // Iterate entries and set course fields safely
         for (const [key, rawVal] of Object.entries(updates)) {
-            // safe hasOwnProperty check (defensive)
             if (!Object.prototype.hasOwnProperty.call(updates, key)) continue;
 
             let value = rawVal;
 
-            // If the incoming value is a JSON-looking string, try to parse it.
             if (typeof value === "string") {
                 const trimmed = value.trim();
                 if (
@@ -340,21 +491,26 @@ exports.editCourse = async (req, res) => {
                     try {
                         value = JSON.parse(trimmed);
                     } catch (e) {
-                        // keep as string if parse fails
                     }
                 }
             }
 
-            // explicit parsing for fields you expect as arrays/objects
             if ((key === "tag" || key === "instructions") && typeof value === "string") {
                 try {
                     value = JSON.parse(value);
                 } catch (e) {
-                    // keep original string if parsing fails
                 }
             }
 
             course[key] = value;
+        }
+
+        if (updates.features && typeof updates.features === "string") {
+            try {
+                updates.features = JSON.parse(updates.features);
+            } catch (e) {
+                console.error("Error parsing features:", e);
+            }
         }
 
         course.updatedAt = Date.now();
@@ -388,26 +544,115 @@ exports.editCourse = async (req, res) => {
     }
 };
 
+exports.toggleCoursePublish = async (req, res) => {
+    try {
+        const { courseId, publish } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId is required" });
+        if (typeof publish !== "boolean") return res.status(400).json({ success: false, message: "publish must be boolean" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        course.status = publish ? "Published" : "Draft";
+        course.updatedAt = Date.now();
+        await course.save();
+
+        const updatedCourse = await Course.findById(courseId)
+            .populate({ path: "courseContent", populate: { path: "subSection" } })
+            .populate({ path: "instructor", select: "firstName lastName email image" })
+            .populate("category")
+            .lean();
+
+        updatedCourse.published = updatedCourse.status === "Published";
+
+        return res.status(200).json({
+            success: true,
+            message: "Course publish status updated",
+            data: { updatedCourse, published: updatedCourse.published },
+        });
+    } catch (err) {
+        console.error("toggleCoursePublish error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to update publish status" });
+    }
+};
 
 exports.getInstructorCourses = async (req, res) => {
     try {
         const instructorId = req.user.id;
+        const { page = "1", limit = "10", search = "" } = req.query;
 
-        const instructorCourses = await Course.find({
-            instructor: instructorId,
-        }).sort({ createdAt: -1 });
+        const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+        const lim = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+        const skip = (pageNum - 1) * lim;
 
-        res.status(200).json({
+        let query = { instructor: instructorId };
+
+        let instructorCourses = await Course.find(query)
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        if (!Array.isArray(instructorCourses)) instructorCourses = [];
+
+        const trimmedSearch = (search || "").trim();
+        if (trimmedSearch) {
+            const regex = new RegExp(trimmedSearch, "i");
+            instructorCourses = instructorCourses.filter(
+                (c) => regex.test(c.courseName) || regex.test(c.courseDescription)
+            );
+        }
+
+        for (let i = 0; i < instructorCourses.length; i++) {
+            const course = instructorCourses[i];
+
+            let totalDurationInSeconds = 0;
+            let subsectionLength = 0;
+
+            if (Array.isArray(course.courseContent)) {
+                for (const section of course.courseContent) {
+                    if (Array.isArray(section.subSection)) {
+                        subsectionLength += section.subSection.length;
+                        totalDurationInSeconds += section.subSection.reduce((acc, curr) => {
+                            const dur = parseInt(curr.timeDuration || 0, 10) || 0;
+                            return acc + dur;
+                        }, 0);
+                    }
+                }
+            }
+
+            course.totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+            course.subsectionLength = subsectionLength;
+
+            course.studentsEnrolledCount = Array.isArray(course.studentsEnrolled) ? course.studentsEnrolled.length : 0;
+        }
+
+        const total = instructorCourses.length;
+        const paginated = instructorCourses.slice(skip, skip + lim);
+
+        return res.status(200).json({
             success: true,
-            data: instructorCourses,
-            message: "Courses made by Instructor fetched successfully",
+            data: {
+                courses: paginated,
+                total,
+                page: pageNum,
+                limit: lim,
+                totalPages: Math.ceil(total / lim),
+            },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
+        console.error("GET_INSTRUCTOR_COURSES error", error);
+        return res.status(500).json({
             success: false,
-            message: "Failed to retrieve instructor courses",
-            error: error.message,
+            message: error.message || "Failed to fetch instructor courses",
         });
     }
 };
@@ -438,7 +683,32 @@ exports.deleteCourse = async (req, res) => {
                 for (const subSectionId of subSections) {
                     const subSection = await SubSection.findById(subSectionId);
                     if (subSection) {
-                        await deleteResourceFromCloudinary(subSection.videoUrl);
+                        // delete video
+                        if (subSection.videoUrl) {
+                            try {
+                                await deleteResourceFromCloudinary(subSection.videoUrl);
+                            } catch (e) {
+                                console.warn("Error deleting subSection.videoUrl:", e.message);
+                            }
+                        }
+                        // delete pdf
+                        if (subSection.pdfUrl) {
+                            try {
+                                await deleteResourceFromCloudinary(subSection.pdfUrl);
+                            } catch (e) {
+                                console.warn("Error deleting subSection.pdfUrl:", e.message);
+                            }
+                        }
+                        // delete support materials array
+                        if (Array.isArray(subSection.supportMaterials)) {
+                            for (const sUrl of subSection.supportMaterials) {
+                                try {
+                                    await deleteResourceFromCloudinary(sUrl);
+                                } catch (e) {
+                                    console.warn("Error deleting support material:", e.message);
+                                }
+                            }
+                        }
                     }
                     await SubSection.findByIdAndDelete(subSectionId);
                 }
@@ -462,3 +732,303 @@ exports.deleteCourse = async (req, res) => {
         });
     }
 };
+
+exports.getNote = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId, sectionId, subSectionId } = req.body;
+
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: "courseId is required" });
+        }
+
+        const query = { userId, courseId };
+        if (subSectionId) query.subSectionId = subSectionId;
+        else if (sectionId) query.sectionId = sectionId;
+
+        const note = await Note.findOne(query).sort({ updatedAt: -1 }).lean();
+
+        return res.status(200).json({ success: true, data: note || { content: "" } });
+    } catch (err) {
+        console.error("GET_NOTE error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.saveNote = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId, sectionId, subSectionId, content } = req.body;
+
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: "courseId is required" });
+        }
+
+        const query = { userId, courseId };
+        if (subSectionId) query.subSectionId = subSectionId;
+        else if (sectionId) query.sectionId = sectionId;
+
+        let note = await Note.findOne(query);
+
+        if (note) {
+            note.content = content || "";
+            note.updatedAt = Date.now();
+            await note.save();
+        } else {
+            note = new Note({
+                userId,
+                courseId,
+                sectionId: sectionId || null,
+                subSectionId: subSectionId || null,
+                content: content || "",
+            });
+            await note.save();
+        }
+
+        return res.status(200).json({ success: true, data: note });
+    } catch (err) {
+        console.error("SAVE_NOTE error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.requestEnrollment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.body;
+        if (!courseId) return res.status(400).json({ success: false, message: "courseId required" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if ((course.studentsEnrolled || []).some((s) => s.toString() === userId.toString())) {
+            return res.status(400).json({ success: false, message: "Already enrolled" });
+        }
+
+        const existing = (course.enrollmentRequests || []).find((r) => r.user.toString() === userId.toString());
+        if (existing) {
+            if (existing.status === "Pending") {
+                return res.status(200).json({ success: true, message: "Enrollment request already pending" });
+            }
+            existing.status = "Pending";
+            existing.requestedAt = Date.now();
+            existing.respondedAt = null;
+            existing.responder = null;
+            existing.note = "";
+        } else {
+            course.enrollmentRequests.push({ user: userId, status: "Pending", requestedAt: Date.now() });
+        }
+
+        await course.save();
+
+        try {
+            const instructor = await User.findById(course.instructor);
+            if (instructor) {
+                await mailSender(
+                    instructor.email,
+                    `Enrollment request for ${course.courseName}`,
+                    `A student has requested enrollment in ${course.courseName}. Please review in the instructor dashboard.`
+                );
+            }
+        } catch (e) {
+            console.warn("Failed to notify instructor about enrollment request:", e.message);
+        }
+
+        return res.status(200).json({ success: true, message: "Enrollment request submitted and pending instructor approval" });
+    } catch (err) {
+        console.error("requestEnrollment error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getEnrollmentRequests = async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+
+        const course = await Course.findById(courseId)
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email image",
+            });
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found",
+            });
+        }
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden",
+            });
+        }
+
+        const enrollmentRequests = course.enrollmentRequests.map((req) => ({
+            ...req.toObject(),
+            responder: req.responder
+                ? `${req.responder.firstName} ${req.responder.lastName}`
+                : null,
+        }));
+
+        return res.status(200).json({
+            success: true,
+            data: { enrollmentRequests },
+        });
+    } catch (err) {
+        console.error("getEnrollmentRequests error", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+
+exports.respondEnrollmentRequest = async (req, res) => {
+    try {
+        const { courseId, requestId } = req.params;
+        const { action, note } = req.body;
+        if (!["approve", "reject"].includes(action)) return res.status(400).json({ success: false, message: "Invalid action" });
+
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+
+        if (req.user.id.toString() !== course.instructor.toString()) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        const reqIndex = (course.enrollmentRequests || []).findIndex((r) => r._id && r._id.toString() === requestId.toString());
+        if (reqIndex === -1) return res.status(404).json({ success: false, message: "Request not found" });
+
+        const reqObj = course.enrollmentRequests[reqIndex];
+
+        if (action === "approve") {
+            const userId = reqObj.user;
+            if (!course.studentsEnrolled.some((s) => s.toString() === userId.toString())) {
+                course.studentsEnrolled.push(userId);
+            }
+            reqObj.status = "Approved";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+
+            await course.save();
+
+            try {
+                const cp = await CourseProgress.create({ courseID: courseId, userId: userId, completedVideos: [] });
+                await User.findByIdAndUpdate(userId, { $push: { courses: courseId, courseProgress: cp._id } });
+            } catch (e) {
+                console.warn("Failed to create course progress on approval:", e.message);
+            }
+
+            try {
+                const student = await User.findById(userId);
+                if (student) {
+                    await mailSender(student.email, `Enrollment approved: ${course.courseName}`, `Your enrollment request for ${course.courseName} has been approved.`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Student approved and enrolled" });
+        } else {
+            reqObj.status = "Rejected";
+            reqObj.respondedAt = Date.now();
+            reqObj.responder = req.user.id;
+            reqObj.note = note || "";
+            await course.save();
+
+            try {
+                const student = await User.findById(reqObj.user);
+                if (student) {
+                    await mailSender(student.email, `Enrollment rejected: ${course.courseName}`, `Your enrollment request for ${course.courseName} was rejected. ${note || ""}`);
+                }
+            } catch (e) {
+                console.warn("Failed to notify student about rejection:", e.message);
+            }
+
+            return res.status(200).json({ success: true, message: "Request rejected" });
+        }
+    } catch (err) {
+        console.error("respondEnrollmentRequest error", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getMyEnrollmentRequests = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const courses = await Course.find({ "enrollmentRequests.user": userId })
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .populate({
+                path: "enrollmentRequests.user",
+                select: "firstName lastName email image",
+            })
+            .populate({
+                path: "enrollmentRequests.responder",
+                select: "firstName lastName email",
+            })
+            .lean();
+
+        const requests = [];
+
+        for (const course of courses) {
+            let totalDurationInSeconds = 0;
+            if (Array.isArray(course.courseContent)) {
+                for (const sec of course.courseContent) {
+                    if (Array.isArray(sec.subSection)) {
+                        for (const sub of sec.subSection) {
+                            const dur = parseInt(sub.timeDuration || 0, 10) || 0;
+                            totalDurationInSeconds += dur;
+                        }
+                    }
+                }
+            }
+            const totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+
+            const reqObj = (course.enrollmentRequests || []).find((r) =>
+                r.user && String(r.user._id ? r.user._id : r.user) === String(userId)
+            );
+
+            if (!reqObj) continue;
+
+            requests.push({
+                _id: reqObj._id,
+                course: {
+                    _id: course._id,
+                    courseName: course.courseName,
+                    courseDescription: course.courseDescription,
+                    thumbnail: course.thumbnail,
+                    totalDuration,
+                },
+                requestedAt: reqObj.requestedAt,
+                status: reqObj.status,
+                responder: reqObj.responder ? {
+                    _id: reqObj.responder._id || reqObj.responder,
+                    firstName: reqObj.responder.firstName,
+                    lastName: reqObj.responder.lastName,
+                    email: reqObj.responder.email,
+                } : null,
+                note: reqObj.note || "",
+            });
+        }
+
+        return res.status(200).json({ success: true, data: { requests } });
+    } catch (err) {
+        console.error("getMyEnrollmentRequests error", err);
+        return res.status(500).json({ success: false, message: err.message || "Failed to fetch enrollment requests" });
+    }
+};
+
+

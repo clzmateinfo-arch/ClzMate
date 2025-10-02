@@ -1,169 +1,205 @@
-import React, { useMemo } from "react";
+/* eslint-disable react/prop-types */
+import React from "react";
 import { Link } from "react-router-dom";
 import { ImGithub, ImLinkedin2 } from "react-icons/im";
-import { FaFacebookF, FaGoogle, FaTwitter, FaYoutube } from "react-icons/fa";
-import { FooterLink2 } from "@/app/config/footer-links";
+import { FaTwitter } from "react-icons/fa";
 import { Logo } from "@/shared/components/ui/Logo";
 
-const slugify = (text = "") =>
-  text
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9\-_/]/g, "");
+/**
+ * Fly-like Footer
+ * - Background gradient + patterned overlay (mask)
+ * - Columns: Company, Articles, Resources, Contact, Legal
+ * - Violet hover color, small compact text
+ */
 
-const NavItem = ({ to, children, className = "" }) => (
-  <div className={`text-[14px] cursor-pointer hover:text-richblack-50 transition-all duration-200 ${className}`}>
-    <Link to={to}>{children}</Link>
-  </div>
-);
+const flyColumns = [
+  {
+    title: "Company",
+    links: [
+      { title: "About", link: "/about/" },
+      { title: "Pricing", link: "/pricing/" },
+      { title: "Jobs", link: "/jobs/" },
+    ],
+  },
+  {
+    title: "Articles",
+    links: [
+      { title: "Blog", link: "/blog/" },
+      { title: "Phoenix Files", link: "/phoenix-files/" },
+      { title: "Laravel Bytes", link: "/laravel-bytes/" },
+      { title: "Ruby Dispatch", link: "/ruby-dispatch/" },
+      { title: "Django Beats", link: "/django-beats/" },
+      { title: "JavaScript Journal", link: "/javascript-journal/" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { title: "Docs", link: "/docs/" },
+      { title: "Customers", link: "/customers" },
+      { title: "Support", link: "/docs/support/" },
+      { title: "Support Metrics", link: "/support/" },
+      { title: "Status", link: "https://status.fly.io/" },
+    ],
+  },
+  {
+    title: "Contact",
+    links: [
+      { title: "GitHub", link: "https://github.com/superfly/" },
+      { title: "Twitter", link: "https://twitter.com/flydotio" },
+      { title: "Community", link: "https://community.fly.io/" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { title: "Security", link: "/security/" },
+      { title: "Privacy policy", link: "/legal/privacy-policy" },
+      { title: "Terms of service", link: "/legal/terms-of-service" },
+      { title: "Acceptable Use Policy", link: "/legal/acceptable-use-policy" },
+    ],
+  },
+];
 
-const SocialIcons = () => (
-  <div className="flex gap-3 text-lg duration-200">
-    <a href="#" aria-label="facebook" className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-richblack-700">
-      <FaFacebookF size={14} />
-    </a>
-    <a href="#" aria-label="google" className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-richblack-700">
-      <FaGoogle size={14} />
-    </a>
-    <a href="#" aria-label="twitter" className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-richblack-700">
-      <FaTwitter size={14} />
-    </a>
-    <a href="#" aria-label="youtube" className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-richblack-700">
-      <FaYoutube size={14} />
-    </a>
-  </div>
-);
+const isExternal = (u = "") => /^https?:\/\//i.test(u);
 
-const defaultLeft = {
-  logoTitle: "Company",
-  links: ["About", "Careers", "Affiliates"],
-};
+function FooterLink({ to, children }) {
+  if (!to) return <span className="text-[#aa87e7]">{children}</span>;
 
-const defaultResources = ["Articles", "Blog", "Chart Sheet", "Code challenges", "Docs", "Projects"];
-const defaultPlans = ["Paid memberships", "For students"];
-const defaultCommunity = ["Forums", "Chapters", "Events"];
-const defaultBottom = ["Privacy Policy", "Cookie Policy", "Terms"];
-
-const Column = ({ title, children }) => (
-  <div className="w-[48%] lg:w-[30%] mb-7 lg:pl-0">
-    <h1 className="text-richblack-50 font-semibold text-[16px]">{title}</h1>
-    <div className="flex flex-col gap-2 mt-2">{children}</div>
-  </div>
-);
-
-const Footer = ({
-  left = defaultLeft,
-  resources = defaultResources,
-  plans = defaultPlans,
-  community = defaultCommunity,
-  bottom = defaultBottom,
-  columns = FooterLink2,
-}) => {
-  const leftLinks = useMemo(() => left.links || [], [left]);
+  // Use Link for both internal and external as requested.
+  // For external URLs, keep target and rel so they open in a new tab.
+  if (isExternal(to)) {
+    return (
+      <Link
+        to={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-violet-400 transition-colors text-[#aa87e7]"
+      >
+        {children}
+      </Link>
+    );
+  }
 
   return (
-    <footer className="bg-richblack-800 mx-7 rounded-3xl mb-10">
-      <div className="flex lg:flex-row gap-8 items-center justify-between w-11/12 max-w-maxContent text-richblack-400 leading-6 mx-auto relative py-14">
-        <div className="border-b w-[100%] flex flex-col lg:flex-row pb-5 border-richblack-700">
-          {/* Section 1 */}
-          <div className="lg:w-[50%] flex flex-wrap flex-row justify-between lg:border-r lg:border-richblack-700 pl-3 lg:pr-5 gap-3">
-            <div className="w-[30%] flex flex-col gap-3 lg:w-[30%] mb-7 lg:pl-0">
-              <Logo></Logo>
-              <h1 className="text-richblack-50 font-semibold text-[16px]">{left.logoTitle}</h1>
+    <Link to={to} className="hover:text-violet-400 transition-colors text-[#aa87e7]">
+      {children}
+    </Link>
+  );
+}
 
-              <div className="flex flex-col gap-2">
-                {leftLinks.map((label, i) => (
-                  <NavItem key={i} to={slugify(label)}>
-                    {label}
-                  </NavItem>
-                ))}
-              </div>
+export default function Footer({
+  columns = flyColumns,
+  bottom = ["Privacy Policy", "Cookie Policy", "Terms"],
+}) {
+  return (
+    <footer
+      role="contentinfo"
+      className="relative text-sm leading-6 text-white overflow-hidden"
+      aria-label="Site footer"
+    >
+      <div
+        aria-hidden="true"
+        className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] -rotate-3 pointer-events-none opacity-20"
+        style={{
+          backgroundImage: "url('/phx/ui/images/graph-6eab844a3587d8caf1e76d16a9140ab2.svg')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "100px auto",
+          maskImage: "radial-gradient(125% 100%, rgba(255,255,255,.025) 25%, rgba(255,255,255,1))",
+          WebkitMaskImage:
+            "radial-gradient(125% 100%, rgba(255,255,255,.025) 25%, rgba(255,255,255,1))",
+        }}
+      />
 
-              <SocialIcons />
+      <div
+        className="w-full"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(17,24,39,0.95) 0%, rgba(10,12,20,0.95) 60%, rgba(7,8,15,0.96) 100%)",
+          paddingTop: "3rem",
+          paddingBottom: "2rem",
+        }}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6 lg:pb-12">
+          <div className="grid md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
+            <div className="justify-self-start">{/* You can place Logo here if needed */}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+              {columns.map((col, idx) => (
+                <dl key={idx}>
+                  <dt className="font-bold uppercase tracking-wider text-xs text-white mb-3">
+                    {col.title}
+                  </dt>
+                  <dd className="font-medium flex flex-col items-start space-y-2 text-[#7c3aed]">
+                    {col.links.map((link, i) => (
+                      <FooterLink key={i} to={link.link ?? link.href}>
+                        {link.title}
+                      </FooterLink>
+                    ))}
+                  </dd>
+                </dl>
+              ))}
             </div>
-
-            <div className="w-[48%] lg:w-[30%] mb-7 lg:pl-0">
-              <Column title="Resources">
-                {resources.map((r, i) => (
-                  <NavItem key={i} to={slugify(r)}>
-                    {r}
-                  </NavItem>
-                ))}
-
-                <h1 className="text-richblack-50 font-semibold text-[16px] mt-7">Support</h1>
-                <NavItem to={slugify("help-center")}>Help Center</NavItem>
-              </Column>
-            </div>
-
-            <div className="w-[48%] lg:w-[30%] mb-7 lg:pl-0">
-              <Column title="Plans">
-                {plans.map((p, i) => (
-                  <NavItem key={i} to={slugify(p)}>
-                    {p}
-                  </NavItem>
-                ))}
-
-                <h1 className="text-richblack-50 font-semibold text-[16px] mt-7">Community</h1>
-                {community.map((c, i) => (
-                  <NavItem key={i} to={slugify(c)}>
-                    {c}
-                  </NavItem>
-                ))}
-              </Column>
-            </div>
-          </div>
-
-          {/* Section 2 - dynamic columns from FooterLink2 config */}
-          <div className="lg:w-[50%] flex flex-wrap flex-row justify-between pl-3 lg:pl-5 gap-3">
-            {columns.map((col, i) => (
-              <div key={i} className="w-[35%] lg:w-[30%] mb-7 lg:pl-0">
-                <h1 className="text-richblack-50 font-semibold text-[16px]">{col.title}</h1>
-                <div className="flex flex-col gap-2 mt-2">
-                  {col.links.map((link, idx) => (
-                    <NavItem key={idx} to={link.link}>{link.title}</NavItem>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
-      </div>
 
-      {/* bottom footer */}
-      <div className="flex flex-row items-center justify-between w-11/12 max-w-maxContent text-richblack-400 mx-auto pb-14 text-sm">
-        <div className="flex justify-between lg:items-start items-center flex-col lg:flex-row gap-3 w-full">
-          <div className="flex">
-            {bottom.map((label, ind) => (
-              <div key={ind} className={`${bottom.length - 1 === ind ? "" : "border-r border-richblack-700"} px-3 cursor-pointer hover:text-richblack-50 transition-all duration-200`}>
-                <Link to={slugify(label)}>{label}</Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center flex flex-col sm:flex-row ">
-            <div className="flex ">
-              <span> Made with ❤️ </span>
-              <a href="https://github.com/clzmate" target="_blank" rel="noopener noreferrer" className="text-white hover:underline mr-1">
-                Xelavon Dev Team
-              </a>
+        <div className="border-t border-white/6">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              {bottom.map((label, i) => {
+                const path = `/${label.toString().toLowerCase().replace(/\s+/g, "-")}`;
+                return (
+                  <span
+                    key={i}
+                    className={`text-white/80 ${i !== bottom.length - 1 ? "pr-3 border-r border-white/6" : ""}`}
+                  >
+                    <Link to={path} className="hover:text-violet-400 transition-colors">
+                      {label}
+                    </Link>
+                  </span>
+                );
+              })}
             </div>
-            <span> © {new Date().getFullYear()} ClzMate</span>
-          </div>
 
-          <div className="flex items-center">
-            <a href="https://www.linkedin.com/in/clzmate-a48800231/" className="text-white p-3 hover:bg-richblack-700 rounded-full duration-300" target="_blank" rel="noopener noreferrer">
-              <ImLinkedin2 size={17} />
-            </a>
-            <a href="https://www.github.com/clzmate" className="text-white p-3 hover:bg-richblack-700 rounded-full duration-300" target="_blank" rel="noopener noreferrer">
-              <ImGithub size={17} />
-            </a>
+            <div className="text-center text-xs text-[#575757]">
+              <div className="mb-1 md:mb-0">
+                Made with ❤️ by Xelavon Dev Team &nbsp;&nbsp;&nbsp; Copyright © {new Date().getFullYear()} Up
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="https://www.linkedin.com/in/clzmate-a48800231/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white p-2 rounded-full hover:bg-white/6 transition"
+                aria-label="LinkedIn"
+              >
+                <ImLinkedin2 size={16} />
+              </Link>
+
+              <Link
+                to="https://www.github.com/clzmate"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white p-2 rounded-full hover:bg-white/6 transition"
+                aria-label="GitHub"
+              >
+                <ImGithub size={16} />
+              </Link>
+
+              <Link
+                to="https://twitter.com/flydotio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white p-2 rounded-full hover:bg-white/6 transition"
+                aria-label="Twitter"
+              >
+                <FaTwitter size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     </footer>
   );
-};
-
-export default React.memo(Footer);
+}

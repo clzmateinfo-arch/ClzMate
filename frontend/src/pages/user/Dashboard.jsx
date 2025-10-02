@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Outlet } from "react-router-dom";
-import Sidebar from "@/shared/components/navigation/Sidebar";
+import { Outlet, useLocation } from "react-router-dom";
 import Loading from "@/shared/components/navigation/Loading";
 
 const Dashboard = () => {
@@ -16,20 +15,13 @@ const Dashboard = () => {
     );
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [useLocation().pathname]);
 
   return (
-    <div className="relative flex min-h-[calc(100vh-3.5rem)] ">
-      <Sidebar />
-
-      <div className="h-[calc(100vh-3.5rem)] overflow-auto w-full">
-        <div className="mx-auto w-11/12 max-w-[1000px] py-10 ">
-          <Outlet />
-        </div>
-      </div>
+    <div>
+      <Outlet />
     </div>
   );
 };

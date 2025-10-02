@@ -152,7 +152,7 @@ export function login(email, password, navigate) {
         JSON.stringify({ ...response.data.user, image: userImage })
       );
 
-      navigate("/dashboard/my-profile");
+      navigate("/dashboard");
     } catch (error) {
       showToast(`Ops! ${extractErrorMessage(error)}`, "error");
     } finally {

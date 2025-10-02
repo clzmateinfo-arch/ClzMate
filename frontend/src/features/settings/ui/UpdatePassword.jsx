@@ -1,152 +1,140 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { useSelector } from "react-redux";
+// UpdatePassword.jsx
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { changePassword } from "@/entities/settings/model/SettingsAPI";
+
+import Button from "@/shared/components/ui/Button";
 import IconBtn from "@/shared/components/ui/IconBtn";
+import Input from "@/shared/components/ui/Input";
+
+import { changePassword } from "@/entities/settings/model/SettingsAPI";
 
 export default function UpdatePassword() {
-  const { token } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { token } = useSelector((s) => s.auth);
 
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [form, setForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const handleChange = (field) => (e) => {
+    setForm((p) => ({ ...p, [field]: e.target.value }));
+    setErrors((p) => ({ ...p, [field]: undefined, form: undefined }));
+  };
 
-  const submitPasswordForm = async (data) => {
-    console.log("password Data - ", data);
+  const validate = () => {
+    const err = {};
+    if (!form.oldPassword) err.oldPassword = "Please enter your current password.";
+    if (!form.newPassword) err.newPassword = "Please enter a new password.";
+    else if (form.newPassword.length < 8) err.newPassword = "Password must be at least 8 characters.";
+    if (!form.confirmNewPassword) err.confirmNewPassword = "Please confirm your new password.";
+    else if (form.newPassword !== form.confirmNewPassword) err.confirmNewPassword = "Passwords do not match.";
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const submitPasswordForm = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const payload = {
+      oldPassword: form.oldPassword,
+      newPassword: form.newPassword,
+      confirmNewPassword: form.confirmNewPassword,
+    };
+
     try {
-      await changePassword(token, data);
-    } catch (error) {
-      console.log("ERROR MESSAGE - ", error.message);
+      setSubmitting(true);
+      if (typeof changePassword === "function" && changePassword.length) {
+        await changePassword(token, payload);
+      } else {
+        await changePassword(token, payload);
+      }
+    } catch (err) {
+      console.error("Change password failed", err);
+      //setErrors((p) => ({ ...p, form: "Unable to change password. Please try again." }));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(submitPasswordForm)}>
-        <div className="my-10 flex flex-col gap-y-6 rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-8 px-6 sm:px-12">
-          <h2 className="text-lg font-semibold text-richblack-5">Password</h2>
+    <div className="items-center justify-between rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 mb-3 mt-3 sm:p-8 text-black">
+      <form onSubmit={submitPasswordForm} className="space-y-6 text-black">
+        <h2 className="text-lg font-semibold mb-5">Update Password</h2>
 
-          <div className="flex flex-col gap-5 lg:flex-row">
-            {/* Current Password */}
-            <div className="relative flex flex-col gap-2 lg:w-[48%]">
-              <label htmlFor="oldPassword" className="lable-style">
-                Current Password
-              </label>
+        <div className="flex flex-col gap-5 lg:flex-row">
+          <div className="relative flex flex-col gap-2 lg:w-1/3 md:w-1/2">
+            <Input
+              label="Current Password"
+              id="oldPassword"
+              name="oldPassword"
+              type="password"
+              value={form.oldPassword}
+              onChange={handleChange("oldPassword")}
+              placeholder="Enter your current password"
+              required
+              error={errors.oldPassword}
+              showPasswordToggle={true}
+              inputClass="mt-2 mb-5 p-2.5"
+            />
 
-              <input
-                type={showOldPassword ? "text" : "password"}
-                name="oldPassword"
-                id="oldPassword"
-                placeholder="Enter Current Password"
-                className="form-style"
-                {...register("oldPassword", { required: true })}
-              />
+            {errors.oldPassword && <span className="error-text">{errors.oldPassword}</span>}
+          </div>
+          <div className="relative flex flex-col gap-2 lg:w-1/3 md:w-1/2">
+            <Input
+              label="New Password"
+              id="newPassword"
+              name="newPassword"
+              type="password"
+              value={form.newPassword}
+              onChange={handleChange("newPassword")}
+              placeholder="Enter your new password"
+              required
+              error={errors.newPassword}
+              showPasswordToggle={true}
+              inputClass="mt-2 mb-5 p-2.5"
+            />
 
-              <span
-                onClick={() => setShowOldPassword((prev) => !prev)}
-                className="absolute right-3 top-[38px] z-[10] cursor-pointer"
-              >
-                {showOldPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
-                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
-                )}
-              </span>
+            {errors.newPassword && <span className="error-text">{errors.newPassword}</span>}
+          </div>
+          <div className="relative flex flex-col gap-2 lg:w-1/3 md:w-1/2">
+            <Input
+              label="Confirm New Password"
+              id="confirmNewPassword"
+              name="confirmNewPassword"
+              type="password"
+              value={form.confirmNewPassword}
+              onChange={handleChange("confirmNewPassword")}
+              placeholder="Confirm your new password"
+              required
+              error={errors.confirmNewPassword}
+              showPasswordToggle={true}
+              inputClass="mt-2 mb-5 p-2.5"
+            />
 
-              {errors.oldPassword && (
-                <span className="-mt-1 text-[12px] text-yellow-100">
-                  Please enter your Current Password.
-                </span>
-              )}
-            </div>
-
-            {/* new password */}
-            <div className="relative flex flex-col gap-2 lg:w-[48%]">
-              <label htmlFor="newPassword" className="lable-style">
-                New Password
-              </label>
-
-              <input
-                type={showNewPassword ? "text" : "password"}
-                name="newPassword"
-                id="newPassword"
-                placeholder="Enter New Password"
-                className="form-style"
-                {...register("newPassword", { required: true })}
-              />
-
-              <span
-                onClick={() => setShowNewPassword((prev) => !prev)}
-                className="absolute right-3 top-[38px] z-[10] cursor-pointer"
-              >
-                {showNewPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
-                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
-                )}
-              </span>
-              {errors.newPassword && (
-                <span className="-mt-1 text-[12px] text-yellow-100">
-                  Please enter your New Password.
-                </span>
-              )}
-            </div>
-
-            {/*confirm new password */}
-            <div className="relative flex flex-col gap-2 lg:w-[48%]">
-              <label htmlFor="confirmNewPassword" className="lable-style">
-                Confirm New Password
-              </label>
-
-              <input
-                type={showConfirmNewPassword ? "text" : "password"}
-                name="confirmNewPassword"
-                id="confirmNewPassword"
-                placeholder="Enter Confirm New Password"
-                className="form-style"
-                {...register("confirmNewPassword", { required: true })}
-              />
-
-              <span
-                onClick={() => setShowConfirmNewPassword((prev) => !prev)}
-                className="absolute right-3 top-[38px] z-[10] cursor-pointer"
-              >
-                {showConfirmNewPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
-                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
-                )}
-              </span>
-              {errors.confirmNewPassword && (
-                <span className="-mt-1 text-[12px] text-yellow-100">
-                  Please enter your Confirm New Password.
-                </span>
-              )}
-            </div>
+            {errors.confirmNewPassword && <span className="error-text">{errors.confirmNewPassword}</span>}
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => {
-              navigate("/dashboard/my-profile");
-            }}
-            className="cursor-pointer rounded-md bg-richblack-700 py-2 px-5 font-semibold text-richblack-50"
+        {errors.form && <div className="text-sm text-red-500">{errors.form}</div>}
+
+        <div className="flex justify-end gap-3 mt-5">
+          <Button
+            type="submit"
+            className="min-w-[220px] text-sm"
+            disabled={submitting}
+            animated={true}
           >
-            Cancel
-          </button>
-          <IconBtn type="submit" text="Update" />
+            Save
+          </Button>
         </div>
       </form>
-    </>
+    </div>
   );
 }

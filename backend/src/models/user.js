@@ -1,3 +1,4 @@
+// backend/src/models/user.js
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -27,7 +28,7 @@ const userSchema = new mongoose.Schema(
         accountType: {
             type: String,
             enum: ["Admin", "Instructor", "Student"],
-            reuired: true,
+            required: true,
         },
         active: {
             type: Boolean,
@@ -40,7 +41,7 @@ const userSchema = new mongoose.Schema(
         additionalDetails: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Profile",
-            required: true,
+            required: false,
         },
         courses: [
             {
@@ -48,9 +49,16 @@ const userSchema = new mongoose.Schema(
                 ref: "Course",
             },
         ],
+        cart: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Course",
+            },
+        ],
         image: {
             type: String,
-            required: true,
+            required: false,
+            default: "",
         },
         token: {
             type: String,

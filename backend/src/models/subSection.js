@@ -1,19 +1,30 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const subSectionSchema = new mongoose.Schema({
-    title: {
-        type: String
-    },
-    timeDuration: {
-        type: String
-    },
-    description: {
-        type: String
-    },
-    videoUrl: {
-        type: String
-    }
-
+const supportMaterialSchema = new mongoose.Schema({
+    url: { type: String },
+    publicId: { type: String },
+    originalName: { type: String },
+    mimeType: { type: String },
+    size: { type: Number },
+    resourceType: { type: String },
+    isMainVideo: { type: Boolean, default: false },
+    isMainPdf: { type: Boolean, default: false },
 });
 
-module.exports = mongoose.model('SubSection', subSectionSchema) 
+const subSectionSchema = new mongoose.Schema(
+    {
+        title: { type: String, trim: true, default: "" },
+        timeDuration: { type: Number, default: 0 },
+        description: { type: String, default: "" },
+        supportMaterials: {
+            type: [supportMaterialSchema],
+            default: [],
+        },
+
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date },
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model("SubSection", subSectionSchema);

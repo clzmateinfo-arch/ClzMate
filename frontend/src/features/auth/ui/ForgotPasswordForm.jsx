@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getPasswordResetToken } from "@/entities/auth/model/authAPI";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
+import { useLocation } from "react-router-dom";
 
 export default function ForgotPasswordForm() {
     const dispatch = useDispatch();
@@ -14,7 +15,7 @@ export default function ForgotPasswordForm() {
 
     useEffect(() => {
         if (!loading) setBusy(false);
-    }, [loading]);
+    }, [loading, useLocation().pathname]);
 
     const handleOnSubmit = async (e) => {
         e.preventDefault();
@@ -49,7 +50,12 @@ export default function ForgotPasswordForm() {
                 )}
 
                 <div>
-                    <Button type="submit" classes="w-full" style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}>
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+                        animated={true}
+                    >
                         {!emailSent ? "Send Reset Instructions" : "Resend Email"}
                     </Button>
 

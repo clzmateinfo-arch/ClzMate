@@ -4,57 +4,37 @@ import { toast } from "react-hot-toast";
 import { IoAddCircleOutline } from "react-icons/io5";
 import { MdNavigateNext } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createSection,
-  updateSection,
-} from "@/entities/course/model/courseDetailsAPI";
-import {
-  setCourse,
-  setEditCourse,
-  setStep,
-} from "@/entities/course/model/courseSlice";
+import { createSection, updateSection } from "@/entities/course/model/courseDetailsAPI";
+import { setCourse, setEditCourse, setStep } from "@/entities/course/model/courseSlice";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import NestedView from "./NestedView";
+import Input from "@/shared/components/ui/Input";
+import Button from "../../../../shared/components/ui/Button";
+import { LinkButton } from "../../../../shared/components/ui/LinkButton";
 
 export default function CourseBuilderForm() {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm();
-
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
   const { course } = useSelector((state) => state.course);
   const { token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(false);
-  const [editSectionName, setEditSectionName] = useState(null); // stored section ID
+  const [editSectionName, setEditSectionName] = useState(null);
 
   const onSubmit = async (data) => {
     setLoading(true);
-
     let result;
-
     if (editSectionName) {
-      result = await updateSection(
-        {
-          sectionName: data.sectionName,
-          sectionId: editSectionName,
-          courseId: course._id,
-        },
-        token
-      );
+      result = await updateSection({ sectionName: data.sectionName, sectionId: editSectionName, courseId: course._id }, token);
     } else {
-      result = await createSection(
-        { sectionName: data.sectionName, courseId: course._id },
-        token
-      );
+      result = await createSection({ sectionName: data.sectionName, courseId: course._id }, token);
     }
     if (result) {
       dispatch(setCourse(result));
       setEditSectionName(null);
       setValue("sectionName", "");
+    } else {
+      toast.error("Could not save section");
     }
     setLoading(false);
   };
@@ -74,14 +54,12 @@ export default function CourseBuilderForm() {
   };
 
   const goToNext = () => {
-    if (course.courseContent.length === 0) {
-      toast.error("Please add atleast one section");
+    if (!course?.courseContent || course.courseContent.length === 0) {
+      toast.error("Please add at least one section");
       return;
     }
-    if (
-      course.courseContent.some((section) => section.subSection.length === 0)
-    ) {
-      toast.error("Please add atleast one lecture in each section");
+    if (course.courseContent.some((section) => (section.subSection || []).length === 0)) {
+      toast.error("Please add at least one lecture in each section");
       return;
     }
     dispatch(setStep(3));
@@ -93,70 +71,55 @@ export default function CourseBuilderForm() {
   };
 
   return (
-    <div className="space-y-8 rounded-2xl border-[1px] border-richblack-700 bg-richblack-800 p-6">
-      <p className="text-2xl font-semibold text-richblack-5">Course Builder</p>
+    <div className="space-y-6 rounded-2xl border border-white/8 bg-white/6 p-6">
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Section Name */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm text-richblack-5" htmlFor="sectionName">
-            Section Name <sup className="text-pink-200">*</sup>
-          </label>
-          <input
+        <div className="my-2 flex items-end">
+          <Input
             id="sectionName"
-            disabled={loading}
+            label="Section Name"
             placeholder="Add a section to build your course"
             {...register("sectionName", { required: true })}
-            className="form-style w-full"
+            error={errors.sectionName}
           />
-          {errors.sectionName && (
-            <span className="ml-2 text-xs tracking-wide text-pink-200">
-              Section name is required
-            </span>
+          {editSectionName && (
+            <div className="ml-5 mb-[3px] items-center-safe align-middle">
+              <IconBtn type="button" onClick={cancelEdit} disabled={loading} text={"Cancel Edit"} outline customClasses="bg-violet-600">
+                <MdNavigateNext size={18} />
+              </IconBtn>
+            </div>
           )}
         </div>
 
-        {/* Edit Section Name OR Create Section */}
-        <div className="flex items-end gap-x-4">
-          <IconBtn
-            type="submit"
-            disabled={loading}
-            text={editSectionName ? "Edit Section Name" : "Create Section"}
-            outline={true}
-          >
-            <IoAddCircleOutline size={20} className="text-yellow-50" />
+        <div className="flex items-center gap-3">
+          <IconBtn type="submit" disabled={loading} text={editSectionName ? "Save" : "Create Section"} outline customClasses="bg-violet-600">
+            <IoAddCircleOutline size={18} />
           </IconBtn>
-          {/* if editSectionName mode is on */}
-          {editSectionName && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="text-sm text-richblack-300 underline"
-            >
-              Cancel Edit
-            </button>
-          )}
         </div>
       </form>
 
-      {/* nesetd view of section - subSection */}
-      {course.courseContent.length > 0 && (
-        <NestedView handleChangeEditSectionName={handleChangeEditSectionName} />
-      )}
+      {course?.courseContent?.length > 0 && <NestedView handleChangeEditSectionName={handleChangeEditSectionName} />}
 
-      {/* Next Prev Button */}
-      <div className="flex justify-end gap-x-3">
-        <button
+      <div className="flex justify-end gap-3 mt-5">
+        <Button
+          disabled={loading}
+          variant="light"
           onClick={goBack}
-          className={`rounded-md bg-richblack-300 py-[8px] px-[20px] font-semibold text-richblack-900`}
+          className="w-xs bg-white text-black"
+          style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={false}
         >
           Back
-        </button>
-
-        {/* Next button */}
-        <IconBtn disabled={loading} text="Next" onclick={goToNext}>
-          <MdNavigateNext />
-        </IconBtn>
+        </Button>
+        <Button
+          disabled={loading}
+          onClick={goToNext}
+          className="w-xs"
+          style={{ boxShadow: "0 6px 18px rgba(80,70,228,0.16)" }}
+          animated={true}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );
