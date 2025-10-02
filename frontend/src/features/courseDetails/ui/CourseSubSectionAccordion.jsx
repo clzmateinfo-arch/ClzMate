@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import { HiOutlineVideoCamera } from "react-icons/hi";
-import { FaLock } from "react-icons/fa";
-import { BsFillCaretRightFill } from "react-icons/bs";
+import { FaFileVideo, FaVideo } from "react-icons/fa6";
 import { IoIosDocument } from "react-icons/io";
 
 export default function CourseSubSectionAccordion({ subSec = {} }) {
@@ -34,13 +33,14 @@ export default function CourseSubSectionAccordion({ subSec = {} }) {
       <div name="indicator" className="flex items-center gap-3">
         {showPreview ? (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
-            <BsFillCaretRightFill className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Preview</span>
+            <FaVideo className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Prev</span>
           </div>
         ) : showLocked ? (
-          <span className="inline-flex items-center gap-2 text-[#9ca3af]" aria-hidden>
-            <FaLock />
-          </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <FaFileVideo className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Doc + Prev</span>
+          </div>
         ) : (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
             <IoIosDocument className="w-3.5 h-3.5" />
