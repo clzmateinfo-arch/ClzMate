@@ -49,7 +49,7 @@ export default function CourseTipsDialog({ open, onClose }) {
                             <div className="flex-none mt-1 w-8 h-8 grid place-items-center rounded-md bg-gradient-to-br from-[#ba7bf0]/10 to-[#996bec]/10 ring-1 ring-[#996bec]/10 text-[#7C3AED]">🖼️</div>
                             <div>
                                 <p className="text-sm font-medium text-richblack-900">Thumbnail recommendation</p>
-                                <p className="text-xs text-richblack-600">Use 1024×576 (16:9) for best visuals — choose an informative image that communicates the course topic.</p>
+                                <p className="text-xs text-richblack-600">Use 1024×576 (16:9) for best visuals   choose an informative image that communicates the course topic.</p>
                             </div>
                         </li>
 
@@ -57,7 +57,7 @@ export default function CourseTipsDialog({ open, onClose }) {
                             <div className="flex-none mt-1 w-8 h-8 grid place-items-center rounded-md bg-gradient-to-br from-[#ba7bf0]/10 to-[#996bec]/10 ring-1 ring-[#996bec]/10 text-[#7C3AED]">🎬</div>
                             <div>
                                 <p className="text-sm font-medium text-richblack-900">Overview video</p>
-                                <p className="text-xs text-richblack-600">Add a short overview video in the video section to increase conversions — keep it under 3 minutes.</p>
+                                <p className="text-xs text-richblack-600">Add a short overview video in the video section to increase conversions   keep it under 3 minutes.</p>
                             </div>
                         </li>
 

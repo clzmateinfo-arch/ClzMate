@@ -23,6 +23,11 @@ const {
   GET_ASSET_URL_API,
   GET_NOTES_API,
   CREATE_NOTES_API,
+  GET_ENROLLMENT_REQUESTS,
+  RESPOND_ENROLLMENT_REQUEST,
+  REQUEST_ENROLLMENT,
+  GET_USER_ENROLLMENT_REQUESTS,
+  TOGGLE_PUBLISH_API,
 } = courseEndpoints;
 
 const initialState = {
@@ -64,23 +69,16 @@ export const {
 
 export default viewCourseSlice.reducer;
 
-
 export const getAllCourses = async ({
   categoryId = "",
   page = 1,
   limit = 12,
   search = "",
   filters = {},
-}: {
-  categoryId?: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-  filters?: Record<string, any>;
 } = {}) => {
   const toastId = toast.loading("Loading");
   console.log("filter for API: ", filters);
-  let result: { data: any[]; total: number; success: boolean } = {
+  let result = {
     data: [],
     total: 0,
     success: false,
@@ -120,7 +118,7 @@ export const getAllCourses = async ({
         success: true,
       };
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("GET_ALL_COURSE_API PAGINATED ERROR............", error);
     toast.error(error?.message ?? "Failed to load courses");
   } finally {
@@ -518,7 +516,7 @@ export const fetchNote = async ({ courseId, sectionId, subSectionId }, token) =>
     );
     if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to fetch note");
     result = { success: true, data: response.data.data };
-  } catch (error: any) {
+  } catch (error) {
     console.error("FETCH_NOTE ERROR", error);
     result = { success: false, message: error?.message || "Failed to fetch note" };
   }
@@ -536,9 +534,120 @@ export const saveNote = async (payload, token) => {
     );
     if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to save note");
     result = { success: true, data: response.data.data };
-  } catch (error: any) {
+  } catch (error) {
     console.error("SAVE_NOTE ERROR", error);
     result = { success: false, message: error?.message || "Failed to save note" };
   }
   return result;
+};
+
+export const fetchCourseEnrollmentRequests = async (courseId, token) => {
+  try {
+    const response = await apiConnector("GET", `${GET_ENROLLMENT_REQUESTS}/${courseId}`, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to fetch enrollment requests");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("FETCH_COURSE_ENROLLMENT_REQUESTS ERROR", error);
+    toast.error(error?.message ?? "Could not fetch enrollment requests");
+    return error?.response?.data ?? { success: false, message: error?.message ?? "Failed to fetch enrollment requests" };
+  }
+};
+
+export const respondEnrollmentRequest = async (courseId, requestId, action, note = "", token) => {
+  const toastId = toast.loading("Processing...");
+  try {
+    const payload = { action, note };
+    const response = await apiConnector("POST", `${RESPOND_ENROLLMENT_REQUEST}/${courseId}/${requestId}/respond`, payload, {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to respond to enrollment request");
+    }
+
+    toast.success(action === "approve" ? "Request approved" : "Request rejected");
+    return response.data;
+  } catch (error) {
+    console.error("RESPOND_ENROLLMENT_REQUEST ERROR", error);
+    toast.error(error?.message ?? "Failed to respond to request");
+    return error?.response?.data ?? { success: false, message: error?.message ?? "Failed to respond to request" };
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const requestEnrollmentForCourse = async (courseId, token) => {
+  const toastId = toast.loading("Sending request...");
+  try {
+    const payload = { courseId };
+    const response = await apiConnector("POST", REQUEST_ENROLLMENT, payload, {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to request enrollment");
+    }
+
+    toast.success("Enrollment request sent");
+    return response.data;
+  } catch (error) {
+    console.error("REQUEST_ENROLLMENT_FOR_COURSE ERROR", error);
+    toast.error(error?.message ?? "Failed to send enrollment request");
+    return error?.response?.data ?? { success: false, message: error?.message ?? "Failed to request enrollment" };
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const fetchMyEnrollmentRequests = async (token) => {
+  try {
+    const response = await apiConnector("GET", GET_USER_ENROLLMENT_REQUESTS, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to fetch your enrollment requests");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("FETCH_MY_ENROLLMENT_REQUESTS ERROR", error);
+    toast.error(error?.message ?? "Could not fetch your enrollment requests");
+    return error?.response?.data ?? { success: false, message: error?.message ?? "Failed to fetch enrollment requests" };
+  }
+};
+
+export const toggleCoursePublish = async (courseId, token, publish) => {
+  const toastId = toast.loading("Updating publish status...");
+  try {
+    const payload = { courseId, publish };
+    const response = await apiConnector("POST", TOGGLE_PUBLISH_API, payload, {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    console.log("TOGGLE_PUBLISH_API RESPONSE............", response);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Could not update publish status");
+    }
+
+    const result = response.data.data ?? null;
+    toast.success("Publish status updated");
+    return result;
+  } catch (error) {
+    console.error("TOGGLE_PUBLISH_API ERROR............", error);
+    toast.error(error?.message ?? "Failed to update publish status");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
+  }
 };

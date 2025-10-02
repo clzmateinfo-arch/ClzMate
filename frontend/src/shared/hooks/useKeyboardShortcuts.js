@@ -1,4 +1,3 @@
-// src/shared/hooks/useKeyboardShortcuts.js
 import { useEffect, useRef } from "react";
 
 export default function useKeyboardShortcuts({ onTogglePlay, onSeek, onNext, onPrev }) {
@@ -7,7 +6,6 @@ export default function useKeyboardShortcuts({ onTogglePlay, onSeek, onNext, onP
 
     useEffect(() => {
         const handler = (e) => {
-            // don't react when user is typing in input/textarea
             const tag = (e.target && e.target.tagName) || "";
             if (["INPUT", "TEXTAREA"].includes(tag)) return;
 

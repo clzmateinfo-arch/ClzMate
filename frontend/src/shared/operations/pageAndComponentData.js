@@ -1,4 +1,4 @@
-import { apiConnector } from "../../shared/services/api/apiConnector";
+import { apiConnector } from "../services/api/apiConnector.js";
 import { catalogData } from "../../app/config/apis";
 
 export const getCatalogPageData = async (categoryId) => {

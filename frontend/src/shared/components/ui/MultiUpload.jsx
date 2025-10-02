@@ -1,5 +1,6 @@
 // MultiUpload.jsx (replace file)
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";
 
 export default function MultiUpload({
@@ -90,7 +91,7 @@ export default function MultiUpload({
         const allowed = added.filter(isAllowed);
         const rejected = added.length - allowed.length;
         if (rejected > 0) {
-            window.alert("Some files were rejected — only images, videos, PDF and ZIP files are allowed.");
+            window.alert("Some files were rejected   only images, videos, PDF and ZIP files are allowed.");
         }
 
         if (!allowed.length) return;
@@ -139,9 +140,9 @@ export default function MultiUpload({
                                 <div key={f.publicId ?? f.url ?? `${i}-existing`} className="flex items-center justify-between rounded-md bg-white/5 p-2">
                                     <div className="truncate text-sm">
                                         {f.url ? (
-                                            <a href={f.url} target="_blank" rel="noreferrer" className="underline">
+                                            <Link to={f.url} target="_blank" rel="noreferrer" className="underline">
                                                 {f.originalName}
-                                            </a>
+                                            </Link>
                                         ) : (
                                             <span>{f.originalName}</span>
                                         )}

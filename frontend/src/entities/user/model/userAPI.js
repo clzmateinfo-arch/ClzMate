@@ -43,12 +43,7 @@ export async function getUserEnrolledCourses({
   page = 1,
   limit = 10,
   search = "",
-}: {
-  token: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-}) {
+} = {}) {
   let result = { data: [], total: 0, success: false };
 
   try {
@@ -72,7 +67,7 @@ export async function getUserEnrolledCourses({
       total: response.data.data?.total ?? 0,
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("GET_USER_ENROLLED_COURSES_API ERROR............", error);
     toast.error(error?.message ?? "Could Not Get Enrolled Courses");
   }

@@ -59,10 +59,11 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
 
   return (
     <article
-      className="group bg-white rounded-2xl border border-[#efe7ff] shadow-md hover:shadow-2xl transition transform hover:-translate-y-1 will-change-transform overflow-hidden"
+      className="group bg-white rounded-2xl border border-[#efe7ff] shadow-md hover:shadow-2xl transition transform hover:-translate-y-1 will-change-transform overflow-hidden flex flex-col h-full"
       aria-labelledby={`course-courseName-${_id ?? id}`}
       role="article"
     >
+      {/* image */}
       <div className="relative w-full">
         <div className="h-44 sm:h-48 w-full overflow-hidden bg-gray-50">
           <img
@@ -89,8 +90,10 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex items-start gap-3">
+      {/* content wrapper: make it a column flex that fills remaining space and distributes children */}
+      <div className="p-4 flex flex-col justify-between h-full">
+        {/* DETAILS (top) */}
+        <div name="details" className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <h3
               id={`course-courseName-${_id ?? id}`}
@@ -105,7 +108,7 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
               {timeAgo && (
                 <>
                   <span aria-hidden="true"> </span>
-                  <time dateTime={new Date(updatedAt).toISOString()} className="whitespace-nowrap text-[#9890a7]">
+                  <time dateTime={new Date(updatedAt || createdAt).toISOString()} className="whitespace-nowrap text-[#9890a7]">
                     Published {timeAgo}
                   </time>
                 </>
@@ -139,7 +142,9 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-3">
+        {/* CONTROLS (bottom) */}
+        {/* Option A: rely on justify-between of the parent; controls will naturally sit at bottom */}
+        <div name="controls" className="mt-4 flex items-center justify-end gap-3">
           <LinkButton to={safeHref} className="gap-2 btn-xl btn-purple group/btn btn-border-dark rounded-full">
             View Course
           </LinkButton>

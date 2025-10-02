@@ -12,7 +12,7 @@ import { fetchCourseDetails } from "@/entities/course/model/courseDetailsAPI";
 import { buyCourse } from "@/entities/student/model/studentFeaturesAPI";
 import GetAvgRating from "@/utils/avgRating";
 import { ACCOUNT_TYPE } from "@/utils/constants";
-import { addToCart } from "@/entities/cart/model/cartSlice";
+import { setCart } from "@/entities/cart/model/cartSlice";
 
 import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHeader";
 import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPanel";
@@ -178,13 +178,13 @@ function CourseDetails() {
     studentsEnrolled,
     createdAt,
     tag,
+    requiresApproval,
   } = response?.data?.courseDetails || {};
 
   const handleBuyCourse = () => {
-    console.log("Buy");
     if (token) {
       const coursesId = [courseId];
-      buyCourse(token, coursesId, user, navigate, dispatch);
+      buyCourse(token, coursesId, requiresApproval, user, navigate, dispatch);
       return;
     }
     setConfirmationModal({
@@ -203,7 +203,7 @@ function CourseDetails() {
       return;
     }
     if (token) {
-      dispatch(addToCart(response?.data.courseDetails));
+      dispatch(setCart(response?.data.courseDetails));
       toast.success("Added to cart");
       return;
     }
@@ -215,6 +215,10 @@ function CourseDetails() {
       btn1Handler: () => navigate("/login"),
       btn2Handler: () => setConfirmationModal(null),
     });
+  };
+
+  const onViewProfile = () => {
+    navigate(`/profile/public/${instructor._id}`);
   };
 
   return (
@@ -233,6 +237,13 @@ function CourseDetails() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-h-[420px] py-8 mr-5">
             <div className="lg:col-span-8">
+              {response?.data?.courseDetails?.requiresApproval && (
+                <div className="mb-4 p-3 rounded-xl bg-yellow-50 border border-yellow-300">
+                  <p className="text-sm font-medium text-yellow-700">
+                    This course requires instructor approval to follow
+                  </p>
+                </div>
+              )}
               <CourseDetailsHeader
                 courseName={courseName}
                 courseDescription={courseDescription}
@@ -255,7 +266,7 @@ function CourseDetails() {
                   handleBuyCourse={handleBuyCourse}
                 />
 
-                <CourseAuthorCard instructor={instructor} />
+                <CourseAuthorCard instructor={instructor} onViewProfile={onViewProfile} />
               </div>
             </aside>
           </div>

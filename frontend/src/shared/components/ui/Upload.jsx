@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 export default function Upload({
   name,
@@ -58,7 +59,7 @@ export default function Upload({
     if (multiple && Array.isArray(file)) {
       const filtered = file.filter((f) => isFileAllowed(f, fileType));
       if (filtered.length !== file.length) {
-        window.alert("Some files were rejected — only images, videos, PDFs and ZIPs are allowed.");
+        window.alert("Some files were rejected   only images, videos, PDFs and ZIPs are allowed.");
       }
       const newFiles = [...selectedFiles, ...filtered];
       setSelectedFiles(newFiles);
@@ -183,36 +184,48 @@ export default function Upload({
               ) : fileType === "pdf" ? (
                 <div style={{ height: previewHeight }} className="w-full overflow-auto rounded-xl bg-white">
                   <object data={previewSource} type="application/pdf" className="w-full h-full">
-                    <p className="p-4">PDF preview not available. <a href={previewSource} target="_blank" rel="noreferrer" className="underline">Open</a></p>
+                    <p className="p-4">
+                      PDF preview not available.{" "}
+                      <Link to={previewSource} target="_blank" rel="noreferrer" className="underline">
+                        Open
+                      </Link>
+                    </p>
                   </object>
                 </div>
               ) : (
-                <div className="p-4"> <a href={previewSource} target="_blank" rel="noreferrer" className="underline">Open file</a> </div>
+                <div className="p-4">
+                  <Link to={previewSource} target="_blank" rel="noreferrer" className="underline">
+                    Open file
+                  </Link>
+                </div>
               )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3 justify-end">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
-                Replace
-                <input
-                  type="file"
-                  accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      if (!isFileAllowed(f, fileType)) {
-                        window.alert("Selected file type not allowed.");
-                        return;
+              {!disabled ? (
+                <label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer bg-gradient-to-r from-[#7a05cf] via-[#6a00b7] to-[#7a05cf] text-white shadow">
+                  Replace
+                  <input
+                    type="file"
+                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (!isFileAllowed(f, fileType)) {
+                          window.alert("Selected file type not allowed.");
+                          return;
+                        }
+                        setSelectedFiles([f]);
+                        setValue(name, multiple ? [f] : f);
+                        setPreview(f);
                       }
-                      setSelectedFiles([f]);
-                      setValue(name, multiple ? [f] : f);
-                      setPreview(f);
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
-              ) : (<></>)}
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <></>
+              )}
 
               {!viewData && !editData && (
                 <button type="button" onClick={handleClear} className="rounded-full border border-white/10 bg-white/4 px-3 py-2 text-sm font-medium text-[#0b1220] hover:bg-white/8 transition">
@@ -231,27 +244,30 @@ export default function Upload({
               <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes"}</p>
             </div>
             <div className="mt-4 flex gap-3">
-              {disabled ? (<label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
-                Browse
-                <input
-                  type="file"
-                  accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) {
-                      if (!isFileAllowed(f, fileType)) {
-                        window.alert("Selected file type not allowed.");
-                        return;
+              {!disabled ? (
+                <label className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-amber-400/90 border border-white/8 text-[#0b1220]">
+                  Browse
+                  <input
+                    type="file"
+                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (!isFileAllowed(f, fileType)) {
+                          window.alert("Selected file type not allowed.");
+                          return;
+                        }
+                        setSelectedFiles([f]);
+                        setValue(name, multiple ? [f] : f);
+                        setPreview(f);
                       }
-                      setSelectedFiles([f]);
-                      setValue(name, multiple ? [f] : f);
-                      setPreview(f);
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
-              ) : (<></>)}
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
         )}

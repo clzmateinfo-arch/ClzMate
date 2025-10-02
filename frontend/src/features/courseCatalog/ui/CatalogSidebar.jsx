@@ -8,7 +8,7 @@ export default function CatalogSidebar({
     onClose = () => { },
 }) {
     return (
-        <aside className="bg-white rounded-2xl p-4 shadow-sm border border-[#efe7ff]">
+        <aside className="bg-white text-black rounded-2xl p-4 shadow-sm border border-[#efe7ff]">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold">Filters</h3>
                 <button onClick={onClose} className="text-sm px-2 py-1 rounded-md bg-gray-100">

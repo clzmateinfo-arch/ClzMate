@@ -1,16 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { fetchNote, saveNote } from "@/entities/course/model/courseDetailsAPI";
 
-export default function NotesPanel({ courseId, sectionId, subSectionId, userId }) {
+export default function NotePanel({ courseId, sectionId, subSectionId, userId }) {
     const key = `notes:${userId || "anon"}:${courseId}:${sectionId}:${subSectionId}`;
     const token = useSelector((s) => s.auth?.token);
     const [text, setText] = useState("");
     const [status, setStatus] = useState("Saved");
     const timer = useRef(null);
-    const idleDelay = 2000; // 2s
+    const idleDelay = 2000;
 
-    // fetch from server if token present, else localStorage
     useEffect(() => {
         let mounted = true;
         setStatus("Loading");
@@ -22,7 +21,6 @@ export default function NotesPanel({ courseId, sectionId, subSectionId, userId }
                     setText(res.data.content || "");
                     setStatus("Saved");
                 } else {
-                    // fallback to localStorage
                     const existing = localStorage.getItem(key);
                     if (existing) setText(existing);
                     setStatus("Saved");
@@ -42,7 +40,6 @@ export default function NotesPanel({ courseId, sectionId, subSectionId, userId }
             setStatus("Saving");
             localStorage.setItem(key, value);
             if (token) {
-                // call backend saveNote
                 const payload = { courseId, sectionId, subSectionId, content: value };
                 const res = await saveNote(payload, token);
                 if (res?.success) {
@@ -51,7 +48,6 @@ export default function NotesPanel({ courseId, sectionId, subSectionId, userId }
                     setStatus("Saved (local)");
                 }
             } else {
-                // offline: only localStorage
                 setStatus("Saved (local)");
             }
         } catch (e) {

@@ -1,4 +1,3 @@
-// src/controllers/subSection.js
 const Section = require("../models/section");
 const SubSection = require("../models/subSection");
 const { uploadFileToCloudinary, deleteResourceFromCloudinary } = require("../utils/fileUploader");
@@ -18,10 +17,8 @@ const pickMany = (files, key) => {
 
 exports.createSubSection = async (req, res) => {
   try {
-    console.log("createSubSection req.body:", req.body);
-    console.log("createSubSection req.files keys:", req.files ? Object.keys(req.files) : "no files");
 
-    const { title, description, sectionId } = req.body;
+    const { title, description, sectionId, externalVideoUrl } = req.body;
     if (!title || !description || !sectionId) {
       return res.status(400).json({ success: false, message: "Title, description and sectionId are required" });
     }
@@ -40,8 +37,8 @@ exports.createSubSection = async (req, res) => {
     if (legacyVideo) incomingFiles.push(legacyVideo);
     if (legacyPdf) incomingFiles.push(legacyPdf);
 
-    if (!incomingFiles.length && (!meta || meta.length === 0)) {
-      return res.status(400).json({ success: false, message: "At least one file (video or pdf) is required" });
+    if (!incomingFiles.length && (!meta || meta.length === 0) && !externalVideoUrl) {
+      return res.status(400).json({ success: false, message: "At least one file (video or pdf) or an external video URL is required" });
     }
 
     const supportMaterials = [];
@@ -61,16 +58,13 @@ exports.createSubSection = async (req, res) => {
     }
 
     let timeDuration = 0;
-    const videoCandidate = supportMaterials.find((s) => s.isMainVideo && s.resourceType === "video");
-    if (videoCandidate && videoCandidate.publicId) {
-      console.log("videoCandidate:", videoCandidate);
-    }
 
     const created = await SubSection.create({
       title,
       timeDuration: timeDuration || 0,
       description,
       supportMaterials,
+      externalVideoUrl: externalVideoUrl || null,
     });
 
     const updatedSection = await Section.findByIdAndUpdate(
@@ -88,9 +82,6 @@ exports.createSubSection = async (req, res) => {
 
 exports.updateSubSection = async (req, res) => {
   try {
-    console.log("updateSubSection req.body:", req.body);
-    console.log("updateSubSection req.files keys:", req.files ? Object.keys(req.files) : "no files");
-
     const { sectionId, subSectionId, title, description, removeSupport = "[]" } = req.body;
     if (!subSectionId) return res.status(400).json({ success: false, message: "subSection ID is required to update" });
 
@@ -99,6 +90,11 @@ exports.updateSubSection = async (req, res) => {
 
     if (title) subSection.title = title;
     if (description) subSection.description = description;
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "externalVideoUrl")) {
+      const ext = req.body.externalVideoUrl || null;
+      subSection.externalVideoUrl = ext;
+    }
 
     let removeArr = [];
     try { removeArr = JSON.parse(removeSupport); if (!Array.isArray(removeArr)) removeArr = []; } catch (e) { removeArr = []; }
@@ -146,8 +142,8 @@ exports.updateSubSection = async (req, res) => {
     }
 
     const hasMain = (subSection.supportMaterials || []).some((s) => s.isMainVideo || s.isMainPdf);
-    if (!hasMain) {
-      return res.status(400).json({ success: false, message: "SubSection must have at least one main video or main PDF" });
+    if (!hasMain && !subSection.externalVideoUrl) {
+      return res.status(400).json({ success: false, message: "SubSection must have at least one main video or main PDF or an external video URL" });
     }
 
     await subSection.save();

@@ -123,7 +123,7 @@ export default function ReviewSlider() {
                       <h4 id={`review-${i}-title`} className="font-semibold text-base text-black truncate">
                         {`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Anonymous"}
                       </h4>
-                      <div className="text-sm text-black truncate">{course?.courseName ?? "—"}</div>
+                      <div className="text-sm text-black truncate">{course?.courseName ?? " "}</div>
                     </div>
                   </header>
 

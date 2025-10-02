@@ -69,7 +69,7 @@ export default function EnrolledCourseCard({
 
             {showDuration ? (
                 <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">
-                    {course?.totalDuration ?? "—"}
+                    {course?.totalDuration ?? " "}
                 </div>
             ) : null}
 

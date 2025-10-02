@@ -51,13 +51,13 @@ export default function UpdatePassword() {
     try {
       setSubmitting(true);
       if (typeof changePassword === "function" && changePassword.length) {
-        await dispatch(changePassword(token, payload));
+        await changePassword(token, payload);
       } else {
         await changePassword(token, payload);
       }
     } catch (err) {
       console.error("Change password failed", err);
-      setErrors((p) => ({ ...p, form: "Unable to change password. Please try again." }));
+      //setErrors((p) => ({ ...p, form: "Unable to change password. Please try again." }));
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +109,7 @@ export default function UpdatePassword() {
               id="confirmNewPassword"
               name="confirmNewPassword"
               type="password"
-              value={form.newPassword}
+              value={form.confirmNewPassword}
               onChange={handleChange("confirmNewPassword")}
               placeholder="Confirm your new password"
               required

@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
-import TextArea from "@/shared/components/ui/TextArea";
 import PhoneInput from "@/shared/components/ui/PhoneInput";
 import { submitContact } from "@/entities/conatct/model/contactAPI";
+import Textarea from "../../../shared/components/ui/Textarea";
 
 export default function ContactUsForm() {
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function ContactUsForm() {
       <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm text-black">
         <h3 className="text-xl font-semibold mb-2 text-black">Get in Touch</h3>
         <p className="text-sm text-black">
-          Whether you’ve got questions, feedback, or just want to say hi — we’re here for you.
+          Whether you’ve got questions, feedback, or just want to say hi   we’re here for you.
           Expect replies within 24 hours on business days.
         </p>
       </div>
@@ -154,7 +154,7 @@ export default function ContactUsForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <TextArea
+            <Textarea
               label="Message"
               name="message"
               value={message}
@@ -178,7 +178,7 @@ export default function ContactUsForm() {
             </Button>
 
             <span className="text-sm text-black text-right">
-              {sent ? "Message sent — we'll be in touch shortly" : "We’ll reply as soon as possible"}
+              {sent ? "Message sent   we'll be in touch shortly" : "We’ll reply as soon as possible"}
             </span>
           </div>
         </form>

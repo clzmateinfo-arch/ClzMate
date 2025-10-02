@@ -57,7 +57,7 @@ export default function MyProfile() {
             </div>
             <p className="text-sm leading-6 text-richblack-600">
               {user?.additionalDetails?.about ??
-                "Tell others a little about yourself — interests, skills, what you’re learning."}
+                "Tell others a little about yourself   interests, skills, what you’re learning."}
             </p>
           </section>
 
@@ -126,7 +126,7 @@ export default function MyProfile() {
               </div>
             </section>
             <div className="grid grid-cols-1 w-full gap-6 lg:grid-cols-2">
-              <div className="flex flex-col gap-4">
+              {/* <div className="flex flex-col gap-4">
                 <section className="m-4 rounded-2xl bg-white/6 border border-white/8 backdrop-blur-md p-6 shadow-sm w-full min-h-65">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-base font-semibold text-richblack-900">
@@ -134,7 +134,6 @@ export default function MyProfile() {
                     </h4>
                   </div>
                   <ul className="space-y-3">
-                    {/* Email */}
                     <li className="py-3 flex items-center justify-between text-sm">
                       <div className="flex items-center gap-3">
                         <span className="inline-grid place-items-center w-8 h-8 rounded-md bg-white/6 text-richblack-900">
@@ -168,8 +167,6 @@ export default function MyProfile() {
                         <RiEditBoxLine />
                       </IconBtn>
                     </li>
-
-                    {/* Google */}
                     <li className="py-3 flex items-center justify-between text-sm">
                       <div className="flex items-center gap-3">
                         <span className="inline-grid place-items-center w-8 h-8 rounded-md bg-white/6 text-richblack-900">
@@ -193,7 +190,6 @@ export default function MyProfile() {
                       </IconBtn>
                     </li>
 
-                    {/* GitHub */}
                     <li className="py-3 flex items-center justify-between text-sm">
                       <div className="flex items-center gap-3">
                         <span className="inline-grid place-items-center w-8 h-8 rounded-md bg-white/6 text-richblack-900">
@@ -250,7 +246,7 @@ export default function MyProfile() {
                     </div>
                   </div>
                 </section>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

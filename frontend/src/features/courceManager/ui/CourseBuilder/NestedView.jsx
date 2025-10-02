@@ -2,8 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { HiOutlineVideoCamera } from "react-icons/hi";
-import { FaLock } from "react-icons/fa";
-import { BsFillCaretRightFill } from "react-icons/bs";
+import { IoIosDocument } from "react-icons/io";
 import { MdEdit } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { FaPlus } from "react-icons/fa";
@@ -13,13 +12,21 @@ import { setCourse } from "@/entities/course/model/courseSlice";
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
 import SubSectionModal from "./SubSectionModal";
 import { useLocation } from "react-router-dom";
+import { FaFileVideo, FaVideo } from "react-icons/fa6";
 
 function EditableSubSection({ subSec, onView, onEdit, onDelete }) {
-  const { title, duration, isPreview, locked } = subSec ?? {};
+  const { title, duration, supportMaterials = [] } = subSec ?? {};
+
+  const hasMainPdf = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainPdf);
+  const hasMainVideo = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainVideo);
+
+  const showDoc = hasMainPdf && !hasMainVideo;
+  const showPreview = hasMainVideo && !hasMainPdf;
+  const showLocked = !showDoc && !showPreview;
 
   return (
     <div
-      className="w-full rounded-lg border border-[#f3eff9]/30 bg-white p-3 transition hover:shadow-sm flex items-center justify-between cursor-pointer"
+      className="w-full rounded-lg border border-[#f3eff9]/30 bg-white p-3 mt-1 transition hover:shadow-sm flex items-center justify-between cursor-pointer"
       role="listitem"
       aria-label={title}
       onClick={() => onView && onView(subSec)}
@@ -35,19 +42,21 @@ function EditableSubSection({ subSec, onView, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {isPreview ? (
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7c3aed]/10 text-[#7c3aed] text-xs font-semibold">
-            Preview
-          </span>
-        ) : locked ? (
-          <span className="inline-flex items-center gap-2 text-[#9ca3af]" aria-hidden>
-            <FaLock />
-          </span>
+      <div name="indicator" className="flex items-center gap-3">
+        {showPreview ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <FaVideo className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Prev</span>
+          </div>
+        ) : showLocked ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <FaFileVideo className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Doc + Prev</span>
+          </div>
         ) : (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
-            <BsFillCaretRightFill className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Play</span>
+            <IoIosDocument className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">Doc</span>
           </div>
         )}
 

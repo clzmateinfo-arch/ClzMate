@@ -1,23 +1,23 @@
-// src/pages/course/ViewCourse.jsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import NotesPanel from "@/features/courseViewer/NotesPanel";
-import SandboxPanel from "@/features/courseViewer/SandboxPanel";
-import SupportFilesPanel from "@/features/courseViewer/SupportFilesPanel";
-import SectionSidebar from "@/features/courseViewer/SectionSidebar";
-import Box from "@/features/courseViewer/Box";
-import Whiteboard from "@/features/courseViewer/Whiteboard";
-import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
+import NotePanel from "../../features/courseViewer/ui/NotePanel";
+import SandboxPanel from "../../features/courseViewer/ui/SandboxPanel";
+import SupportFilesPanel from "../../features/courseViewer/ui/SupportFilesPanel";
+import SectionSidebar from "../../features/courseViewer/ui/SectionSidebar";
+import ExternalVideo from "../../shared/components/ui/ExternalVideo";
+import Box from "../../features/courseViewer/ui/Box";
+import Whiteboard from "../../features/courseViewer/ui/Whiteboard";
+import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
   setCourseSectionData,
   setEntireCourseData,
   setCompletedLectures,
   setTotalNoOfLectures,
-} from "@/entities/course/model/courseSlice";
-import ResourceViewer from "@/features/courseViewer/ResourceViewer";
+  setDrawMode,
+} from "../../entities/course/model/courseSlice";
+import ResourceViewer from "../../features/courseViewer/ui/ResourceViewer";
 import { generateLayout } from "../../shared/utils/generateLayout";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 const DEFAULT_SECTION_WIDTH = 15;
 
@@ -89,6 +89,16 @@ export default function ViewCourse() {
         };
       }
 
+      if (tile.id === "external") {
+        return {
+          ...tile,
+          visible: true,
+          z: 210,
+          component: ExternalVideo,
+          componentProps: { url: currentSub?.externalVideoUrl ?? null },
+        };
+      }
+
       if (tile.id === "video") {
         const mats = currentSub?.supportMaterials || [];
         const mainVideo = mats.find((m) => !!m.isMainVideo) || mats.find((m) => (m.resourceType || "").startsWith("video"));
@@ -118,7 +128,7 @@ export default function ViewCourse() {
           ...tile,
           visible: true,
           z: 180,
-          component: NotesPanel,
+          component: NotePanel,
           componentProps: { courseId, sectionId, subSectionId, userId: auth?.user?.id },
         };
       }
@@ -282,12 +292,12 @@ export default function ViewCourse() {
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "d" || e.key === "D") {
-        setDrawMode((v) => !v);
+        dispatch(setDrawMode(!drawMode));
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [dispatch, drawMode]);
 
   return (
     <div className="w-screen h-screen bg-slate-900 text-white relative overflow-hidden">
