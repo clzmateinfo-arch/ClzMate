@@ -1,3 +1,4 @@
+// frontend/src/entities/user/model/settingsAPI.js
 import { toast } from "react-hot-toast";
 import { setUser } from "@/entities/user/model/userSlice";
 import { apiConnector } from "@/shared/services/api/apiConnector";
@@ -28,8 +29,8 @@ export const fetchUserDetailsApi = async (token) => {
   }
 };
 
-export function fetchAndSetUserDetails(token: string) {
-  return async (dispatch: any) => {
+export function fetchAndSetUserDetails(token) {
+  return async (dispatch) => {
     try {
       const data = await fetchUserDetailsApi(token);
       if (data) {
@@ -51,8 +52,8 @@ export function fetchAndSetUserDetails(token: string) {
   };
 }
 
-export function updateUserProfileImage(token: string, formData: FormData) {
-  return async (dispatch: any) => {
+export function updateUserProfileImage(token, formData) {
+  return async (dispatch) => {
     const toastId = toast.loading("Updating profile image...");
     try {
       const response = await apiConnector("PUT", UPDATE_DISPLAY_PICTURE_API, formData, {
@@ -71,7 +72,7 @@ export function updateUserProfileImage(token: string, formData: FormData) {
 
       toast.success("Display Picture Updated Successfully");
       return updated;
-    } catch (error: any) {
+    } catch (error) {
       console.error("UPDATE_DISPLAY_PICTURE_API ERROR", error);
       toast.error(error?.message || "Could Not Update Profile Picture");
       return null;
@@ -81,8 +82,8 @@ export function updateUserProfileImage(token: string, formData: FormData) {
   };
 }
 
-export function updateProfile(token: string, payload: any) {
-  return async (dispatch: any) => {
+export function updateProfile(token, payload) {
+  return async (dispatch) => {
     const toastId = toast.loading("Updating profile...");
     try {
       const response = await apiConnector("PUT", UPDATE_PROFILE_API, payload, {
@@ -98,7 +99,7 @@ export function updateProfile(token: string, payload: any) {
       let finalUser = updatedFromResponse;
       if (!finalUser) {
         try {
-          const fetchRes = await apiConnector("GET", profileEndpoints.GET_USER_DETAILS_API, null, {
+          const fetchRes = await apiConnector("GET", GET_USER_DETAILS_API, null, {
             Authorization: `Bearer ${token}`,
           });
           if (fetchRes?.data?.success) {
@@ -123,7 +124,7 @@ export function updateProfile(token: string, payload: any) {
 
       toast.success("Profile Updated Successfully");
       return finalUser;
-    } catch (error: any) {
+    } catch (error) {
       console.error("UPDATE_PROFILE_API ERROR", error);
       toast.error(error?.message || "Could Not Update Profile");
       return null;
@@ -133,7 +134,7 @@ export function updateProfile(token: string, payload: any) {
   };
 }
 
-export async function changePassword(token: string, formData: any) {
+export async function changePassword(token, formData) {
   const toastId = toast.loading("Changing password...");
   try {
     const response = await apiConnector("POST", CHANGE_PASSWORD_API, formData, {
@@ -144,7 +145,7 @@ export async function changePassword(token: string, formData: any) {
     }
     toast.success("Password Changed Successfully");
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error("CHANGE_PASSWORD_API ERROR", error);
     toast.error(error?.response?.data?.message || "Could not change password");
     return false;
@@ -153,8 +154,8 @@ export async function changePassword(token: string, formData: any) {
   }
 }
 
-export function deleteProfile(token: string, navigate: any) {
-  return async (dispatch: any) => {
+export function deleteProfile(token, navigate) {
+  return async (dispatch) => {
     const toastId = toast.loading("Deleting profile...");
     try {
       const response = await apiConnector("DELETE", DELETE_PROFILE_API, null, {
@@ -166,7 +167,7 @@ export function deleteProfile(token: string, navigate: any) {
       toast.success("Profile Deleted Successfully");
       dispatch(logout(navigate));
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error("DELETE_PROFILE_API ERROR", error);
       toast.error("Could Not Delete Profile");
       return false;
