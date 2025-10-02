@@ -57,7 +57,7 @@ export default function MyProfile() {
             </div>
             <p className="text-sm leading-6 text-richblack-600">
               {user?.additionalDetails?.about ??
-                "Tell others a little about yourself — interests, skills, what you’re learning."}
+                "Tell others a little about yourself   interests, skills, what you’re learning."}
             </p>
           </section>
 
