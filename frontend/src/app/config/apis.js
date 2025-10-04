@@ -100,4 +100,5 @@ export const classroomEndpoints = {
   LIST_TOPICS_API: BASE_URL + "/classroom",
   MANAGE_TOPICS_API: BASE_URL + "/classroom/topics",
   ASSIGNMENTS_API: `${BASE_URL}/classroom/assignments`,
+  QUIZZES_API: `${BASE_URL}/classroom/quizzes`,
 };

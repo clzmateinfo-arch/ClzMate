@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    createAssignmentAPI,
-    updateAssignmentAPI,
-} from "@/entities/classroom/model/classroomAPI";
-import {
-    setAssignment,
-    setStep,
-    setEditAssignment,
-} from "@/entities/classroom/model/classroomSlice";
+import { createAssignmentAPI, updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
+import { setAssignment, setStep, setEditAssignment } from "@/entities/classroom/model/classroomSlice";
 import Input from "@/shared/components/ui/Input";
 import Textarea from "@/shared/components/ui/Textarea";
 import Button from "@/shared/components/ui/Button";
@@ -20,21 +13,24 @@ export default function AssignmentInfoForm({ topicId }) {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
     const { assignment, editAssignment } = useSelector((s) => s.classroom || {});
-    const { register, handleSubmit, setValue, control } = useForm();
+    const { register, handleSubmit, control, reset, setValue } = useForm();
     const [loading, setLoading] = useState(false);
     const [dueDate, setDueDate] = useState("");
 
     useEffect(() => {
         if (assignment) {
-            setValue("title", assignment.title ?? "");
-            setValue("instructions", assignment.instructions ?? assignment.description ?? "");
-            setValue("dueDate", assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : "");
-            setValue("points", assignment.points ?? 100);
+            reset({
+                title: assignment.title ?? "",
+                instructions: assignment.instructions ?? assignment.description ?? "",
+                dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : "",
+                points: assignment.points ?? 100,
+            });
             setDueDate(assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : "");
         } else {
-            setValue("points", 100);
+            reset({ title: "", instructions: "", dueDate: "", points: 100 });
+            setDueDate("");
         }
-    }, [assignment, setValue]);
+    }, [assignment, reset, setValue]);
 
     const handleNext = async (data) => {
         if (!data.title || data.title.trim() === "") {
@@ -75,13 +71,11 @@ export default function AssignmentInfoForm({ topicId }) {
     };
 
     return (
-        <form
-            onSubmit={handleSubmit(handleNext)}
-            className="space-y-6 rounded-2xl border border-white/8 bg-white/6 p-6 max-w-2xl mx-auto"
-        >
+        <form onSubmit={handleSubmit(handleNext)} className="space-y-6 rounded-2xl border border-white/8 bg-white/6 p-6 max-w-2xl mx-auto">
             <div className="max-w-lg mt-4">
                 <Input label="Title" {...register("title", { required: true })} placeholder="Enter assignment title" />
             </div>
+
             <div className="max-w-lg mt-4">
                 <Controller
                     name="instructions"
@@ -117,21 +111,12 @@ export default function AssignmentInfoForm({ topicId }) {
                 </div>
 
                 <div>
-                    <Input
-                        label="Points"
-                        {...register("points", { valueAsNumber: true })}
-                        type="number"
-                        placeholder="100"
-                    />
+                    <Input label="Points" {...register("points", { valueAsNumber: true })} type="number" placeholder="100" />
                 </div>
             </div>
 
             <div className="flex justify-end gap-3">
-                <Button
-                    variant="light"
-                    onClick={() => dispatch(setStep(1))}
-                    className="bg-white text-black"
-                >
+                <Button variant="light" onClick={() => dispatch(setStep(1))} className="bg-white text-black">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={loading}>

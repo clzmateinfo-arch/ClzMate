@@ -1,4 +1,3 @@
-// frontend/src/pages/classroom/ManageAssignment.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useLocation } from "react-router-dom";
@@ -12,44 +11,57 @@ import { setAssignment, setEditAssignment, setStep } from "@/entities/classroom/
 export default function ManageAssignment() {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    // Defensive selector: if state.classroom is undefined, fallback to {}
     const classroomState = useSelector((s) => s.classroom || {});
-    const { assignment, step } = classroomState || {}; // safe destructure
-
+    const { assignment, step } = classroomState || {};
     const { classroomId, topicId, assignmentId } = useParams();
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
     const location = useLocation();
 
     useEffect(() => {
-        // Helpful debug if classroom slice isn't registered
-        if (!("step" in classroomState) && !("assignment" in classroomState)) {
-            // Only warn in dev
-            // eslint-disable-next-line no-console
-            console.warn("ManageAssignment: classroom slice appears missing from store (state.classroom is undefined). Check store registration.");
-        }
-
         (async () => {
             setLoading(true);
+            let fetchedOverview = null;
             try {
                 if (classroomId) {
-                    const ov = await fetchClassOverviewAPI(classroomId, token);
-                    setOverview(ov);
+                    fetchedOverview = await fetchClassOverviewAPI(classroomId, token);
+                    setOverview(fetchedOverview);
                 }
             } catch (e) {
                 console.warn("Failed to fetch class overview:", e);
             }
 
+            console.log("Params:", { classroomId, topicId, assignmentId });
             if (assignmentId) {
                 try {
                     const a = await getAssignmentAPI(assignmentId, token);
                     if (a) {
-                        dispatch(setAssignment(a));
+                        const normalized = { ...a, _id: a._id || a.id };
+                        dispatch(setAssignment(normalized));
                         dispatch(setEditAssignment(true));
                         dispatch(setStep(1));
+                    } else {
+                        throw new Error("Empty assignment returned");
                     }
                 } catch (err) {
-                    console.error("Load assignment failed", err);
+                    try {
+                        const fallbackList = fetchedOverview?.upcomingAssignments || [];
+                        const found = fallbackList.find((x) => String(x._id) === String(assignmentId) || String(x.id) === String(assignmentId));
+                        if (found) {
+                            const normalized = { ...found, _id: found._id || found.id };
+                            dispatch(setAssignment(normalized));
+                            dispatch(setEditAssignment(true));
+                            dispatch(setStep(1));
+                        } else {
+                            dispatch(setAssignment(null));
+                            dispatch(setEditAssignment(false));
+                            dispatch(setStep(1));
+                        }
+                    } catch (e2) {
+                        dispatch(setAssignment(null));
+                        dispatch(setEditAssignment(false));
+                        dispatch(setStep(1));
+                    }
                 }
             } else {
                 dispatch(setAssignment(null));
@@ -59,8 +71,7 @@ export default function ManageAssignment() {
 
             setLoading(false);
         })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname, assignmentId, classroomId, topicId]);
+    }, [location.pathname, assignmentId, classroomId, topicId, token, dispatch]);
 
     if (loading) return <Loading />;
 

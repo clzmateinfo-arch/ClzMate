@@ -13,18 +13,24 @@ export default function AssignmentMaterialsForm({ topicId }) {
     const classroomState = useSelector((s) => s.classroom || {});
     const { assignment } = classroomState || {};
     const { token } = useSelector((s) => s.auth || {});
-    const { register, handleSubmit, setValue, getValues } = useForm();
+    const { register, handleSubmit, setValue, getValues, reset } = useForm();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (assignment) {
-            setValue("references", assignment.references ?? "");
+            reset({
+                references: assignment.references ?? "",
+                supportMaterials: { new: [], existing: assignment.attachments ?? [], remove: [] },
+            });
             setValue("supportMaterials", { new: [], existing: assignment.attachments ?? [], remove: [] });
         } else {
-            setValue("references", "");
+            reset({
+                references: "",
+                supportMaterials: { new: [], existing: [], remove: [] },
+            });
             setValue("supportMaterials", { new: [], existing: [], remove: [] });
         }
-    }, [assignment, setValue]);
+    }, [assignment, reset, setValue]);
 
     const onSubmit = async (data) => {
         if (!assignment || !assignment._id) {

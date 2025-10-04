@@ -26,4 +26,14 @@ router.get("/topics/:topicId/assignments", auth, classroomControllers.listAssign
 router.get("/assignments/:assignmentId", auth, classroomControllers.getAssignment);
 router.patch("/assignments/:assignmentId", auth, isInstructor, classroomControllers.updateAssignment);
 
+router.post("/topics/:topicId/quizzes", auth, isInstructor, classroomControllers.createQuiz);
+router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);
+router.patch("/quizzes/:quizId", auth, isInstructor, classroomControllers.updateQuiz);
+
+router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers.createScreen);
+router.patch("/quizzes/screens/:screenId", auth, isInstructor, classroomControllers.updateScreen);
+router.delete("/quizzes/:quizId/screens/:screenId", auth, isInstructor, classroomControllers.deleteScreen);
+router.post("/quizzes/:quizId/screens/reorder", auth, isInstructor, classroomControllers.reorderScreens);
+
+
 module.exports = router;

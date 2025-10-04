@@ -1,18 +1,6 @@
-// frontend/src/features/classroom/ui/Topic/ItemCard.jsx
 import React from "react";
 import { FiCopy, FiTrash2, FiEdit } from "react-icons/fi";
 
-/**
- * ItemCard - supports generic items (material, assignment, quiz, link, etc.)
- *
- * Props:
- * - item: object (may be an "assignment" or a generic topic item)
- * - onToggle: toggle publish/status (optional)
- * - onDelete: delete callback (optional)
- * - onCopy: copy callback (optional)
- * - onEdit: edit callback (optional)
- * - className: optional extra classes
- */
 export default function ItemCard({ item = {}, onToggle, onDelete, onCopy, onEdit, className = "" }) {
     const isAssignment = !!(item.points || item.dueDate || item.assigneeType || item.publish !== undefined);
     const title = item.title || item.name || "Untitled";

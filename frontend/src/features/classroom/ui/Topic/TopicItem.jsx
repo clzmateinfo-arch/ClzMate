@@ -1,4 +1,3 @@
-// frontend/src/features/classroom/ui/Topic/TopicItem.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
     FiChevronDown,
@@ -28,43 +27,34 @@ import {
 import Loading from "@/shared/components/navigation/Loading";
 import { toast } from "react-hot-toast";
 
-/**
- * TopicItem - shows topic header and an items carousel (items + assignments)
- * Carousel is fixed and uses Prev/Next buttons. Supports up to 2 rows.
- */
 export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId, onRequestEdit }) {
     const [open, setOpen] = useState(false);
     const [items, setItems] = useState(topic.items || []);
     const [assignments, setAssignments] = useState([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
 
-    // carousel/search state
     const [search, setSearch] = useState("");
     const [pageIndex, setPageIndex] = useState(0);
 
-    // carousel layout config
-    const columnsPerRow = 3; // columns
-    const rows = 2; // max rows as requested
-    const pageSize = columnsPerRow * rows; // 6 per page
+    const columnsPerRow = 3;
+    const rows = 2;
+    const pageSize = columnsPerRow * rows;
 
     const navigate = useNavigate();
 
     useEffect(() => {
         setItems(topic.items || []);
-        // reset carousel on topic change
         setPageIndex(0);
     }, [topic]);
 
     useEffect(() => {
         if (open) loadAssignments();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, topic?._id]);
 
     const loadAssignments = async () => {
         setLoadingAssignments(true);
         try {
             const res = await listAssignmentsByTopicAPI(topic._id, token);
-            // normalize response (backend may return array or { data: [] })
             const arr = Array.isArray(res) ? res : res?.data ?? res?.assignments ?? [];
             setAssignments(arr || []);
         } catch (err) {
@@ -78,12 +68,10 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     const toggleOpen = () => {
         setOpen((s) => !s);
         if (!open) {
-            // optimistic: load assignments immediately
             loadAssignments();
         }
     };
 
-    // item creation (unchanged)
     const handleCreateItem = async (type) => {
         const title = prompt(`Enter ${type} title`) || "";
         if (!title.trim()) return;
@@ -98,7 +86,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // delete item (topic item)
     const handleDeleteItem = async (it) => {
         if (!confirm("Delete this item?")) return;
         try {
@@ -112,7 +99,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // toggle publish for topic item
     const handleToggleItemStatus = async (it) => {
         try {
             const updated = await toggleItemStatusAPI(topic._id, it._id, token);
@@ -125,11 +111,10 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // copy item
     const handleCopyItem = async (it) => {
         try {
             await copyItemAPI(topic._id, it._id, topic._id, token);
-            await loadAssignments(); // in case copy affects assignments/items
+            await loadAssignments();
             onUpdated && onUpdated();
             toast.success("Copied");
         } catch (err) {
@@ -138,7 +123,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // topic delete/edit (unchanged)
     const fallbackEditTopic = async () => {
         const newTitle = prompt("Edit topic title", topic.title) || "";
         if (!newTitle.trim()) return;
@@ -164,10 +148,10 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // Assignment-specific actions
     const handleEditAssignment = (assignment) => {
         const cid = topic.classroom || topic.classroomId || classroomId;
-        navigate(`/classroom/${cid}/classwork/manage-assignment/${assignment._id}`);
+        console.log("Navigating to edit assignment", assignment, cid);
+        navigate(`/classroom/${cid}/classwork/assignment/${assignment._id}/edit`);
     };
 
     const handleDeleteAssignment = async (assignment) => {
@@ -195,13 +179,10 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
-    // Combine items + assignments into a single list (assignments might duplicate if also present as topic items; dedupe by id+type)
     const combined = useMemo(() => {
         const normalizedItems = (items || []).map(it => ({ ...it, __kind: 'item' }));
         const normalizedAssignments = (assignments || []).map(a => ({ ...a, __kind: 'assignment' }));
-        // naive merge; keep order by createdAt (desc) if present, otherwise items first
         const merged = [...normalizedItems, ...normalizedAssignments];
-        // try to sort by createdAt if available
         merged.sort((a, b) => {
             const ta = new Date(a.createdAt || a.meta?.createdAt || 0).getTime();
             const tb = new Date(b.createdAt || b.meta?.createdAt || 0).getTime();
@@ -222,7 +203,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     }, [combined, search]);
 
     const totalPages = Math.max(1, Math.ceil((filtered.length || 0) / pageSize));
-    // ensure pageIndex in range
     useEffect(() => {
         if (pageIndex >= totalPages) setPageIndex(totalPages - 1);
         if (pageIndex < 0) setPageIndex(0);
@@ -318,7 +298,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                         <Button variant="light" onClick={() => handleCreateItem("subsection")} className="px-3 py-2 text-sm">Link Course</Button>
                     </div>
 
-                    {/* Search and controls */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 my-4">
                         <div className="relative w-full sm:max-w-md">
                             <FiSearch className="absolute left-3 top-3 text-slate-400" />
@@ -345,15 +324,12 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                         </div>
                     </div>
 
-                    {/* Carousel viewport (fixed, no scroll) */}
                     {loadingAssignments ? (
                         <Loading />
                     ) : (
                         <div className="relative mt-3">
-                            {/* viewport */}
                             <div className="w-full overflow-hidden">
                                 <div className="grid grid-cols-1 gap-3">
-                                    {/* Render page grid with rows=2 columns=columnsPerRow */}
                                     <div className={`grid`} style={{ gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))`, gridAutoRows: 'min-content', gap: '0.75rem' }}>
                                         {Array.from({ length: rows }).map((_, rIdx) => (
                                             <React.Fragment key={`row-${rIdx}`}>
@@ -367,20 +343,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                                                             onToggle={it.__kind === 'assignment' ? () => handleTogglePublishAssignment(it) : () => handleToggleItemStatus(it)}
                                                             className=""
                                                         />
-                                                        {/* For assignments show quick action row */}
-                                                        {it.__kind === 'assignment' && (
-                                                            <div className="mt-2 flex items-center gap-2 justify-center">
-                                                                <button
-                                                                    onClick={() => handleTogglePublishAssignment(it)}
-                                                                    className={`text-sm px-3 py-1 rounded-md ${it.publish ? "bg-white border border-[#dff5e6] text-[#057a42]" : "bg-white border border-[#fff0d6] text-[#6b4d00]"}`}
-                                                                >
-                                                                    {it.publish ? "Unpublish" : "Publish"}
-                                                                </button>
-                                                                <button onClick={() => handleEditAssignment(it)} className="text-sm px-3 py-1 rounded-md bg-white border border-[#efe7ff]">
-                                                                    Edit
-                                                                </button>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 ))}
                                             </React.Fragment>
@@ -389,7 +351,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                                 </div>
                             </div>
 
-                            {/* if no items */}
                             {filtered.length === 0 && (
                                 <div className="mt-3 text-sm text-slate-500">No items or assignments found.</div>
                             )}
