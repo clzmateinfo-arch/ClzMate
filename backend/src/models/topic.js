@@ -1,23 +1,33 @@
 const mongoose = require("mongoose");
-const createModel = require('../utils/createModel');
+const createModel = require("../utils/createModel");
+
+const itemSchema = new mongoose.Schema({
+    type: { type: String, enum: ["assignment", "quiz", "material", "subsection", "copied"], required: true },
+    title: { type: String, required: true },
+    content: { type: String, default: "" },
+    link: { type: String, default: "" },
+    refId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    status: { type: String, enum: ["draft", "published"], default: "draft" },
+    position: { type: Number, default: 0 },
+    meta: {
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+    },
+});
 
 const topicSchema = new mongoose.Schema({
     classroom: { type: mongoose.Schema.Types.ObjectId, ref: "Classroom", required: true },
     title: { type: String, required: true },
     description: { type: String, default: "" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    materials: [
-        {
-            type: { type: String, enum: ["file", "link", "subsection"], default: "link" },
-            title: String,
-            url: String,
-            courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-            sectionId: { type: mongoose.Schema.Types.ObjectId, ref: "Section" },
-            subSectionId: { type: mongoose.Schema.Types.ObjectId, ref: "SubSection" },
-        },
-    ],
+    status: { type: String, enum: ["draft", "published"], default: "draft" },
+    position: { type: Number, default: 0 },
+    items: { type: [itemSchema], default: [] },
     assignmentsCount: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now },
+    meta: {
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+    },
 });
 
-module.exports = createModel('User', topicSchema);
+module.exports = createModel("Topic", topicSchema);

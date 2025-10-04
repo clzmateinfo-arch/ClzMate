@@ -1,54 +1,126 @@
-import React, { useCallback, useEffect, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { useLocation, useNavigate } from "react-router-dom"
+import React, { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
-import { HiMenuAlt1 } from "react-icons/hi"
+import { HiMenuAlt1 } from "react-icons/hi";
 import { LiaChalkboardTeacherSolid } from "react-icons/lia";
-import { IoMdClose } from "react-icons/io"
+import { IoMdClose } from "react-icons/io";
 
-import { sidebarLinks } from "@/app/config/class-links"
-import { logout } from "@/entities/auth/model/authAPI"
-import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
-import Loading from "@/shared/components/navigation/Loading"
-import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
-import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
+import { sidebarLinks } from "@/app/config/class-links";
+import { logout } from "@/entities/auth/model/authAPI";
+import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
+import Loading from "@/shared/components/navigation/Loading";
+import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice";
+import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2";
 import { MdOutlineExitToApp } from "react-icons/md";
 import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 export default function ClassSidebar() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { user, loading: profileLoading } = useSelector((s) => s.profile)
-  const { loading: authLoading } = useSelector((s) => s.auth)
-  const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
-  const [confirmationModal, setConfirmationModal] = useState(null)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+  const paramClassroomId = params?.classroomId;
+
+  const { user, loading: profileLoading } = useSelector((s) => s.profile || {});
+  const { loading: authLoading } = useSelector((s) => s.auth || {});
+  const { openSideMenu } = useSelector((s) => s.sidebar || {});
+  const classroomState = useSelector((s) => s.classroom || {});
   const { drawMode } = useSelector((s) => s.course || {});
 
+  const [confirmationModal, setConfirmationModal] = useState(null);
+
   useEffect(() => {
-    const handleResize = () => dispatch(setScreenSize(window.innerWidth))
-    window.addEventListener("resize", handleResize)
-    handleResize()
-    return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch, useLocation().pathname])
+    const handleResize = () => dispatch(setScreenSize(window.innerWidth));
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, [dispatch, location.pathname]);
+
+  const getIdFromPathname = (pathname = "") => {
+    try {
+      const m = pathname.match(/\/classroom\/([^/]+)/);
+      return m ? m[1] : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const resolveClassroomId = () => {
+    const fromParams = paramClassroomId || null;
+    const fromPath = getIdFromPathname(location.pathname) || null;
+    const fromStateCurrent = classroomState?.current?._id ?? null;
+    const fromListFirst = Array.isArray(classroomState?.list) && classroomState.list.length > 0 ? classroomState.list[0]._id : null;
+    const fromLocal = typeof window !== "undefined" ? localStorage.getItem("currentClassroomId") : null;
+
+    return fromParams || fromPath || fromStateCurrent || fromLocal || fromListFirst || null;
+  };
+
+  const resolveLinkPath = (rawPath) => {
+    if (!rawPath) return null;
+
+    if (String(rawPath).includes(":classroomId")) {
+      const id = resolveClassroomId();
+      if (!id) return null;
+      const replaced = String(rawPath).replace(":classroomId", id);
+      if (replaced.includes(":")) return null;
+      return replaced.startsWith("/") ? replaced : `/${replaced}`;
+    }
+
+    return rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  };
+
+  const safeNavigate = (pathOrDelta) => {
+    dispatch(setOpenSideMenu(false));
+    if (typeof pathOrDelta === "number") {
+      navigate(pathOrDelta);
+      return;
+    }
+    if (!pathOrDelta || String(pathOrDelta).includes(":")) {
+      console.warn("ClassSidebar.safeNavigate blocked invalid path:", pathOrDelta);
+      toast.error("Invalid navigation target");
+      return;
+    }
+    navigate(pathOrDelta);
+  };
+
+  const handleClassLinkClick = (rawPath) => {
+    const p = resolveLinkPath(rawPath);
+    if (p) {
+      safeNavigate(p);
+      return;
+    }
+
+    const listFirst = Array.isArray(classroomState?.list) && classroomState.list.length > 0 ? classroomState.list[0]._id : null;
+    if (listFirst) {
+      try { localStorage.setItem("currentClassroomId", listFirst); } catch (e) { /* ignore */ }
+      const newPath = String(rawPath).replace(":classroomId", listFirst);
+      if (newPath.includes(":")) {
+        console.warn("Replacement still contains tokens, aborting:", newPath);
+        toast.error("Could not resolve classroom");
+        navigate("/dashboard/classrooms");
+        return;
+      }
+      safeNavigate(newPath.startsWith("/") ? newPath : `/${newPath}`);
+      return;
+    }
+
+    toast.error("Open or select a classroom first");
+    navigate("/dashboard/classrooms");
+  };
+
+  const handleSignOut = useCallback(() => {
+    dispatch(logout(navigate));
+  }, [dispatch, navigate]);
 
   if (profileLoading || authLoading) {
     return (
       <div className="grid h-[calc(100vh-3.5rem)] min-w-[64px] items-center">
         <Loading />
       </div>
-    )
+    );
   }
-
-  const handleNavigate = (path) => {
-    if (path) {
-      dispatch(setOpenSideMenu(false))
-      navigate(path)
-    }
-  }
-
-  const handleSignOut = useCallback(() => {
-    dispatch(logout(navigate));
-  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <>
@@ -58,48 +130,28 @@ export default function ClassSidebar() {
       >
         <button
           aria-controls="full-sidebar"
-          onClick={() => dispatch(setDrawMode(!drawMode))}
-          title="Home"
-          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full ${drawMode ? "bg-gradient-to-tr from-[#dcc3f1] to-[#ffffff]" : "bg-gradient-to-tr from-[#757575] to-[#c4c4c4]"}  text-black shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
-        >
-          <LiaChalkboardTeacherSolid size={18} />
-          <span
-            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            aria-hidden
-          >
-            Whiteboard
-          </span>
-        </button>
-        <button
-          aria-controls="full-sidebar"
-          onClick={() => handleNavigate("/dashboard/my-classrooms")}
+          onClick={() => safeNavigate("/dashboard/classrooms")}
           title="Exit"
-          className={`group relative mt-3
-            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mt-3 } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <MdOutlineExitToApp size={18} />
-          <span
-            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            aria-hidden
-          >
+          <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
             Exit
           </span>
         </button>
+
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleNavigate("/")}
+          onClick={() => safeNavigate("/")}
           title="Home"
-          className={`group relative ${openSideMenu ? "mb-10" : "mb-0"
-            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative ${openSideMenu ? "mb-10" : "mb-0"} flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <HiHome size={18} />
-          <span
-            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            aria-hidden
-          >
+          <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
             Home
           </span>
         </button>
+
         <button
           aria-expanded={openSideMenu}
           aria-controls="full-sidebar"
@@ -113,17 +165,25 @@ export default function ClassSidebar() {
         {openSideMenu && (
           <div>
             {sidebarLinks.map((link) => {
-              if (link.type && user?.accountType !== link.type) return null
+              if (link.type && user?.accountType !== link.type) return null;
 
-              const Icon = link.icon
+              const Icon = link.icon;
+              const finalPath = resolveLinkPath(link?.path);
+              const disabled = !finalPath;
 
               return (
                 <button
-                  key={link.id}
+                  key={link.id + String(link.type)}
                   title={link.name}
                   aria-label={link.name}
-                  onClick={() => handleNavigate(link?.path)}
-                  className="bg-gradient-to-r btn-purple bg-violet-600 hover:bg-violet-700 text-white group relative flex h-12 w-12 mt-1.5 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/30"
+                  onClick={() => {
+                    if (!finalPath) {
+                      handleClassLinkClick(link?.path);
+                      return;
+                    }
+                    safeNavigate(finalPath);
+                  }}
+                  className={`group relative flex h-12 w-12 mt-1.5 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/30 ${disabled ? "opacity-60" : "bg-gradient-to-r btn-purple bg-violet-600 hover:bg-violet-700 text-white"}`}
                 >
                   <span
                     className="absolute inset-0 -z-10 rounded-full blur-[10px] opacity-80"
@@ -151,22 +211,19 @@ export default function ClassSidebar() {
                     {link.name}
                   </span>
                 </button>
-              )
+              );
             })}
           </div>
         )}
+
         <button
           aria-controls="full-sidebar"
           onClick={() => handleSignOut()}
           title="Signout"
-          className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"
-            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"} flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <HiArrowLeftStartOnRectangle size={18} />
-          <span
-            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            aria-hidden
-          >
+          <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
             Signout
           </span>
         </button>
@@ -182,5 +239,5 @@ export default function ClassSidebar() {
 
       {confirmationModal && <ConfirmationModal modalData={confirmationModal} />}
     </>
-  )
+  );
 }

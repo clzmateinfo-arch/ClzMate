@@ -11,7 +11,6 @@ import Button from "@/shared/components/ui/Button";
 import AnnouncementList from "@/features/classroom/ui/AnnouncementList";
 import {
     fetchClassOverviewAPI,
-    listAnnouncementsAPI,
 } from "@/entities/classroom/model/classroomAPI";
 
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
@@ -41,7 +40,7 @@ export default function ClassroomOverview() {
             } catch (errOverview) {
                 console.warn("Overview endpoint failed, falling back to announcements only", errOverview);
                 try {
-                    const items = await listAnnouncementsAPI(classId, token);
+                    const items = []; //await listAnnouncementsAPI(classId, token);
                     setAnnouncements(Array.isArray(items) ? items : []);
                 } catch (eAnn) {
                     console.warn("listAnnouncementsAPI failed", eAnn);

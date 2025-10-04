@@ -306,8 +306,6 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
   };
 
-  const watchedVideo = watch("lectureVideo");
-  const watchedPdf = watch("lecturePdf");
   const watchedExternal = watch("lectureExternalUrl");
 
   return (

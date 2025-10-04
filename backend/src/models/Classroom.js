@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const createModel = require('../utils/createModel');
+const createModel = require("../utils/createModel");
 
 const memberSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -14,7 +14,7 @@ const classroomSchema = new mongoose.Schema({
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     inviteCode: { type: String, required: true, unique: true },
     members: { type: [memberSchema], default: [] },
-    CoInstructors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    coInstructors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     guests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     meta: {
         createdAt: { type: Date, default: Date.now },

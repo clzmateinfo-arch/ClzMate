@@ -1,9 +1,8 @@
-import { ACCOUNT_TYPE } from '../../utils/constants'
+import { ACCOUNT_TYPE } from '../../utils/constants';
 import {
   VscDashboard,
-  VscVm,
-  VscMortarBoard,
-} from "react-icons/vsc"
+} from "react-icons/vsc";
+import { MdAssignmentTurnedIn } from "react-icons/md";
 
 export const sidebarLinks = [
   {
@@ -18,7 +17,7 @@ export const sidebarLinks = [
     name: "Classwork",
     path: "/classroom/:classroomId/classwork",
     type: ACCOUNT_TYPE.STUDENT,
-    icon: VscMortarBoard,
+    icon: MdAssignmentTurnedIn,
   },
   {
     id: 1,
@@ -32,6 +31,6 @@ export const sidebarLinks = [
     name: "Classwork",
     path: "/classroom/:classroomId/classwork",
     type: ACCOUNT_TYPE.INSTRUCTOR,
-    icon: VscMortarBoard,
+    icon: MdAssignmentTurnedIn,
   }
 ]
