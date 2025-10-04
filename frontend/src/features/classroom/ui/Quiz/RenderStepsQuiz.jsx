@@ -6,7 +6,7 @@ import QuizBuilder from "./QuizBuilder";
 import QuizPublish from "./QuizPublish";
 
 export default function RenderStepsQuiz({ classroomId, topicId, quizId, overview }) {
-  const { step = 1 } = useSelector((s) => s.quiz || {});
+  const { step = 1 } = useSelector((s) => s.classroom || {});
 
   const steps = [
     { id: 1, title: "Quiz Information", short: "Basics", desc: "Title, description and global settings." },

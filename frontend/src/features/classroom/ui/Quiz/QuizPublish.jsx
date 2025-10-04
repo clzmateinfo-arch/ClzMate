@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setStepQuiz, setQuiz } from "@/entities/classroom/model/quizSlice";
-import { updateQuizAPI } from "@/entities/classroom/model/quizAPI";
+import { useNavigate } from "react-router-dom";
+import { setStepQuiz, setQuiz } from "@/entities/classroom/model/classroomSlice";
+import { updateQuizAPI } from "@/entities/classroom/model/classroomAPI";
 import Button from "@/shared/components/ui/Button";
 import { toast } from "react-hot-toast";
 
 export default function QuizPublish({ overview }) {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    const { quiz } = useSelector((s) => s.quiz || {});
+    const { quiz } = useSelector((s) => s.classroom || {});
     const [publishing, setPublishing] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        // nothing
     }, [quiz]);
 
     const publish = async (flag) => {
@@ -26,6 +27,7 @@ export default function QuizPublish({ overview }) {
             const updated = await updateQuizAPI(quiz._id, payload, token);
             dispatch(setQuiz(updated));
             toast.success(flag ? "Published" : "Saved");
+            navigate(`/classroom/${overview?.classroom?._id}/classwork`);
         } catch (err) {
             console.error("publish", err);
             toast.error("Publish failed");

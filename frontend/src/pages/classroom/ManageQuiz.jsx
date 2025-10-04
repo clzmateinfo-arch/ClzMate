@@ -5,13 +5,13 @@ import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import RenderStepsQuiz from "@/features/classroom/ui/Quiz/RenderStepsQuiz";
 import Loading from "@/shared/components/navigation/Loading";
-import { getQuizAPI, fetchClassOverviewAPI } from "@/entities/classroom/model/quizAPI";
-import { setQuiz, setEditQuiz, setStepQuiz } from "@/entities/classroom/model/quizSlice";
+import { getQuizAPI, fetchClassOverviewAPI } from "@/entities/classroom/model/classroomAPI";
+import { setQuiz, setEditQuiz, setStepQuiz } from "@/entities/classroom/model/classroomSlice";
 
 export default function ManageQuiz() {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    const { quiz } = useSelector((s) => s.quiz || {});
+    const { quiz } = useSelector((s) => s.classroom || {});
     const { classroomId, topicId, quizId } = useParams();
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);

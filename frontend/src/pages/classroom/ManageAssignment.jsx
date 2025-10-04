@@ -92,7 +92,7 @@ export default function ManageAssignment() {
                             <ul className="mt-4 space-y-2 text-sm text-richblack-600">
                                 <li>Use a clear title and detailed instructions.</li>
                                 <li>Attach example files or references in step 2.</li>
-                                <li>Choose assignees carefully — you can assign to the whole class or selected students.</li>
+                                <li>Choose assignees carefully   you can assign to the whole class or selected students.</li>
                                 <li>Publishing will make it available to selected students immediately.</li>
                             </ul>
                         </div>

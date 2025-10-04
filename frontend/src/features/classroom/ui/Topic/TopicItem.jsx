@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     FiChevronDown,
     FiChevronRight,
@@ -14,7 +14,6 @@ import Button from "@/shared/components/ui/Button";
 import ItemCard from "@/features/classroom/ui/Topic/ItemCard";
 import {
     createItemAPI,
-    reorderItemsAPI,
     deleteItemAPI,
     toggleItemStatusAPI,
     copyItemAPI,
@@ -36,9 +35,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     const [search, setSearch] = useState("");
     const [pageIndex, setPageIndex] = useState(0);
 
-    const columnsPerRow = 3;
-    const rows = 2;
-    const pageSize = columnsPerRow * rows;
+    const pageSize = 6;
 
     const navigate = useNavigate();
 
@@ -150,7 +147,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
 
     const handleEditAssignment = (assignment) => {
         const cid = topic.classroom || topic.classroomId || classroomId;
-        console.log("Navigating to edit assignment", assignment, cid);
         navigate(`/classroom/${cid}/classwork/assignment/${assignment._id}/edit`);
     };
 
@@ -219,26 +215,26 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     return (
         <article className="relative overflow-hidden rounded-2xl border border-[#efe7ff] bg-white shadow-sm transition my-2">
             <div
-                className="flex items-center justify-between px-4 py-3 cursor-pointer select-none transition hover:bg-[#f8f7ff]"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-3 cursor-pointer select-none transition hover:bg-[#f8f7ff]"
                 onClick={toggleOpen}
                 role="button"
                 aria-expanded={open}
             >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-start sm:items-center gap-3 min-w-0 w-full">
                     <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform duration-300 ${open ? "rotate-180" : "rotate-0"}`}
+                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform duration-300 ${open ? "rotate-180" : "rotate-0"} flex-shrink-0`}
                         aria-hidden
                     >
                         {open ? <FiChevronDown className="text-[#7c3aed] text-base md:text-lg" /> : <FiChevronRight className="text-[#7c3aed] text-base md:text-lg" />}
                     </span>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                         <p className="font-semibold text-[#0b1220] min-w-0 truncate text-sm md:text-base">{topic.title}</p>
                         {topic.description ? <p className="text-xs text-[#6b7280] truncate">{topic.description}</p> : null}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mt-3 sm:mt-0">
                     <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 ring-1 ring-[#e9defc] text-[#4c1d95] font-semibold text-sm min-w-[56px] justify-center">
                         <span className="text-sm md:text-base">{(topic.items || []).length}</span>
                         <span className="text-xs md:text-xs text-[#6b7280] ml-1">item(s)</span>
@@ -257,6 +253,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                             }}
                             title="Edit topic"
                             className="p-1.5 md:p-2 rounded hover:bg-white/8"
+                            aria-label="Edit topic"
                         >
                             <FiEdit className="text-sm md:text-lg text-[#0b1220]" />
                         </button>
@@ -269,6 +266,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                             }}
                             title="Delete topic"
                             className="p-1.5 md:p-2 rounded hover:bg-white/8"
+                            aria-label="Delete topic"
                         >
                             <FiTrash2 className="text-sm md:text-lg text-red-600" />
                         </button>
@@ -281,6 +279,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                             }}
                             title="Open topic"
                             className="p-1.5 md:p-2 rounded hover:bg-white/8"
+                            aria-label="Open topic"
                         >
                             <FiMoreHorizontal className="text-sm md:text-lg text-[#0b1220]" />
                         </button>
@@ -292,9 +291,27 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                 <div className="px-4 py-4 space-y-4 my-4 bg-white/50 border-t border-[#f3eff9]/30">
                     <div className="flex flex-wrap items-center gap-2">
                         <Button variant="light" onClick={() => handleCreateItem("material")} className="px-3 py-2 text-sm">Material</Button>
-                        <Button variant="light" onClick={(e) => { e.stopPropagation(); navigate(`/classroom/${topic.classroom || topic.classroomId || classroomId}/classwork/manage-assignment/${topic._id}`); }} className="px-3 py-2">Assignment</Button>
-                        <Button variant="light" onClick={() => handleCreateItem("quiz")} className="px-3 py-2 text-sm">Quiz</Button>
-                        <Button variant="light" onClick={() => handleCreateItem("quiz")} className="px-3 py-2 text-sm">Stories</Button>
+                        <Button
+                            variant="light"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/classroom/${topic.classroom || topic.classroomId || classroomId}/classwork/manage-assignment/${topic._id}`);
+                            }}
+                            className="px-3 py-2"
+                        >
+                            Assignment
+                        </Button>
+                        <Button
+                            variant="light"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/classroom/${topic.classroom || topic.classroomId || classroomId}/classwork/manage-quiz/${topic._id}`);
+                            }}
+                            className="px-3 py-2 text-sm"
+                        >
+                            Quiz
+                        </Button>
+                        <Button variant="light" onClick={() => handleCreateItem("stories")} className="px-3 py-2 text-sm">Stories</Button>
                         <Button variant="light" onClick={() => handleCreateItem("subsection")} className="px-3 py-2 text-sm">Link Course</Button>
                     </div>
 
@@ -303,21 +320,32 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                             <FiSearch className="absolute left-3 top-3 text-slate-400" />
                             <input
                                 type="search"
-                                placeholder="Search items & assignments..."
+                                placeholder="Search items"
                                 value={search}
                                 onChange={(e) => { setSearch(e.target.value); setPageIndex(0); }}
                                 className="w-full pl-10 pr-3 py-2 border border-[#efe7ff] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#996bec]/30"
+                                aria-label="Search items and assignments"
                             />
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                             <div className="text-sm text-slate-500">{filtered.length} results</div>
                             <div className="inline-flex items-center gap-2">
-                                <button onClick={goPrev} disabled={pageIndex === 0} className="p-2 rounded bg-white/90 border border-[#efe7ff] hover:shadow-sm" aria-label="Previous page">
+                                <button
+                                    onClick={goPrev}
+                                    disabled={pageIndex === 0}
+                                    className="p-2 rounded bg-white/90 border border-[#efe7ff] hover:shadow-sm disabled:opacity-40"
+                                    aria-label="Previous page"
+                                >
                                     <FiChevronLeft />
                                 </button>
                                 <div className="text-sm text-slate-600 px-2">{pageIndex + 1}/{totalPages}</div>
-                                <button onClick={goNext} disabled={pageIndex >= totalPages - 1} className="p-2 rounded bg-white/90 border border-[#efe7ff] hover:shadow-sm" aria-label="Next page">
+                                <button
+                                    onClick={goNext}
+                                    disabled={pageIndex >= totalPages - 1}
+                                    className="p-2 rounded bg-white/90 border border-[#efe7ff] hover:shadow-sm disabled:opacity-40"
+                                    aria-label="Next page"
+                                >
                                     <FiChevronRightIcon />
                                 </button>
                             </div>
@@ -329,25 +357,19 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                     ) : (
                         <div className="relative mt-3">
                             <div className="w-full overflow-hidden">
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div className={`grid`} style={{ gridTemplateColumns: `repeat(${columnsPerRow}, minmax(0, 1fr))`, gridAutoRows: 'min-content', gap: '0.75rem' }}>
-                                        {Array.from({ length: rows }).map((_, rIdx) => (
-                                            <React.Fragment key={`row-${rIdx}`}>
-                                                {pageItems.slice(rIdx * columnsPerRow, (rIdx + 1) * columnsPerRow).map((it) => (
-                                                    <div key={String(it._id) + (it.__kind || "")}>
-                                                        <ItemCard
-                                                            item={it}
-                                                            onEdit={it.__kind === 'assignment' ? () => handleEditAssignment(it) : undefined}
-                                                            onDelete={it.__kind === 'assignment' ? () => handleDeleteAssignment(it) : () => handleDeleteItem(it)}
-                                                            onCopy={() => handleCopyItem(it)}
-                                                            onToggle={it.__kind === 'assignment' ? () => handleTogglePublishAssignment(it) : () => handleToggleItemStatus(it)}
-                                                            className=""
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </React.Fragment>
-                                        ))}
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {pageItems.map((it) => (
+                                        <div key={String(it._id) + (it.__kind || "")} className="w-full">
+                                            <ItemCard
+                                                item={it}
+                                                onEdit={it.__kind === 'assignment' ? () => handleEditAssignment(it) : undefined}
+                                                onDelete={it.__kind === 'assignment' ? () => handleDeleteAssignment(it) : () => handleDeleteItem(it)}
+                                                onCopy={() => handleCopyItem(it)}
+                                                onToggle={it.__kind === 'assignment' ? () => handleTogglePublishAssignment(it) : () => handleToggleItemStatus(it)}
+                                                className=""
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 

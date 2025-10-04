@@ -52,6 +52,7 @@ const StudentClassrooms = lazy(() => import("@/pages/classroom/StudentClassrooms
 const ClassroomOverview = lazy(() => import("@/pages/classroom/ClassroomOverview"));
 const ClassroomClasswork = lazy(() => import("@/pages/classroom/ClassroomClasswork"));
 const ManageAssignment = lazy(() => import("@/pages/classroom/ManageAssignment"));
+const ManageQuiz = lazy(() => import("@/pages/classroom/ManageQuiz"));
 
 export default function AppRoutes() {
     const { user, loading: profileLoading } = useSelector((state) => state.profile);
@@ -141,6 +142,8 @@ export default function AppRoutes() {
                 <Route path=":classroomId/classwork" element={<ClassroomClasswork />} />
                 <Route path=":classroomId/classwork/manage-assignment/:topicId" element={<ManageAssignment />} />
                 <Route path=":classroomId/classwork/assignment/:assignmentId/edit" element={<ManageAssignment />} />
+                <Route path=":classroomId/classwork/manage-quiz/:topicId" element={<ManageQuiz />} />
+                <Route path=":classroomId/classwork/quiz/:quizId/edit" element={<ManageQuiz />} />
             </Route>
 
 
