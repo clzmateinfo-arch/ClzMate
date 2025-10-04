@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const memberSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -21,4 +22,4 @@ const classroomSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model("Classroom", classroomSchema);
+module.exports = createModel("Classroom", classroomSchema);

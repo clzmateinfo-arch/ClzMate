@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
+
 const messageSchema = new mongoose.Schema({
     classroom: { type: mongoose.Schema.Types.ObjectId, ref: "Classroom", required: true },
     from: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -7,4 +9,4 @@ const messageSchema = new mongoose.Schema({
     attachments: [{ url: String, originalName: String }],
     createdAt: { type: Date, default: Date.now },
 });
-module.exports = mongoose.model("Message", messageSchema);
+module.exports = createModel("Message", messageSchema);

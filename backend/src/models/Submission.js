@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const submissionSchema = new mongoose.Schema({
     assignment: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment", required: true },
@@ -16,4 +17,4 @@ const submissionSchema = new mongoose.Schema({
     gradedAt: { type: Date, default: null },
 });
 
-module.exports = mongoose.model("Submission", submissionSchema);
+module.exports = createModel("Submission", submissionSchema);

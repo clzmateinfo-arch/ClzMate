@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const NoteSchema = new mongoose.Schema(
   {
@@ -11,4 +12,4 @@ const NoteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Note", NoteSchema);
+module.exports = createModel("Note", NoteSchema);

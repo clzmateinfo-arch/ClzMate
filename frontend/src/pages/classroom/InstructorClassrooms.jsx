@@ -131,7 +131,7 @@ export default function InstructorClassrooms() {
 
     const handleOpen = (classroom) => {
         if (!classroom || !classroom._id) return;
-        navigate(`/dashboard/classroom/${classroom._id}`);
+        navigate(`/classroom/${classroom._id}/overview`);
     };
 
     const handleMembers = (classroom) => {

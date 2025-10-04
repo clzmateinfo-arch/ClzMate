@@ -100,7 +100,7 @@ export default function StudentClassrooms() {
     }, [searchTerm, loadOwned, loadJoined]);
 
     const handleOpen = (classroom) => {
-        navigate(`/dashboard/classroom/${classroom._id}`);
+        navigate(`/classroom/${classroom._id}/overview`);
     };
 
     const handleMembers = (classroom) => {

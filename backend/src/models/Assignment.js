@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const assignmentSchema = new mongoose.Schema({
     classroom: { type: mongoose.Schema.Types.ObjectId, ref: "Classroom", required: true },
@@ -17,4 +18,4 @@ const assignmentSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Assignment", assignmentSchema);
+module.exports = createModel("Assignment", assignmentSchema);

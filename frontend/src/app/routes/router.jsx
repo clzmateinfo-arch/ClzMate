@@ -8,6 +8,7 @@ import MainLayout from "@/app/layouts/MainLayout";
 import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
 import CourseLayout from "@/app/layouts/CourseLayout";
+import ClassLayout from "@/app/layouts/ClassLayout";
 
 import { ACCOUNT_TYPE } from "@/utils/constants";
 import StudentDashboard from "../../pages/user/StudentDashboard";
@@ -48,6 +49,8 @@ const PendingEnrollments = lazy(() => import("@/pages/user/PendingEnrollments"))
 
 const InstructorClassrooms = lazy(() => import("@/pages/classroom/InstructorClassrooms"));
 const StudentClassrooms = lazy(() => import("@/pages/classroom/StudentClassrooms"));
+const ClassroomOverview = lazy(() => import("@/pages/classroom/ClassroomOverview"));
+const ClassroomClasswork = lazy(() => import("@/pages/classroom/ClassroomClasswork"));
 
 export default function AppRoutes() {
     const { user, loading: profileLoading } = useSelector((state) => state.profile);
@@ -130,6 +133,13 @@ export default function AppRoutes() {
             <Route path="/view-course/*" element={<ProtectedRoute><CourseLayout /></ProtectedRoute>}>
                 <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<ViewCourse />} />
             </Route>
+
+            {/* ClassLayout */}
+            <Route path="/classroom/*" element={<ProtectedRoute><ClassLayout /></ProtectedRoute>}>
+                <Route path=":classroomId/overview" element={<ClassroomOverview />} />
+                <Route path=":classroomId/classwork" element={<ClassroomClasswork />} />
+            </Route>
+
 
             {/* Errors */}
             <Route path="*" element={<PageNotFound />} />
