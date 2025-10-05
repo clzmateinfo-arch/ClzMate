@@ -6,6 +6,8 @@ const initialState = {
     editAssignment: false,
     quiz: null,
     editQuiz: false,
+    linkCourse: null,
+    editLinkCourse: false,
 };
 
 const slice = createSlice({
@@ -40,8 +42,32 @@ const slice = createSlice({
             state.quiz = null;
             state.editQuiz = false;
         },
+
+        setLinkCourse(state, action) {
+            state.linkCourse = action.payload;
+        },
+        setEditLinkCourse(state, action) {
+            state.editLinkCourse = action.payload;
+        },
+        resetLinkCourseState(state) {
+            state.step = 1;
+            state.linkCourse = null;
+            state.editLinkCourse = false;
+        },
     },
 });
 
-export const { setStep, setAssignment, setEditAssignment, resetAssignmentState, setStepQuiz, setQuiz, setEditQuiz, resetQuizState } = slice.actions;
+export const {
+    setStep,
+    setAssignment,
+    setEditAssignment,
+    resetAssignmentState,
+    setStepQuiz,
+    setQuiz,
+    setEditQuiz,
+    resetQuizState,
+    setLinkCourse,
+    setEditLinkCourse,
+    resetLinkCourseState,
+} = slice.actions;
 export default slice.reducer;

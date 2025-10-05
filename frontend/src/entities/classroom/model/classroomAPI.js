@@ -171,10 +171,11 @@ export async function reorderItemsAPI(topicId, order, token) {
     }
 }
 
-export async function updateItemAPI(topicId, itemId, payload, token) {
+export async function updateItemAPI(topicId, itemId, payload, token, isFormData = false) {
     try {
         const headers = safeHeaders(token);
-        const response = await apiConnector("PATCH", `${MANAGE_TOPICS_API}/${topicId}/items/${itemId}`, payload, headers);
+        const options = isFormData ? { isFormData: true } : {};
+        const response = await apiConnector("PATCH", `${MANAGE_TOPICS_API}/${topicId}/items/${itemId}`, payload, headers, options);
         if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
         return response.data.data;
     } catch (err) {

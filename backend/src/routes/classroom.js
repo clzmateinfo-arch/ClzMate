@@ -21,6 +21,10 @@ router.patch("/topics/:topicId", auth, isInstructor, classroomControllers.update
 router.delete("/topics/:topicId", auth, isInstructor, classroomControllers.deleteTopic);
 router.post("/:classroomId/topics/reorder", auth, isInstructor, classroomControllers.reorderTopics);
 
+router.post("/topics/:topicId/items", auth, isInstructor, classroomControllers.createItem);
+router.patch("/topics/:topicId/items/:itemId", auth, isInstructor, classroomControllers.updateItem);
+router.patch("/topics/:topicId/items/:itemId/toggle", auth, isInstructor, classroomControllers.toggleItemStatus);
+
 router.post("/topics/:topicId/assignments", auth, isInstructor, classroomControllers.createAssignment);
 router.get("/topics/:topicId/assignments", auth, classroomControllers.listAssignmentsByTopic);
 router.get("/assignments/:assignmentId", auth, classroomControllers.getAssignment);
@@ -31,7 +35,6 @@ router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);
 router.get("/topics/:topicId/quizzes", auth, classroomControllers.listQuizzesByTopic);
 router.patch("/quizzes/:quizId", auth, isInstructor, classroomControllers.updateQuiz);
 router.delete("/quizzes/:quizId", auth, isInstructor, classroomControllers.deleteQuiz);
-
 router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers.createScreen);
 router.patch("/quizzes/screens/:screenId", auth, isInstructor, classroomControllers.updateScreen);
 router.delete("/quizzes/:quizId/screens/:screenId", auth, isInstructor, classroomControllers.deleteScreen);

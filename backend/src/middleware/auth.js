@@ -12,90 +12,103 @@ exports.auth = (req, res, next) => {
             return res.status(401).json({
                 success: false,
                 message: "Token is Missing",
+                code: "TOKEN_MISSING",
             });
         }
 
         try {
             const decode = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decode;
+            next();
         } catch (error) {
             console.log("Error while decoding token");
-            console.log(error);
+            console.error(error);
+            if (error.name === "TokenExpiredError") {
+                return res.status(401).json({
+                    success: false,
+                    message: "Token Expired",
+                    code: "TOKEN_EXPIRED",
+                    expiredAt: error.expiredAt || null,
+                });
+            }
+
             return res.status(401).json({
                 success: false,
+                message: "Invalid Token",
+                code: "TOKEN_INVALID",
                 error: error.message,
-                messgae: "Error while decoding token",
             });
         }
-        next();
     } catch (error) {
         console.log("Error while token validating");
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             success: false,
-            messgae: "Error while token validating",
+            message: "Error while token validating",
+            error: error.message,
         });
     }
 };
 
 exports.isStudent = (req, res, next) => {
     try {
-        if (req.user?.accountType != "Student") {
-            return res.status(401).json({
+        if (req.user?.accountType !== "Student") {
+            return res.status(403).json({
                 success: false,
-                messgae: "This Page is protected only for student",
+                message: "This page is protected only for Student",
+                code: "FORBIDDEN",
             });
         }
         next();
     } catch (error) {
-        console.log("Error while cheching user validity with student accountType");
-        console.log(error);
+        console.log("Error while checking user validity with student accountType");
+        console.error(error);
         return res.status(500).json({
             success: false,
+            message: "Error while checking user validity with student accountType",
             error: error.message,
-            messgae: "Error while cheching user validity with student accountType",
         });
     }
 };
 
 exports.isInstructor = (req, res, next) => {
     try {
-        if (req.user?.accountType != "Instructor") {
-            return res.status(401).json({
+        if (req.user?.accountType !== "Instructor") {
+            return res.status(403).json({
                 success: false,
-                messgae: "This Page is protected only for Instructor",
+                message: "This page is protected only for Instructor",
+                code: "FORBIDDEN",
             });
         }
         next();
     } catch (error) {
-        console.log(
-            "Error while cheching user validity with Instructor accountType"
-        );
-        console.log(error);
+        console.log("Error while checking user validity with Instructor accountType");
+        console.error(error);
         return res.status(500).json({
             success: false,
+            message: "Error while checking user validity with Instructor accountType",
             error: error.message,
-            messgae: "Error while cheching user validity with Instructor accountType",
         });
     }
 };
 
 exports.isAdmin = (req, res, next) => {
     try {
-        if (req.user.accountType != "Admin") {
-            return res.status(401).json({
+        if (req.user?.accountType !== "Admin") {
+            return res.status(403).json({
                 success: false,
-                messgae: "This Page is protected only for Admin",
+                message: "This page is protected only for Admin",
+                code: "FORBIDDEN",
             });
         }
         next();
     } catch (error) {
-        console.log("Error while cheching user validity with Admin accountType");
-        console.log(error);
+        console.log("Error while checking user validity with Admin accountType");
+        console.error(error);
         return res.status(500).json({
             success: false,
+            message: "Error while checking user validity with Admin accountType",
             error: error.message,
-            messgae: "Error while cheching user validity with Admin accountType",
         });
     }
 };

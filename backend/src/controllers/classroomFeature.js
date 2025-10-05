@@ -217,11 +217,44 @@ exports.updateItem = async (req, res) => {
         if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
         const it = t.items.id(itemId);
         if (!it) return res.status(404).json({ success: false, message: "Item not found" });
+
         ["title", "content", "link", "status", "type"].forEach((f) => {
             if (payload[f] !== undefined) it[f] = payload[f];
         });
+
+        let removeList = payload.removeAttachments || payload.removeAttachments || [];
+        if (typeof removeList === "string") {
+            try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
+        }
+        if (Array.isArray(removeList) && removeList.length) {
+            it.attachments = (it.attachments || []).filter(att => {
+                const match = removeList.includes(att.publicId) || removeList.includes(att.url) || removeList.includes(att.originalName) || removeList.includes(att._id?.toString?.());
+                if (match) {
+                    try { deleteResourceFromCloudinary(att.publicId || att.url, att.resourceType); } catch (e) { console.warn("Failed to delete item attachment:", e.message); }
+                }
+                return !match;
+            });
+        }
+
+        const newFiles = pickMany(req.files, "attachments");
+        if (newFiles && newFiles.length) {
+            it.attachments = it.attachments || [];
+            for (const f of newFiles) {
+                const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "materials");
+                it.attachments.push({
+                    url: uploaded.secure_url || null,
+                    publicId: uploaded.public_id || null,
+                    originalName: f.name || f.originalname || f.name,
+                    mimeType: f.mimetype || null,
+                    size: f.size || null,
+                    resourceType: uploaded.resource_type || uploaded._resource_type || null,
+                });
+            }
+        }
+
         it.meta = it.meta || {};
         it.meta.updatedAt = new Date();
+        t.meta = t.meta || {};
         t.meta.updatedAt = new Date();
         await t.save();
         return res.json({ success: true, data: it });
@@ -524,165 +557,165 @@ exports.getSubmissions = async (req, res) => {
 };
 
 exports.createQuiz = async (req, res) => {
-  try {
-    const { topicId } = req.params;
-    let { title, description, timeLimit, shuffle } = req.body || {};
-    if (!title) return res.status(400).json({ success: false, message: "title required" });
-    const q = await Quiz.create({ topic: topicId, title: title.trim(), description: description || "", timeLimit: Number(timeLimit) || 0, shuffle: !!shuffle, createdBy: req.user.id });
-    return res.json({ success: true, data: q });
-  } catch (err) {
-    console.error("createQuiz", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { topicId } = req.params;
+        let { title, description, timeLimit, shuffle } = req.body || {};
+        if (!title) return res.status(400).json({ success: false, message: "title required" });
+        const q = await Quiz.create({ topic: topicId, title: title.trim(), description: description || "", timeLimit: Number(timeLimit) || 0, shuffle: !!shuffle, createdBy: req.user.id });
+        return res.json({ success: true, data: q });
+    } catch (err) {
+        console.error("createQuiz", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.getQuiz = async (req, res) => {
-  try {
-    const { quizId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
-    const q = await Quiz.findById(quizId).lean();
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-    return res.json({ success: true, data: q });
-  } catch (err) {
-    console.error("getQuiz", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { quizId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
+        const q = await Quiz.findById(quizId).lean();
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        return res.json({ success: true, data: q });
+    } catch (err) {
+        console.error("getQuiz", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.updateQuiz = async (req, res) => {
-  try {
-    const { quizId } = req.params;
-    const payload = req.body || {};
-    if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
-    const q = await Quiz.findById(quizId);
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-    ["title", "description"].forEach((f) => { if (payload[f] !== undefined) q[f] = payload[f]; });
-    if (payload.timeLimit !== undefined) q.timeLimit = Number(payload.timeLimit) || 0;
-    if (payload.shuffle !== undefined) q.shuffle = !!payload.shuffle;
-    if (payload.publish !== undefined) q.publish = !!payload.publish;
-    q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-    await q.save();
-    return res.json({ success: true, data: q });
-  } catch (err) {
-    console.error("updateQuiz", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { quizId } = req.params;
+        const payload = req.body || {};
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
+        const q = await Quiz.findById(quizId);
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        ["title", "description"].forEach((f) => { if (payload[f] !== undefined) q[f] = payload[f]; });
+        if (payload.timeLimit !== undefined) q.timeLimit = Number(payload.timeLimit) || 0;
+        if (payload.shuffle !== undefined) q.shuffle = !!payload.shuffle;
+        if (payload.publish !== undefined) q.publish = !!payload.publish;
+        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
+        await q.save();
+        return res.json({ success: true, data: q });
+    } catch (err) {
+        console.error("updateQuiz", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.listQuizzesByTopic = async (req, res) => {
-  try {
-    const { topicId } = req.params;
-    if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
-    const quizzes = await Quiz.find({ topic: topicId }).sort({ createdAt: -1 }).lean();
-    return res.json({ success: true, data: quizzes });
-  } catch (err) {
-    console.error("listQuizzesByTopic", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { topicId } = req.params;
+        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
+        const quizzes = await Quiz.find({ topic: topicId }).sort({ createdAt: -1 }).lean();
+        return res.json({ success: true, data: quizzes });
+    } catch (err) {
+        console.error("listQuizzesByTopic", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.deleteQuiz = async (req, res) => {
-  try {
-    const { quizId } = req.params;
-    if (!isValidId(quizId)) return res.status(400).json({ success: false, message: "Invalid quiz id" });
+    try {
+        const { quizId } = req.params;
+        if (!isValidId(quizId)) return res.status(400).json({ success: false, message: "Invalid quiz id" });
 
-    const q = await Quiz.findByIdAndDelete(quizId);
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        const q = await Quiz.findByIdAndDelete(quizId);
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
 
-    return res.json({ success: true, data: { _id: quizId }});
-  } catch (err) {
-    console.error("deleteQuiz", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+        return res.json({ success: true, data: { _id: quizId } });
+    } catch (err) {
+        console.error("deleteQuiz", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.createScreen = async (req, res) => {
-  try {
-    const { quizId } = req.params;
-    const { type, body = "", options = [], properties = {} } = req.body;
-    if (!type) return res.status(400).json({ success: false, message: "type required" });
-    const q = await Quiz.findById(quizId);
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-    const nextPos = (q.screens && q.screens.length > 0) ? Math.max(...q.screens.map((s) => s.position || 0)) + 1 : 1;
-    const screen = { type, body, options, properties, position: nextPos, status: "draft" };
-    q.screens.push(screen);
-    q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-    await q.save();
-    const created = q.screens[q.screens.length - 1];
-    return res.json({ success: true, data: created });
-  } catch (err) {
-    console.error("createScreen", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { quizId } = req.params;
+        const { type, body = "", options = [], properties = {} } = req.body;
+        if (!type) return res.status(400).json({ success: false, message: "type required" });
+        const q = await Quiz.findById(quizId);
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        const nextPos = (q.screens && q.screens.length > 0) ? Math.max(...q.screens.map((s) => s.position || 0)) + 1 : 1;
+        const screen = { type, body, options, properties, position: nextPos, status: "draft" };
+        q.screens.push(screen);
+        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
+        await q.save();
+        const created = q.screens[q.screens.length - 1];
+        return res.json({ success: true, data: created });
+    } catch (err) {
+        console.error("createScreen", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.updateScreen = async (req, res) => {
-  try {
-    const { screenId } = req.params;
-    const payload = req.body || {};
-    const q = await Quiz.findOne({ "screens._id": screenId });
-    if (!q) return res.status(404).json({ success: false, message: "Screen not found" });
-    const sc = q.screens.id(screenId);
-    if (!sc) return res.status(404).json({ success: false, message: "Screen not found" });
-    ["body", "type", "status"].forEach((f) => { if (payload[f] !== undefined) sc[f] = payload[f]; });
-    if (payload.options !== undefined) sc.options = payload.options;
-    if (payload.properties !== undefined) sc.properties = payload.properties;
-    sc.meta = sc.meta || {}; sc.meta.updatedAt = new Date();
-    q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-    await q.save();
-    return res.json({ success: true, data: sc });
-  } catch (err) {
-    console.error("updateScreen", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { screenId } = req.params;
+        const payload = req.body || {};
+        const q = await Quiz.findOne({ "screens._id": screenId });
+        if (!q) return res.status(404).json({ success: false, message: "Screen not found" });
+        const sc = q.screens.id(screenId);
+        if (!sc) return res.status(404).json({ success: false, message: "Screen not found" });
+        ["body", "type", "status"].forEach((f) => { if (payload[f] !== undefined) sc[f] = payload[f]; });
+        if (payload.options !== undefined) sc.options = payload.options;
+        if (payload.properties !== undefined) sc.properties = payload.properties;
+        sc.meta = sc.meta || {}; sc.meta.updatedAt = new Date();
+        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
+        await q.save();
+        return res.json({ success: true, data: sc });
+    } catch (err) {
+        console.error("updateScreen", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.deleteScreen = async (req, res) => {
-  try {
-    const { quizId, screenId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(String(quizId)) || !mongoose.Types.ObjectId.isValid(String(screenId))) return res.status(400).json({ success: false, message: "Invalid id" });
-    const q = await Quiz.findById(quizId);
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-    q.screens = q.screens.filter((s) => String(s._id) !== String(screenId));
-    q.screens.forEach((s, idx) => { s.position = idx + 1; });
-    q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-    await q.save();
-    return res.json({ success: true, data: q });
-  } catch (err) {
-    console.error("deleteScreen", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { quizId, screenId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId)) || !mongoose.Types.ObjectId.isValid(String(screenId))) return res.status(400).json({ success: false, message: "Invalid id" });
+        const q = await Quiz.findById(quizId);
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        q.screens = q.screens.filter((s) => String(s._id) !== String(screenId));
+        q.screens.forEach((s, idx) => { s.position = idx + 1; });
+        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
+        await q.save();
+        return res.json({ success: true, data: q });
+    } catch (err) {
+        console.error("deleteScreen", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
 
 exports.reorderScreens = async (req, res) => {
-  try {
-    const { quizId } = req.params;
-    const { order } = req.body;
-    if (!Array.isArray(order)) return res.status(400).json({ success: false, message: "order must be array" });
-    const q = await Quiz.findById(quizId);
-    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-    const map = {};
-    (q.screens || []).forEach((s) => { map[String(s._id)] = s; });
-    const newScreens = [];
-    order.forEach((id, idx) => {
-      const found = map[String(id)];
-      if (found) {
-        found.position = idx + 1;
-        newScreens.push(found);
-        delete map[String(id)];
-      }
-    });
-    Object.keys(map).forEach((k) => {
-      const s = map[k];
-      s.position = newScreens.length + 1;
-      newScreens.push(s);
-    });
-    q.screens = newScreens;
-    q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-    await q.save();
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("reorderScreens", err);
-    return res.status(500).json({ success: false, message: err.message });
-  }
+    try {
+        const { quizId } = req.params;
+        const { order } = req.body;
+        if (!Array.isArray(order)) return res.status(400).json({ success: false, message: "order must be array" });
+        const q = await Quiz.findById(quizId);
+        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+        const map = {};
+        (q.screens || []).forEach((s) => { map[String(s._id)] = s; });
+        const newScreens = [];
+        order.forEach((id, idx) => {
+            const found = map[String(id)];
+            if (found) {
+                found.position = idx + 1;
+                newScreens.push(found);
+                delete map[String(id)];
+            }
+        });
+        Object.keys(map).forEach((k) => {
+            const s = map[k];
+            s.position = newScreens.length + 1;
+            newScreens.push(s);
+        });
+        q.screens = newScreens;
+        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
+        await q.save();
+        return res.json({ success: true });
+    } catch (err) {
+        console.error("reorderScreens", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
 };
