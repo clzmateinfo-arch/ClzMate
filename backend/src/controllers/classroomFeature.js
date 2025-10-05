@@ -569,6 +569,33 @@ exports.updateQuiz = async (req, res) => {
   }
 };
 
+exports.listQuizzesByTopic = async (req, res) => {
+  try {
+    const { topicId } = req.params;
+    if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
+    const quizzes = await Quiz.find({ topic: topicId }).sort({ createdAt: -1 }).lean();
+    return res.json({ success: true, data: quizzes });
+  } catch (err) {
+    console.error("listQuizzesByTopic", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.deleteQuiz = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    if (!isValidId(quizId)) return res.status(400).json({ success: false, message: "Invalid quiz id" });
+
+    const q = await Quiz.findByIdAndDelete(quizId);
+    if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
+
+    return res.json({ success: true, data: { _id: quizId }});
+  } catch (err) {
+    console.error("deleteQuiz", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.createScreen = async (req, res) => {
   try {
     const { quizId } = req.params;

@@ -28,7 +28,9 @@ router.patch("/assignments/:assignmentId", auth, isInstructor, classroomControll
 
 router.post("/topics/:topicId/quizzes", auth, isInstructor, classroomControllers.createQuiz);
 router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);
+router.get("/topics/:topicId/quizzes", auth, classroomControllers.listQuizzesByTopic);
 router.patch("/quizzes/:quizId", auth, isInstructor, classroomControllers.updateQuiz);
+router.delete("/quizzes/:quizId", auth, isInstructor, classroomControllers.deleteQuiz);
 
 router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers.createScreen);
 router.patch("/quizzes/screens/:screenId", auth, isInstructor, classroomControllers.updateScreen);

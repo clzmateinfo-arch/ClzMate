@@ -6,12 +6,12 @@ import { updateQuizAPI } from "@/entities/classroom/model/classroomAPI";
 import Button from "@/shared/components/ui/Button";
 import { toast } from "react-hot-toast";
 
-export default function QuizPublish({ overview }) {
+export default function QuizPublish({ classroomId, overview }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { token } = useSelector((s) => s.auth || {});
     const { quiz } = useSelector((s) => s.classroom || {});
     const [publishing, setPublishing] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
     }, [quiz]);
@@ -37,7 +37,7 @@ export default function QuizPublish({ overview }) {
     };
 
     return (
-        <div className="rounded-2xl border border-white/8 bg-white/6 p-6 max-w-3xl mx-auto shadow-sm">
+        <div className="rounded-2xl border-white/8 bg-white/6 p-6 max-w-3xl mx-auto shadow-sm">
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-2xl font-semibold text-[#0b1220]">Publish Quiz</p>
@@ -52,7 +52,7 @@ export default function QuizPublish({ overview }) {
             </div>
 
             <div className="mt-6 space-y-4">
-                <div className="rounded-md border p-4 bg-white">
+                <div className="rounded-md border-white/8 p-4 bg-white/20">
                     <div className="text-sm font-medium">Summary</div>
                     <div className="mt-2 text-sm text-slate-600">
                         <div>Title: <strong>{quiz?.title}</strong></div>

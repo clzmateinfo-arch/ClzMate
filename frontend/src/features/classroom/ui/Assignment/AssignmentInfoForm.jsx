@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { createAssignmentAPI, updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
 import { setAssignment, setStep, setEditAssignment } from "@/entities/classroom/model/classroomSlice";
 import Input from "@/shared/components/ui/Input";
@@ -9,8 +10,9 @@ import Button from "@/shared/components/ui/Button";
 import DateInput from "@/shared/components/ui/DateInput";
 import { toast } from "react-hot-toast";
 
-export default function AssignmentInfoForm({ topicId }) {
+export default function AssignmentInfoForm({ classroomId, topicId }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { token } = useSelector((s) => s.auth || {});
     const { assignment, editAssignment } = useSelector((s) => s.classroom || {});
     const { register, handleSubmit, control, reset, setValue } = useForm();
@@ -116,7 +118,7 @@ export default function AssignmentInfoForm({ topicId }) {
             </div>
 
             <div className="flex justify-end gap-3">
-                <Button variant="light" onClick={() => dispatch(setStep(1))} className="bg-white text-black">
+                <Button variant="light" onClick={() => navigate(`/classroom/${classroomId}/classwork`)} className="bg-white text-black">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={loading}>

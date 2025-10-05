@@ -1,7 +1,8 @@
 import { FiCopy, FiTrash2, FiEdit } from "react-icons/fi";
 
 export default function ItemCard({ item = {}, onToggle, onDelete, onCopy, onEdit, className = "" }) {
-    const isAssignment = !!(item.points || item.dueDate || item.assigneeType || item.publish !== undefined);
+    const isAssignment = item.__kind === "assignment";
+    const isQuiz = item.__kind === "quiz";
     const title = item.title || item.name || "Untitled";
     const subtitleParts = [];
 
@@ -13,6 +14,11 @@ export default function ItemCard({ item = {}, onToggle, onDelete, onCopy, onEdit
                 if (!Number.isNaN(d.getTime())) subtitleParts.push(`Due ${d.toLocaleDateString()}`);
             } catch { }
         }
+    } else if (isQuiz) {
+        const screensCount = item.screens?.length ?? item.screenCount ?? item.numScreens ?? 0;
+        if (screensCount) subtitleParts.push(`${screensCount} screen${screensCount === 1 ? "" : "s"}`);
+        if (item.timeLimit) subtitleParts.push(`${item.timeLimit} sec`);
+        if (item.maxScore) subtitleParts.push(`${item.maxScore} pts`);
     } else {
         if (item.type) subtitleParts.push(item.type);
         if (item.duration) subtitleParts.push(item.duration);
@@ -25,10 +31,31 @@ export default function ItemCard({ item = {}, onToggle, onDelete, onCopy, onEdit
 
     return (
         <div
-            className={`w-full sm:min-w-[18rem] rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}
+            className={`relative w-full min-h-[150px] sm:min-w-[18rem] rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}
             role="group"
             aria-label={title}
         >
+            <div className="absolute top-3 right-3">
+                {isAssignment && (
+                    <span
+                        className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full shadow-sm
+                                   bg-gradient-to-r from-[#8b5cf6]/10 to-[#7c3aed]/10 text-[#5b21b6] border border-[#efe6ff]"
+                        aria-hidden
+                    >
+                        Assignment
+                    </span>
+                )}
+                {isQuiz && (
+                    <span
+                        className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full shadow-sm
+                                   bg-amber-50 text-amber-800 border border-amber-200"
+                        aria-hidden
+                    >
+                        Quiz
+                    </span>
+                )}
+            </div>
+
             <div>
                 <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-r from-[#ba7bf0]/10 to-[#996bec]/10 text-[#4c1d95]">
@@ -59,6 +86,7 @@ export default function ItemCard({ item = {}, onToggle, onDelete, onCopy, onEdit
                         {statusLabel}
                     </div>
                     {isAssignment && item.assigneeType && <div className="text-xs text-slate-400 bg-slate-50/50 px-2 py-0.5 rounded truncate">{item.assigneeType} students</div>}
+                    {isQuiz && <div className="text-xs text-slate-400 bg-slate-50/50 px-2 py-0.5 rounded truncate">Quiz</div>}
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">

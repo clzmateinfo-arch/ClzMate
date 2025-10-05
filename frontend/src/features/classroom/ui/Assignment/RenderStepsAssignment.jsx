@@ -50,7 +50,7 @@ export default function RenderStepsAssignment({ classroomId, topicId, assignment
             </div>
 
             <div className="rounded-2xl">
-                {step === 1 && <AssignmentInfoForm topicId={topicId} />}
+                {step === 1 && <AssignmentInfoForm classroomId={classroomId} topicId={topicId} />}
                 {step === 2 && <AssignmentMaterialsForm topicId={topicId} />}
                 {step === 3 && <AssignmentAssigneesPublish classroomId={classroomId} overview={overview} />}
             </div>

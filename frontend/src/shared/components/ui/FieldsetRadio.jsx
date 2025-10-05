@@ -116,9 +116,8 @@ export default function FieldsetRadio({
               </span>
 
               <span
-                className={`text-sm font-medium ${
-                  isActive ? "text-[#0b1220]" : "text-[#374151]"
-                }`}
+                className={`text-sm font-medium ${isActive ? "text-[#0b1220]" : "text-[#374151]"
+                  }`}
               >
                 {opt.label}
               </span>

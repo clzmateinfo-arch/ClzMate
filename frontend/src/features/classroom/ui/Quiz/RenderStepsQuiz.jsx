@@ -49,9 +49,9 @@ export default function RenderStepsQuiz({ classroomId, topicId, quizId, overview
       </div>
 
       <div className="rounded-2xl">
-        {step === 1 && <QuizInfoForm topicId={topicId} />}
+        {step === 1 && <QuizInfoForm classroomId={classroomId} topicId={topicId} />}
         {step === 2 && <QuizBuilder topicId={topicId} overview={overview} />}
-        {step === 3 && <QuizPublish overview={overview} />}
+        {step === 3 && <QuizPublish classroomId={classroomId} overview={overview} />}
       </div>
     </>
   );

@@ -95,13 +95,10 @@ export default function MultipleEditor({ screen = {}, onChange = () => { } }) {
                     </div>
                 </div>
 
-                {/* Settings */}
                 <div className="rounded-xl border-neutral-300 mt-2 p-4 bg-white shadow-sm ">
-                    <div className="text-sm font-semibold mb-3">Properties</div>
-
                     <div className="space-y-3">
                         <div>
-                            <label className="block text-xs font-medium mb-1">Points</label>
+                            <label className="block text-sm font-semibold text-[#0b1220] mb-1">Points</label>
                             <Input
                                 type="number"
                                 value={properties.points ?? 1}
@@ -113,10 +110,10 @@ export default function MultipleEditor({ screen = {}, onChange = () => { } }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium mb-1">Time limit (seconds)</label>
+                            <label className="block text-sm font-semibold text-[#0b1220] mb-1 mt-3">Time limit (seconds)</label>
                             <Input
                                 type="number"
-                                value={properties.timeLimit ?? 0}
+                                value={properties.timeLimit ?? ""}
                                 onChange={(e) =>
                                     update({ properties: { ...(properties || {}), timeLimit: Number(e.target.value) } })
                                 }
@@ -124,7 +121,7 @@ export default function MultipleEditor({ screen = {}, onChange = () => { } }) {
                             />
                         </div>
 
-                        <div>
+                        <div className="mt-3 mb-1">
                             <Select
                                 label="Answer mode"
                                 options={[
@@ -136,20 +133,6 @@ export default function MultipleEditor({ screen = {}, onChange = () => { } }) {
                                     update({ properties: { ...(properties || {}), answerMode: e.target.value } })
                                 }
                             />
-                        </div>
-
-                        <div className="mt-2">
-                            <Button
-                                variant="primary"
-                                onClick={() =>
-                                    update({
-                                        properties: { ...(properties || {}), points: Number(properties.points ?? 1) },
-                                    })
-                                }
-                                className="w-full"
-                            >
-                                Apply
-                            </Button>
                         </div>
                     </div>
                 </div>

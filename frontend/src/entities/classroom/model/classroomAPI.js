@@ -336,6 +336,33 @@ export async function updateQuizAPI(quizId, payload, token) {
     }
 }
 
+export async function listQuizzesByTopicAPI(topicId, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes`, null, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+    return response.data.data || [];
+  } catch (err) {
+    console.error("listQuizzesByTopicAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
+    throw err;
+  }
+}
+
+export async function deleteQuizAPI(quizId, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("DELETE", `${QUIZZES_API}/${quizId}`, null, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+    toast.success("Quiz deleted");
+    return response.data;
+  } catch (err) {
+    console.error("deleteQuizAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to delete quiz");
+    throw err;
+  }
+}
+
 export async function createScreenAPI(quizId, payload, token) {
     try {
         const headers = safeHeaders(token);

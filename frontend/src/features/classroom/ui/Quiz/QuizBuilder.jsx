@@ -20,7 +20,6 @@ const TEMPLATES = [
     { value: "short", label: "Short Answer" },
     { value: "slider", label: "Slider" },
     { value: "poll", label: "Poll" },
-    { value: "puzzle", label: "Puzzle" },
 ];
 
 export default function QuizBuilder({ topicId, overview }) {
@@ -37,7 +36,11 @@ export default function QuizBuilder({ topicId, overview }) {
     const [editorState, setEditorState] = useState(null);
 
     useEffect(() => {
-        setScreens(quiz?.screens ? [...quiz.screens].sort((a, b) => (a.position || 0) - (b.position || 0)) : []);
+        setScreens(
+            quiz?.screens
+                ? [...quiz.screens]
+                : []
+        );
         if (quiz && (!quiz.screens || quiz.screens.length === 0)) {
             setActiveId(null);
         } else if (quiz && quiz.screens.length > 0) {
@@ -46,7 +49,8 @@ export default function QuizBuilder({ topicId, overview }) {
     }, [quiz]);
 
     useEffect(() => {
-        const active = screens.find((s) => String(s._id || s.id) === String(activeId)) || null;
+        const active =
+            screens.find((s) => String(s._id || s.id) === String(activeId)) || null;
         setEditorState(active);
     }, [activeId, screens]);
 
@@ -65,7 +69,13 @@ export default function QuizBuilder({ topicId, overview }) {
             const payload = {
                 type: template,
                 body: "",
-                options: template === "truefalse" ? [{ text: "True", correct: false }, { text: "False", correct: false }] : [],
+                options:
+                    template === "truefalse"
+                        ? [
+                            { text: "True", correct: false },
+                            { text: "False", correct: false },
+                        ]
+                        : [],
                 properties: { timeLimit: 0, points: 1, answerMode: "single" },
             };
             const created = await createScreenAPI(quiz._id, payload, token);
@@ -87,9 +97,14 @@ export default function QuizBuilder({ topicId, overview }) {
         setSaving(true);
         try {
             const updated = await updateScreenAPI(id, payload, token);
-            const updatedScreens = screens.map((s) => (String(s._id || s.id) === String(updated._id || updated.id) ? updated : s));
+            const updatedScreens = screens.map((s) =>
+                String(s._id || s.id) === String(updated._id || updated.id)
+                    ? updated
+                    : s
+            );
             setScreens(updatedScreens);
-            if (String(activeId) === String(updated._id || updated.id)) setEditorState(updated);
+            if (String(activeId) === String(updated._id || updated.id))
+                setEditorState(updated);
             toast.success("Screen saved");
             return updated;
         } catch (err) {
@@ -105,7 +120,9 @@ export default function QuizBuilder({ topicId, overview }) {
         if (!confirm("Delete this screen?")) return;
         try {
             await deleteScreenAPI(quiz._id, id, token);
-            const remaining = screens.filter((s) => String(s._id || s.id) !== String(id));
+            const remaining = screens.filter(
+                (s) => String(s._id || s.id) !== String(id)
+            );
             setScreens(remaining);
             dispatch(setQuiz({ ...quiz, screens: remaining }));
             setActiveId(remaining[0]?._id || null);
@@ -123,17 +140,24 @@ export default function QuizBuilder({ topicId, overview }) {
 
     const onDrop = async (e, targetId) => {
         e.preventDefault();
-        const draggingId = dragRef.current.draggingId || e.dataTransfer.getData("text/plain");
+        const draggingId =
+            dragRef.current.draggingId || e.dataTransfer.getData("text/plain");
         if (!draggingId || draggingId === targetId) return;
         const arr = [...screens];
-        const fromIdx = arr.findIndex((t) => String(t._id || t.id) === String(draggingId));
+        const fromIdx = arr.findIndex(
+            (t) => String(t._id || t.id) === String(draggingId)
+        );
         const toIdx = arr.findIndex((t) => String(t._id || t.id) === String(targetId));
         if (fromIdx === -1 || toIdx === -1) return;
         const [item] = arr.splice(fromIdx, 1);
         arr.splice(toIdx, 0, item);
         setScreens(arr);
         try {
-            await reorderScreensAPI(quiz._id, arr.map((it) => it._id || it.id), token);
+            await reorderScreensAPI(
+                quiz._id,
+                arr.map((it) => it._id || it.id),
+                token
+            );
             dispatch(setQuiz({ ...quiz, screens: arr }));
             toast.success("Reordered");
         } catch (err) {
@@ -144,7 +168,10 @@ export default function QuizBuilder({ topicId, overview }) {
 
     const onDragOver = (e) => e.preventDefault();
 
-    const activeScreen = useMemo(() => screens.find((s) => String(s._id || s.id) === String(activeId)), [screens, activeId]);
+    const activeScreen = useMemo(
+        () => screens.find((s) => String(s._id || s.id) === String(activeId)),
+        [screens, activeId]
+    );
 
     const onEditorChange = (s) => {
         setEditorState(s);
@@ -171,7 +198,12 @@ export default function QuizBuilder({ topicId, overview }) {
         }
     };
 
-    if (!quiz) return <div className="text-sm text-slate-500">Save quiz information first to start building screens.</div>;
+    if (!quiz)
+        return (
+            <div className="text-sm text-slate-500">
+                Save quiz information first to start building screens.
+            </div>
+        );
 
     return (
         <>
@@ -180,21 +212,24 @@ export default function QuizBuilder({ topicId, overview }) {
                     <div className="rounded-xl border-neutral-300 bg-white p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <div className="text-sm font-semibold">Screens</div>
-                            <div className="flex items-center gap-2">
+                            <div className="relative">
                                 <select
                                     onChange={(e) => {
                                         addScreen(e.target.value);
                                         e.target.value = "";
                                     }}
-                                    className="p-2 border-neutral-300 rounded bg-white text-sm"
+                                    className="appearance-none p-2 pr-8 border border-neutral-300 rounded-lg bg-white text-sm shadow-sm hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="">Add screen…</option>
+                                    <option value="">➕ Add screen…</option>
                                     {TEMPLATES.map((t) => (
                                         <option key={t.value} value={t.value}>
                                             {t.label}
                                         </option>
                                     ))}
                                 </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-500">
+                                    ▼
+                                </div>
                             </div>
                         </div>
 
@@ -216,20 +251,35 @@ export default function QuizBuilder({ topicId, overview }) {
                                     />
                                 );
                             })}
-                            {screens.length === 0 && <div className="text-sm text-slate-500 mt-2">No screens yet   add one to begin.</div>}
+                            {screens.length === 0 && (
+                                <div className="text-sm text-slate-500 mt-2">
+                                    No screens yet — add one to begin.
+                                </div>
+                            )}
                         </div>
                     </div>
+
                     <div className="rounded-xl border-neutral-300 mt-4 bg-white p-4 shadow-sm">
                         <div className="text-sm font-semibold mb-2">Notes</div>
-                        <div className="text-sm text-slate-500">Drag screens on the left to reorder. Each screen has independent properties and preview.</div>
+                        <div className="text-sm text-slate-500">
+                            Drag screens on the left to reorder. Each screen has independent
+                            properties and preview.
+                        </div>
                     </div>
 
                     <div className="mt-4">
-                        <div className="flex gap-2 align-middle items-end-safe justify-end">
-                            <Button variant="light" onClick={() => dispatch(setStepQuiz(1))} className="bg-white text-black">
+                        <div className="flex gap-2 justify-end">
+                            <Button
+                                variant="light"
+                                onClick={() => dispatch(setStepQuiz(1))}
+                                className="bg-white text-black"
+                            >
                                 Back
                             </Button>
-                            <Button onClick={() => saveAndNext(quiz)} disabled={screens.length === 0}>
+                            <Button
+                                onClick={() => saveAndNext(quiz)}
+                                disabled={screens.length === 0}
+                            >
                                 Next
                             </Button>
                         </div>
@@ -240,15 +290,34 @@ export default function QuizBuilder({ topicId, overview }) {
                     <div className="rounded-xl border-neutral-300 bg-white p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <div className="text-lg font-semibold">{editorState ? (editorState.body || `Screen ${screens.indexOf(editorState) + 1}`) : "Editor"}</div>
-                                <div className="text-sm text-slate-500">Edit screen content and behavior here</div>
+                                <div className="text-lg font-semibold">
+                                    {editorState
+                                        ? editorState.body ||
+                                        `Screen ${screens.indexOf(editorState) + 1}`
+                                        : "Editor"}
+                                </div>
+                                <div className="text-sm text-slate-500">
+                                    Edit screen content and behavior here
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <Button variant="light" onClick={() => setPreviewOpen(true)} disabled={!editorState} className="bg-white text-black">
+                                <Button
+                                    variant="light"
+                                    onClick={() => setPreviewOpen(true)}
+                                    disabled={!editorState}
+                                    className="bg-white text-black"
+                                >
                                     Preview
                                 </Button>
-                                <Button variant="light" onClick={() => editorState && updateScreen(activeId, editorState)} className="bg-white text-black" disabled={!editorState || saving}>
+                                <Button
+                                    variant="light"
+                                    onClick={() =>
+                                        editorState && updateScreen(activeId, editorState)
+                                    }
+                                    className="bg-white text-black"
+                                    disabled={!editorState || saving}
+                                >
                                     {saving ? "Saving..." : "Save Screen"}
                                 </Button>
                             </div>
@@ -256,17 +325,27 @@ export default function QuizBuilder({ topicId, overview }) {
 
                         <div>
                             {editorState ? (
-                                <TemplateEditorRouter screen={editorState} onChange={onEditorChange} templates={TEMPLATES} />
+                                <TemplateEditorRouter
+                                    screen={editorState}
+                                    onChange={onEditorChange}
+                                    templates={TEMPLATES}
+                                />
                             ) : (
-                                <div className="text-sm text-slate-500">Select a screen from the left or add a new one to begin editing.</div>
+                                <div className="text-sm text-slate-500">
+                                    Select a screen from the left or add a new one to begin
+                                    editing
+                                </div>
                             )}
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <ScreenPreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} screen={editorState || activeScreen} />
+            <ScreenPreviewModal
+                open={previewOpen}
+                onClose={() => setPreviewOpen(false)}
+                screen={editorState || activeScreen}
+            />
         </>
     );
 }

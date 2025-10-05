@@ -22,6 +22,9 @@ import {
     listAssignmentsByTopicAPI,
     updateAssignmentAPI,
     deleteAssignmentAPI,
+    listQuizzesByTopicAPI,
+    deleteQuizAPI,
+    updateQuizAPI,
 } from "@/entities/classroom/model/classroomAPI";
 import Loading from "@/shared/components/navigation/Loading";
 import { toast } from "react-hot-toast";
@@ -30,6 +33,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     const [open, setOpen] = useState(false);
     const [items, setItems] = useState(topic.items || []);
     const [assignments, setAssignments] = useState([]);
+    const [quizzes, setQuizzes] = useState([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
 
     const [search, setSearch] = useState("");
@@ -45,18 +49,26 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     }, [topic]);
 
     useEffect(() => {
-        if (open) loadAssignments();
+        if (open) loadAssignmentsAndQuizzes();
     }, [open, topic?._id]);
 
-    const loadAssignments = async () => {
+    // load assignments and quizzes concurrently
+    const loadAssignmentsAndQuizzes = async () => {
         setLoadingAssignments(true);
         try {
-            const res = await listAssignmentsByTopicAPI(topic._id, token);
-            const arr = Array.isArray(res) ? res : res?.data ?? res?.assignments ?? [];
-            setAssignments(arr || []);
+            const [assignRes, quizRes] = await Promise.allSettled([
+                listAssignmentsByTopicAPI(topic._id, token),
+                typeof listQuizzesByTopicAPI === "function" ? listQuizzesByTopicAPI(topic._id, token) : Promise.resolve([]),
+            ]);
+
+            const arrA = Array.isArray(assignRes?.value) ? assignRes.value : assignRes?.value?.data ?? assignRes?.value?.assignments ?? [];
+            const arrQ = Array.isArray(quizRes?.value) ? quizRes.value : quizRes?.value?.data ?? quizRes?.value?.quizzes ?? [];
+
+            setAssignments(arrA || []);
+            setQuizzes(arrQ || []);
         } catch (err) {
-            console.error("Failed to load assignments", err);
-            toast.error(err?.message || "Failed to load assignments");
+            console.error("Failed to load assignments/quizzes", err);
+            toast.error(err?.message || "Failed to load assignments/quizzes");
         } finally {
             setLoadingAssignments(false);
         }
@@ -65,7 +77,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     const toggleOpen = () => {
         setOpen((s) => !s);
         if (!open) {
-            loadAssignments();
+            loadAssignmentsAndQuizzes();
         }
     };
 
@@ -111,7 +123,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
     const handleCopyItem = async (it) => {
         try {
             await copyItemAPI(topic._id, it._id, topic._id, token);
-            await loadAssignments();
+            await loadAssignmentsAndQuizzes();
             onUpdated && onUpdated();
             toast.success("Copied");
         } catch (err) {
@@ -145,6 +157,7 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
+    /* Assignments handlers */
     const handleEditAssignment = (assignment) => {
         const cid = topic.classroom || topic.classroomId || classroomId;
         navigate(`/classroom/${cid}/classwork/assignment/${assignment._id}/edit`);
@@ -175,17 +188,52 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
         }
     };
 
+    /* Quiz handlers */
+    const handleEditQuiz = (quiz) => {
+        const cid = topic.classroom || topic.classroomId || classroomId;
+        // route you use for editing quizzes may differ; adjust if needed
+        navigate(`/classroom/${cid}/classwork/quiz/${quiz._id}/edit`);
+    };
+
+    const handleDeleteQuiz = async (quiz) => {
+        if (!confirm("Delete this quiz? This cannot be undone.")) return;
+        try {
+            if (typeof deleteQuizAPI !== "function") throw new Error("deleteQuizAPI not available");
+            await deleteQuizAPI(quiz._id, token);
+            setQuizzes(prev => prev.filter(q => String(q._id) !== String(quiz._id)));
+            toast.success("Quiz deleted");
+            onUpdated && onUpdated();
+        } catch (err) {
+            console.error("deleteQuiz", err);
+            toast.error(err?.message || "Failed to delete quiz");
+        }
+    };
+
+    const handleTogglePublishQuiz = async (quiz) => {
+        try {
+            if (typeof updateQuizAPI !== "function") throw new Error("updateQuizAPI not available");
+            const updated = await updateQuizAPI(quiz._id, { publish: !quiz.publish }, token, false);
+            setQuizzes(prev => prev.map(q => (String(q._id) === String(updated._id) ? updated : q)));
+            toast.success("Quiz publish status updated");
+            onUpdated && onUpdated();
+        } catch (err) {
+            console.error("toggleQuizPublish", err);
+            toast.error(err?.message || "Failed to update quiz publish");
+        }
+    };
+
     const combined = useMemo(() => {
         const normalizedItems = (items || []).map(it => ({ ...it, __kind: 'item' }));
         const normalizedAssignments = (assignments || []).map(a => ({ ...a, __kind: 'assignment' }));
-        const merged = [...normalizedItems, ...normalizedAssignments];
+        const normalizedQuizzes = (quizzes || []).map(q => ({ ...q, __kind: 'quiz' }));
+        const merged = [...normalizedItems, ...normalizedAssignments, ...normalizedQuizzes];
         merged.sort((a, b) => {
             const ta = new Date(a.createdAt || a.meta?.createdAt || 0).getTime();
             const tb = new Date(b.createdAt || b.meta?.createdAt || 0).getTime();
             return tb - ta;
         });
         return merged;
-    }, [items, assignments]);
+    }, [items, assignments, quizzes]);
 
     const filtered = useMemo(() => {
         const t = (search || "").trim().toLowerCase();
@@ -290,7 +338,6 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
             {open && (
                 <div className="px-4 py-4 space-y-4 my-4 bg-white/50 border-t border-[#f3eff9]/30">
                     <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="light" onClick={() => handleCreateItem("material")} className="px-3 py-2 text-sm">Material</Button>
                         <Button
                             variant="light"
                             onClick={(e) => {
@@ -311,7 +358,8 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                         >
                             Quiz
                         </Button>
-                        <Button variant="light" onClick={() => handleCreateItem("stories")} className="px-3 py-2 text-sm">Stories</Button>
+                        <Button variant="light" onClick={() => handleCreateItem("material")} className="px-3 py-2 text-sm">Material</Button>
+                        {/* <Button variant="light" onClick={() => handleCreateItem("stories")} className="px-3 py-2 text-sm">Stories</Button> */}
                         <Button variant="light" onClick={() => handleCreateItem("subsection")} className="px-3 py-2 text-sm">Link Course</Button>
                     </div>
 
@@ -362,10 +410,28 @@ export default function TopicItem({ topic, onOpen, onUpdated, token, classroomId
                                         <div key={String(it._id) + (it.__kind || "")} className="w-full">
                                             <ItemCard
                                                 item={it}
-                                                onEdit={it.__kind === 'assignment' ? () => handleEditAssignment(it) : undefined}
-                                                onDelete={it.__kind === 'assignment' ? () => handleDeleteAssignment(it) : () => handleDeleteItem(it)}
+                                                onEdit={
+                                                    it.__kind === 'assignment'
+                                                        ? () => handleEditAssignment(it)
+                                                        : it.__kind === 'quiz'
+                                                            ? () => handleEditQuiz(it)
+                                                            : undefined
+                                                }
+                                                onDelete={
+                                                    it.__kind === 'assignment'
+                                                        ? () => handleDeleteAssignment(it)
+                                                        : it.__kind === 'quiz'
+                                                            ? () => handleDeleteQuiz(it)
+                                                            : () => handleDeleteItem(it)
+                                                }
                                                 onCopy={() => handleCopyItem(it)}
-                                                onToggle={it.__kind === 'assignment' ? () => handleTogglePublishAssignment(it) : () => handleToggleItemStatus(it)}
+                                                onToggle={
+                                                    it.__kind === 'assignment'
+                                                        ? () => handleTogglePublishAssignment(it)
+                                                        : it.__kind === 'quiz'
+                                                            ? () => handleTogglePublishQuiz(it)
+                                                            : () => handleToggleItemStatus(it)
+                                                }
                                                 className=""
                                             />
                                         </div>

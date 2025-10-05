@@ -31,7 +31,6 @@ export default function ManageAssignment() {
                 console.warn("Failed to fetch class overview:", e);
             }
 
-            console.log("Params:", { classroomId, topicId, assignmentId });
             if (assignmentId) {
                 try {
                     const a = await getAssignmentAPI(assignmentId, token);
