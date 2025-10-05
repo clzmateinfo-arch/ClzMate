@@ -23,7 +23,6 @@ export default function RenderCartCourses() {
             } ${indx !== 0 ? "mt-6" : ""}`}
         >
           <div className="flex flex-1 flex-col gap-4 xl:flex-row">
-            {/* course thumbnail */}
             <Img
               src={course?.thumbnail}
               alt={course?.courseName}
@@ -40,7 +39,6 @@ export default function RenderCartCourses() {
                 <ReactStars
                   count={5}
                   value={
-                    // prefer average rating if provided, else length fallback
                     course?.rating ?? course?.ratingAndReviews?.length ?? 0
                   }
                   size={20}

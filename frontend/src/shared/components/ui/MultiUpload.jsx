@@ -14,9 +14,9 @@ export default function MultiUpload({
     allowedTypes = undefined,
     disabled = false,
 }) {
-    const [existing, setExisting] = useState([]); // server items
-    const [newFiles, setNewFiles] = useState([]); // File objects
-    const [removeIds, setRemoveIds] = useState([]); // publicId or url to remove on submit
+    const [existing, setExisting] = useState([]);
+    const [newFiles, setNewFiles] = useState([]);
+    const [removeIds, setRemoveIds] = useState([]);
     const inputRef = useRef(null);
 
     useEffect(() => {
@@ -91,7 +91,7 @@ export default function MultiUpload({
         const allowed = added.filter(isAllowed);
         const rejected = added.length - allowed.length;
         if (rejected > 0) {
-            window.alert("Some files were rejected — only images, videos, PDF and ZIP files are allowed.");
+            window.alert("Some files were rejected   only images, videos, PDF and ZIP files are allowed.");
         }
 
         if (!allowed.length) return;

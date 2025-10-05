@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const ratingAndReviewSchema = new mongoose.Schema({
     user: {
@@ -22,4 +23,4 @@ const ratingAndReviewSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model("RatingAndReview", ratingAndReviewSchema);
+module.exports = createModel("RatingAndReview", ratingAndReviewSchema);

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
-import { IoAddCircleOutline } from "react-icons/io5";
-import { MdNavigateNext } from "react-icons/md";
+import { IoAddCircleOutline, IoCloseCircleOutline  } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { createSection, updateSection } from "@/entities/course/model/courseDetailsAPI";
 import { setCourse, setEditCourse, setStep } from "@/entities/course/model/courseSlice";
@@ -10,7 +9,6 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import NestedView from "./NestedView";
 import Input from "@/shared/components/ui/Input";
 import Button from "../../../../shared/components/ui/Button";
-import { LinkButton } from "../../../../shared/components/ui/LinkButton";
 
 export default function CourseBuilderForm() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm();
@@ -84,15 +82,15 @@ export default function CourseBuilderForm() {
           />
           {editSectionName && (
             <div className="ml-5 mb-[3px] items-center-safe align-middle">
-              <IconBtn type="button" onClick={cancelEdit} disabled={loading} text={"Cancel Edit"} outline customClasses="bg-violet-600">
-                <MdNavigateNext size={18} />
+              <IconBtn type="button" onClick={cancelEdit} disabled={loading} text={"Cancel Edit"} outline customClasses="bg-violet-600" textClass="text-black">
+                <IoCloseCircleOutline size={18} />
               </IconBtn>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <IconBtn type="submit" disabled={loading} text={editSectionName ? "Save" : "Create Section"} outline customClasses="bg-violet-600">
+          <IconBtn type="submit" disabled={loading} text={editSectionName ? "Save" : "Create Section"} outline customClasses="bg-violet-600" textClass="text-black">
             <IoAddCircleOutline size={18} />
           </IconBtn>
         </div>

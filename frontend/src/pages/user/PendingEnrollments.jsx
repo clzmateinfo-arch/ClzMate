@@ -88,7 +88,7 @@ export default function PendingEnrollments() {
                                         </div>
 
                                         <div className="hidden sm:flex items-center justify-center w-1/4 px-2 text-sm text-richblack-600">
-                                            <div className="text-sm">{safe(course?.totalDuration, "—")}</div>
+                                            <div className="text-sm">{safe(course?.totalDuration, " ")}</div>
                                         </div>
 
                                         <div className="w-full sm:flex-1 px-2 mt-3 sm:mt-0 flex items-center justify-between gap-3">

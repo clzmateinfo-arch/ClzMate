@@ -40,14 +40,14 @@ exports.uploadFileToCloudinary = async (file, folder, height, quality, opts = {}
 
     result._resource_type = resource_type;
 
-    console.log("Cloudinary upload result:", {
-      public_id: result.public_id,
-      secure_url: result.secure_url,
-      resource_type: result.resource_type,
-      format: result.format,
-      bytes: result.bytes,
-      original_filename: result.original_filename,
-    });
+    // console.log("Cloudinary upload result:", {
+    //   public_id: result.public_id,
+    //   secure_url: result.secure_url,
+    //   resource_type: result.resource_type,
+    //   format: result.format,
+    //   bytes: result.bytes,
+    //   original_filename: result.original_filename,
+    // });
 
     return result;
   } catch (err) {

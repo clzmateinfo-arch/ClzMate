@@ -59,7 +59,7 @@ export default function Upload({
     if (multiple && Array.isArray(file)) {
       const filtered = file.filter((f) => isFileAllowed(f, fileType));
       if (filtered.length !== file.length) {
-        window.alert("Some files were rejected — only images, videos, PDFs and ZIPs are allowed.");
+        window.alert("Some files were rejected   only images, videos, PDFs and ZIPs are allowed.");
       }
       const newFiles = [...selectedFiles, ...filtered];
       setSelectedFiles(newFiles);

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const courseProgressSchema = new mongoose.Schema({
     courseID: {
@@ -17,4 +18,4 @@ const courseProgressSchema = new mongoose.Schema({
     ],
 });
 
-module.exports = mongoose.model("CourseProgress", courseProgressSchema);
+module.exports = createModel("CourseProgress", courseProgressSchema);

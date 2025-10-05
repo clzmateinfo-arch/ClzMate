@@ -1,4 +1,3 @@
-// src/shared/components/ui/Button.jsx
 import React from "react";
 
 function Button(
@@ -17,10 +16,10 @@ function Button(
 ) {
   const base = "relative inline-flex items-center gap-3 rounded-full px-6 py-4 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition";
   const primary = "bg-gradient-to-r btn-purple bg-violet-300 bg-violet-600 hover:bg-violet-600 text-white text-sm transition-colors shadow-md hover:opacity-95 focus:ring-[#996bec]";
-  const light = "inline-flex items-center gap-3 rounded-full px-6 py-3 text-sm font-semibold dark:bg-gray-800/6 backdrop-blur-sm ring-1 ring-white/20 hover:bg-gray-800/8 transition";
+  const light = "inline-flex items-center gap-3 rounded-full px-6 py-3 text-sm text-black font-semibold dark:bg-gray-800/6 backdrop-blur-sm ring-1 ring-white/20 hover:bg-gray-800/8 transition";
   const disabledCls = "opacity-60 cursor-not-allowed pointer-events-none";
 
-  const variantClass = variant === "primary" ? primary : light;
+  const variantClass = variant === "primary" ? primary : variant === "light" ? light : variant === "base" ? base : disabledCls;
   const finalClass = `${base} ${variantClass} ${disabled ? disabledCls : ""} ${className} group`;
 
   return (

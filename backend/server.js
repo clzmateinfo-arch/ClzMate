@@ -18,13 +18,13 @@ const adminRoutes = require('./src/routes/admin');
 const cartRoutes = require("./src/routes/cart");
 const studentRoutes = require("./src/routes/student");
 const statsRoutes = require("./src/routes/stats");
+const classroomRoutes = require("./src/routes/classroom");
 
 const raw = process.env.CORS_ALLOWED_ORIGINS || '';
 const allowedOrigins = raw.split(',').map(s => s.trim()).filter(Boolean);
-
-console.log('CORS allowed origins:', allowedOrigins);
-
 const blockNoOrigin = (process.env.CORS_BLOCK_NO_ORIGIN || 'false').toLowerCase() === 'true';
+
+console.log('CORS allowed: ', blockNoOrigin, ' CORS allowed origins: ', allowedOrigins);
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -81,6 +81,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/student', studentRoutes);
 app.use('/api/v1/site', statsRoutes);
+app.use('/api/v1/classroom', classroomRoutes);
 
 app.get('/', (req, res) => {
     res.send(`<div><p>Hi!</p></div>`);

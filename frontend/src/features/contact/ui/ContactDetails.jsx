@@ -4,6 +4,7 @@ import * as IconBi from "react-icons/bi";
 import * as IconIo from "react-icons/io5";
 import * as IconHi from "react-icons/hi2";
 import * as IconFa from "react-icons/fa";
+import { BiMailSend } from "react-icons/bi";
 
 const contactDetails = [
   {
@@ -16,7 +17,7 @@ const contactDetails = [
   {
     icon: "IoCall",
     heading: "Call us",
-    description: "Mon — Fri · 8:00 — 17:00 (local time)",
+    description: "Mon   Fri · 8:00   17:00 (local time)",
     details: "+94 76 007 3341",
     href: "tel:+94760073341",
   },
@@ -49,7 +50,7 @@ const ContactDetails = () => {
       {/* <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
         <h3 className="text-xl font-semibold mb-2 text-black">Get in Touch</h3>
         <p className="text-sm text-black">
-          Whether you’ve got questions, feedback, or just want to say hi — we’re here for you.
+          Whether you’ve got questions, feedback, or just want to say hi   we’re here for you.
           Expect replies within 24 hours on business days.
         </p>
       </div> */}
@@ -61,7 +62,7 @@ const ContactDetails = () => {
             IconIo[ele.icon] ||
             IconHi[ele.icon] ||
             IconFa[ele.icon] ||
-            IconBi.BiMail;
+            BiMailSend;
           return (
             <div
               key={i}
