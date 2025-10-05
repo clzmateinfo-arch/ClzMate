@@ -1,10 +1,6 @@
-// frontend/src/features/classroom/ui/Topic/CourseLinkCard.jsx
 import React from "react";
-import { FiLink, FiTrash2, FiEdit, FiCopy } from "react-icons/fi";
+import { FiLink, FiTrash2, FiEdit, FiCopy, FiCheck, FiX, FiUpload } from "react-icons/fi";
 
-/**
- * CourseLinkCard - visual card for a linked course/subsection item
- */
 export default function CourseLinkCard({
     item = {},
     onEdit,
@@ -24,6 +20,8 @@ export default function CourseLinkCard({
         (item.linkedCourse && (item.linkedCourse.instructorName || item.linkedCourse.title)) ||
         item.provider ||
         "";
+
+    const isPublished = Boolean(item.status === "published" || item.publish);
 
     return (
         <div
@@ -59,8 +57,10 @@ export default function CourseLinkCard({
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-2">
-                <div className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                    {item.status === "published" || item.publish ? "Published" : "Draft"}
+                <div className="flex items-center gap-2">
+                    <div className={`text-xs px-2 py-0.5 rounded ${isPublished ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
+                        {isPublished ? "Published" : "Draft"}
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -77,6 +77,22 @@ export default function CourseLinkCard({
                     {onDelete && (
                         <button onClick={onDelete} title="Delete" className="p-2 rounded hover:bg-black/5 text-red-600">
                             <FiTrash2 className="w-4 h-4" />
+                        </button>
+                    )}
+                    {onToggle && (
+                        <button
+                            onClick={() => {
+                                try {
+                                    onToggle(item);
+                                } catch (err) {
+                                    console.error("publish toggle error", err);
+                                }
+                            }}
+                            title={isPublished ? "Unpublish" : "Publish"}
+                            className={`p-2 rounded`}
+                            aria-pressed={isPublished}
+                        >
+                            <FiUpload className="w-4 h-4" />
                         </button>
                     )}
                 </div>
