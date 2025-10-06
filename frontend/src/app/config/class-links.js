@@ -15,7 +15,7 @@ export const sidebarLinks = [
   {
     id: 101,
     name: "Classwork",
-    path: "/classroom/:classroomId/classwork",
+    path: "/classroom/:classroomId/view",
     type: ACCOUNT_TYPE.STUDENT,
     icon: MdAssignmentTurnedIn,
   },

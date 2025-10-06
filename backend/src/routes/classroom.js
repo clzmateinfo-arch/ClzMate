@@ -27,12 +27,14 @@ router.patch("/topics/:topicId/items/:itemId/toggle", auth, isInstructor, classr
 
 router.post("/topics/:topicId/assignments", auth, isInstructor, classroomControllers.createAssignment);
 router.get("/topics/:topicId/assignments", auth, classroomControllers.listAssignmentsByTopic);
+router.get("/topics/:topicId/assignments/published", auth, classroomControllers.listPublishedAssignmentsByTopic);
 router.get("/assignments/:assignmentId", auth, classroomControllers.getAssignment);
 router.patch("/assignments/:assignmentId", auth, isInstructor, classroomControllers.updateAssignment);
 
 router.post("/topics/:topicId/quizzes", auth, isInstructor, classroomControllers.createQuiz);
 router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);
 router.get("/topics/:topicId/quizzes", auth, classroomControllers.listQuizzesByTopic);
+router.get("/topics/:topicId/quizzes/published", auth, classroomControllers.listPublishedQuizzesByTopic);
 router.patch("/quizzes/:quizId", auth, isInstructor, classroomControllers.updateQuiz);
 router.delete("/quizzes/:quizId", auth, isInstructor, classroomControllers.deleteQuiz);
 router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers.createScreen);

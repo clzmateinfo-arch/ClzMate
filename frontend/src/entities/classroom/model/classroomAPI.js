@@ -282,6 +282,19 @@ export async function listAssignmentsByTopicAPI(topicId, token) {
     }
 }
 
+export async function listPublishedAssignmentsByTopicAPI(topicId, token) {
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/assignments/published`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        return response.data.data;
+    } catch (err) {
+        console.error("listPublishedAssignmentsByTopicAPI error", err);
+        toast.error(err?.response?.data?.message || err?.message || "Failed to load assignments");
+        throw err;
+    }
+}
+
 export async function deleteAssignmentAPI(assignmentId, token) {
     try {
         const headers = safeHeaders(token);
@@ -345,6 +358,19 @@ export async function listQuizzesByTopicAPI(topicId, token) {
     return response.data.data || [];
   } catch (err) {
     console.error("listQuizzesByTopicAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
+    throw err;
+  }
+}
+
+export async function listPublishedQuizzesByTopicAPI(topicId, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes/published`, null, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+    return response.data.data || [];
+  } catch (err) {
+    console.error("listPublishedQuizzesByTopicAPI error", err);
     toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
     throw err;
   }

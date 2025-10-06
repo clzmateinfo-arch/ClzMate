@@ -7,14 +7,14 @@ import { setCompletedLectures } from "@/entities/course/model/courseSlice";
 import { markLectureAsComplete } from "@/entities/course/model/courseDetailsAPI";
 import { toast } from "react-hot-toast";
 
-export default function SectionSidebar({
+export default function ClassroomSectionSidebar({
     course = {},
     sections = [],
     currentSectionId,
     currentSubId,
     forceVisible = false,
-    showBackToClassroom = false,
-    classroomId = null,
+    topic = null,
+    onOpenSub = () => { },
 }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -23,6 +23,29 @@ export default function SectionSidebar({
     const [openSection, setOpenSection] = useState(currentSectionId || (sections[0]?._id));
     const [descExpanded, setDescExpanded] = useState(false);
     const [busyToggle, setBusyToggle] = useState(false);
+
+    const effectiveSections = useMemo(() => {
+        if (topic && Array.isArray(topic.items)) {
+            const subs = topic.items
+                .filter((it) => it.type === "subsection")
+                .map((it) => ({
+                    _id: it._id || it.refId || `${topic._id}:${it.title || ""}`,
+                    title: it.title || it.name || (it.raw && it.raw.title) || "Untitled",
+                    description: it.description || it.content || "",
+                    link: it.link,
+                    refId: it.refId,
+                    raw: it,
+                }));
+            return [
+                {
+                    _id: topic._id || "__topic_section__",
+                    sectionName: topic.title || topic.name || "Topic",
+                    subSection: subs,
+                },
+            ];
+        }
+        return Array.isArray(sections) ? sections : [];
+    }, [topic, sections]);
 
     useEffect(() => {
         setOpenSection(currentSectionId || openSection);
@@ -35,13 +58,13 @@ export default function SectionSidebar({
 
     const flattened = useMemo(() => {
         const arr = [];
-        sections.forEach((s) => {
+        effectiveSections.forEach((s) => {
             (s.subSection || []).forEach((ss) => {
-                arr.push({ sectionId: s._id, subId: ss._id, title: ss.title, description: ss.description, raw: ss });
+                arr.push({ sectionId: s._id, subId: ss._id, title: ss.title, description: ss.description, raw: ss.raw || ss });
             });
         });
         return arr;
-    }, [sections]);
+    }, [effectiveSections]);
 
     const idx = useMemo(() => flattened.findIndex((f) => f.subId === currentSubId), [flattened, currentSubId]);
     const hasPrev = idx > 0;
@@ -49,7 +72,7 @@ export default function SectionSidebar({
     const prevItem = hasPrev ? flattened[idx - 1] : null;
     const nextItem = hasNext ? flattened[idx + 1] : null;
 
-    const handleGoto = useCallback(
+    const handleGotoCourse = useCallback(
         (sId, ssId) => {
             if (!sId || !ssId) return;
             navigate(`/view-course/${course._id}/section/${sId}/sub-section/${ssId}`);
@@ -59,12 +82,12 @@ export default function SectionSidebar({
 
     const currentLecture = useMemo(() => {
         if (!currentSubId) return null;
-        for (const s of sections) {
+        for (const s of effectiveSections) {
             const found = (s.subSection || []).find((ss) => ss._id === currentSubId);
             if (found) return { ...found, sectionId: s._id };
         }
         return null;
-    }, [sections, currentSubId]);
+    }, [effectiveSections, currentSubId]);
 
     const toggleComplete = useCallback(
         async (lectureId, mark = true) => {
@@ -108,33 +131,22 @@ export default function SectionSidebar({
                     ? "w-full h-full bg-gradient-to-b from-slate-900/95 to-slate-900/95 p-4 overflow-auto"
                     : "w-full max-w-sm bg-gradient-to-b from-slate-900/80 to-slate-900/70 border-r border-slate-800 h-screen p-4 hidden lg:block"
             }
-            aria-label="Course sections"
+            aria-label="Course/Topic sections"
         >
             <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0">
-                    <h4 className="font-semibold text-lg text-white leading-tight truncate">{course?.courseName}</h4>
+                    <h4 className="font-semibold text-lg text-white leading-tight truncate">
+                        {topic ? (topic.title || topic.name) : course?.courseName}
+                    </h4>
                     <p className="text-xs text-slate-400 mt-1 truncate">
-                        {course?.instructor?.firstName} {course?.instructor?.lastName}
+                        {!topic && course?.instructor ? `${course?.instructor?.firstName} ${course?.instructor?.lastName}` : ""}
                     </p>
                 </div>
-
-                {showBackToClassroom && (
-                    <div className="ml-3">
-                        <button
-                            onClick={() => {
-                                if (classroomId) navigate(`/classroom/${classroomId}/view`);
-                                else navigate(-1);
-                            }}
-                            className="px-3 py-1 rounded bg-white/10 text-xs text-white hover:bg-white/5"
-                        >
-                            Back to Classroom
-                        </button>
-                    </div>
-                )}
             </div>
 
             <div className="mt-4 space-y-3">
-                {sections.map((s) => {
+                {effectiveSections.length === 0 && <div className="text-sm text-slate-400">No sections</div>}
+                {effectiveSections.map((s) => {
                     const isOpen = openSection === s._id;
                     return (
                         <div key={s._id} className="group my-2">
@@ -158,7 +170,7 @@ export default function SectionSidebar({
                                 <div className="flex items-center gap-2">
                                     <div
                                         className={`text-xs font-medium px-2 py-0.5 rounded-full uppercase tracking-wider transition-all duration-200
-                                        ${isOpen ? "bg-white/10 text-white" : "bg-white/5 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white"}`}
+                                ${isOpen ? "bg-white/10 text-white" : "bg-white/5 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white"}`}
                                     >
                                         {isOpen ? "Open" : "View"}
                                     </div>
@@ -176,15 +188,22 @@ export default function SectionSidebar({
                                                 key={ss._id}
                                                 role="button"
                                                 tabIndex={0}
-                                                onClick={() => handleGoto(s._id, ss._id)}
+                                                onClick={() => {
+                                                    if (topic) {
+                                                        onOpenSub && onOpenSub(ss.raw || ss);
+                                                    } else {
+                                                        handleGotoCourse(s._id, ss._id);
+                                                    }
+                                                }}
                                                 onKeyDown={(e) => {
                                                     if (e.key === "Enter" || e.key === " ") {
                                                         e.preventDefault();
-                                                        handleGoto(s._id, ss._id);
+                                                        if (topic) onOpenSub && onOpenSub(ss.raw || ss);
+                                                        else handleGotoCourse(s._id, ss._id);
                                                     }
                                                 }}
                                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition transform duration-150
-                                                ${active ? "bg-gradient-to-r from-[#490f7c] via-[#361375] to-[#1a1364] text-white scale-[1.01]" : "hover:translate-x-1 hover:bg-slate-800/40 text-slate-200"}`}
+                          ${active ? "bg-gradient-to-r from-[#490f7c] via-[#361375] to-[#1a1364] text-white scale-[1.01]" : "hover:translate-x-1 hover:bg-slate-800/40 text-slate-200"}`}
                                             >
                                                 <div
                                                     className={`flex items-center justify-center w-8 h-8 rounded-md text-sm font-semibold
@@ -199,11 +218,7 @@ export default function SectionSidebar({
                                                 </div>
 
                                                 <div className="flex items-center gap-2 ml-2">
-                                                    {completed ? (
-                                                        <div className="text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white">Completed</div>
-                                                    ) : (
-                                                        <div className="text-xs px-2 py-0.5 rounded-full bg-white/6 text-slate-200">Pending</div>
-                                                    )}
+                                                    <div className="text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white">Open</div>
                                                 </div>
                                             </div>
                                         );
@@ -254,7 +269,7 @@ export default function SectionSidebar({
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
-                            onClick={() => hasPrev && handleGoto(prevItem.sectionId, prevItem.subId)}
+                            onClick={() => hasPrev && (topic ? onOpenSub(prevItem.raw || prevItem) : handleGotoCourse(prevItem.sectionId, prevItem.subId))}
                             disabled={!hasPrev}
                             className={`h-10 w-full flex items-center justify-center gap-2 rounded ${hasPrev ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
                         >
@@ -263,7 +278,7 @@ export default function SectionSidebar({
                         </button>
 
                         <button
-                            onClick={() => hasNext && handleGoto(nextItem.sectionId, nextItem.subId)}
+                            onClick={() => hasNext && (topic ? onOpenSub(nextItem.raw || nextItem) : handleGotoCourse(nextItem.sectionId, nextItem.subId))}
                             disabled={!hasNext}
                             className={`h-10 w-full flex items-center justify-center gap-2 rounded ${hasNext ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
                         >
@@ -275,7 +290,7 @@ export default function SectionSidebar({
             )}
 
             <div className="mt-auto text-xs text-slate-400 pt-4">
-                <p>{(sections || []).length} sections • {(course?.studentsEnrolled || []).length} students</p>
+                <p>{(effectiveSections || []).length} sections • {(course?.studentsEnrolled || []).length}</p>
             </div>
         </aside>
     );

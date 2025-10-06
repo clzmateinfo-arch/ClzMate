@@ -1,37 +1,41 @@
-// frontend/src/shared/utils/generateClassroomLayout.js
 export function generateClassroomLayout({
     features = { sandboxEnabled: false, notesEnabled: true },
     hasExternal = false,
     hasVideo = false,
     hasPdf = false,
     sectionWidth = 16,
+    panelsIncluded = null,
 } = {}) {
-    const panels = [];
+    const defaultOrder = [];
 
-    if (hasExternal) panels.push({ id: "external", type: "external" });
-    if (hasVideo) panels.push({ id: "video", type: "video" });
-    if (hasPdf) panels.push({ id: "pdf", type: "pdf" });
+    if (hasExternal) defaultOrder.push("external");
+    if (hasVideo) defaultOrder.push("video");
+    if (hasPdf) defaultOrder.push("pdf");
 
-    panels.push({ id: "assignments", type: "assignments" });
-    panels.push({ id: "materials", type: "materials" });
-    panels.push({ id: "quizzes", type: "quizzes" });
-    panels.push({ id: "attachments", type: "attachments" });
+    defaultOrder.push("assignments");
+    defaultOrder.push("materials");
+    defaultOrder.push("quizzes");
+    defaultOrder.push("announcements");
 
-    if (features.notesEnabled) panels.push({ id: "notes", type: "notes" });
-    if (features.sandboxEnabled) panels.push({ id: "sandbox", type: "sandbox" });
+    if (features.notesEnabled) defaultOrder.push("notes");
+    if (features.sandboxEnabled) defaultOrder.push("sandbox");
 
-    // dedupe by id preserving order
+    let panels = Array.isArray(panelsIncluded)
+        ? panelsIncluded.filter((p) => typeof p === "string" && p.trim())
+        : defaultOrder;
+
     const seen = new Set();
-    const uniqPanels = [];
-    for (const p of panels) {
-        if (!seen.has(p.id)) {
-            seen.add(p.id);
-            uniqPanels.push(p);
-        }
-    }
+    panels = panels.filter((p) => {
+        if (seen.has(p)) return false;
+        seen.add(p);
+        return true;
+    });
 
     const contentWidth = Math.max(0, 100 - sectionWidth);
     const out = [];
+
+    const TOPICS_HEIGHT = 60;
+    const SECTIONS_HEIGHT = 100 - TOPICS_HEIGHT;
 
     out.push({
         id: "topics",
@@ -39,25 +43,28 @@ export function generateClassroomLayout({
         top: 0,
         left: 0,
         width: sectionWidth,
-        height: 100,
+        height: TOPICS_HEIGHT,
+        visible: true,
+        z: 500,
     });
 
-    // section sidebar area (occupies left of content area)
     out.push({
         id: "sections",
         title: "Sections",
-        top: 0,
-        left: sectionWidth,
-        width: 8,
-        height: 100,
+        top: TOPICS_HEIGHT,
+        left: 0,
+        width: sectionWidth,
+        height: SECTIONS_HEIGHT,
+        visible: true,
+        z: 450,
     });
 
-    const pcount = uniqPanels.length;
-    const addTile = (id, relTopPct, relLeftPct, relWpct, relHpct, title, type) => {
+    const pcount = panels.length;
+
+    const addTile = (id, relTopPct, relLeftPct, relWpct, relHpct) => {
         out.push({
             id,
-            title: title || id,
-            type: type || id,
+            title: id.charAt(0).toUpperCase() + id.slice(1),
             top: relTopPct,
             left: sectionWidth + (relLeftPct / 100) * contentWidth,
             width: (relWpct / 100) * contentWidth,
@@ -70,41 +77,44 @@ export function generateClassroomLayout({
     if (pcount === 0) return out;
 
     if (pcount === 1) {
-        addTile(uniqPanels[0].id, 0, 8, 92, 100);
+        addTile(panels[0], 0, 0, 100, 100);
         return out;
     }
 
-    // For up to 4 panels arrange in grid
     if (pcount === 2) {
-        addTile(uniqPanels[0].id, 0, 8, 92, 60);
-        addTile(uniqPanels[1].id, 60, 8, 92, 40);
-        return out;
-    }
-    if (pcount === 3) {
-        addTile(uniqPanels[0].id, 0, 8, 62, 100);
-        addTile(uniqPanels[1].id, 0, 70, 30, 50);
-        addTile(uniqPanels[2].id, 50, 70, 30, 50);
-        return out;
-    }
-    if (pcount === 4) {
-        addTile(uniqPanels[0].id, 0, 8, 46, 50);
-        addTile(uniqPanels[1].id, 0, 54, 46, 50);
-        addTile(uniqPanels[2].id, 50, 8, 46, 50);
-        addTile(uniqPanels[3].id, 50, 54, 46, 50);
+        addTile(panels[0], 0, 0, 100, 60);
+        addTile(panels[1], 60, 0, 100, 40);
         return out;
     }
 
-    // 5+ panels: main area takes left 60% and right columns stacked
-    addTile(uniqPanels[0].id, 0, 8, 60, 50);
-    addTile(uniqPanels[1].id, 50, 8, 60, 50);
+    if (pcount === 3) {
+        addTile(panels[0], 0, 0, 70, 100);
+        addTile(panels[1], 0, 70, 30, 50);
+        addTile(panels[2], 50, 70, 30, 50);
+        return out;
+    }
+
+    if (pcount === 4) {
+        addTile(panels[0], 0, 0, 50, 50);
+        addTile(panels[1], 0, 50, 50, 50);
+        addTile(panels[2], 50, 0, 50, 50);
+        addTile(panels[3], 50, 50, 50, 50);
+        return out;
+    }
+
+    addTile(panels[0], 0, 0, 60, 50);
+    addTile(panels[1], 50, 0, 60, 50);
+
     const rightCount = Math.max(1, pcount - 2);
-    const rightLeft = 68;
-    const slotH = Math.floor(100 / rightCount);
+    const rightLeft = 60;
+    const rightWidth = 40;
+
+    const baseSlot = Math.floor(100 / rightCount);
     let accum = 0;
     for (let i = 0; i < rightCount; i++) {
         const idx = 2 + i;
-        const h = i === rightCount - 1 ? 100 - accum : slotH;
-        addTile(uniqPanels[idx].id, accum, rightLeft, 32, h);
+        const h = i === rightCount - 1 ? 100 - accum : baseSlot;
+        addTile(panels[idx], accum, rightLeft, rightWidth, h);
         accum += h;
     }
 

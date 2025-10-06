@@ -1,29 +1,27 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Box from "../../shared/components/app/Box";
+import TopicSidebar from "../../features/classroom/ui/View/TopicSidebar";
+import ClassroomSectionSidebar from "../../features/classroom/ui/View/ClassroomSectionSidebar";
+import AssignmentPanel from "../../features/classroom/ui/View/AssignmentPanel";
+import MaterialPanel from "../../features/classroom/ui/View/MaterialPanel";
+import QuizPanel from "../../features/classroom/ui/View/QuizPanel";
+import AnnouncementPanel from "../../features/classroom/ui/View/AnnouncementPanel";
 import { generateClassroomLayout } from "@/shared/utils/generateClassroomLayout";
-import TopicSidebar from "../../shared/components/app/TopicSidebar";
-import SectionSidebar from "../../shared/components/app/SectionSidebar";
-import AssignmentPanel from "../../shared/components/app/AssignmentPanel";
-import MaterialPanel from "../../shared/components/app/MaterialPanel";
-import QuizPanel from "../../shared/components/app/QuizPanel";
-import SupportFilesPanel from "../../shared/components/app/SupportFilesPanel";
-import NotePanel from "../../shared/components/app/NotePanel";
-import SandboxPanel from "../../shared/components/app/SandboxPanel";
-import ExternalVideo from "../../shared/components/app/ExternalVideo";
-import ResourceViewer from "../../shared/components/app/ResourceViewer";
 import {
     listTopicsAPI,
     listAssignmentsByTopicAPI,
-    listQuizzesByTopicAPI,
+    listPublishedQuizzesByTopicAPI,
 } from "@/entities/classroom/model/classroomAPI";
 import Loading from "@/shared/components/navigation/Loading";
 import { toast } from "react-hot-toast";
 
 export default function ViewClassroom() {
     const { classroomId } = useParams();
+    const navigate = useNavigate();
     const token = useSelector((s) => s.auth?.token);
+
     const [topics, setTopics] = useState([]);
     const [selectedTopicId, setSelectedTopicId] = useState(null);
     const [selectedTopic, setSelectedTopic] = useState(null);
@@ -31,7 +29,9 @@ export default function ViewClassroom() {
     const [boxes, setBoxes] = useState([]);
     const [assignments, setAssignments] = useState([]);
     const [quizzes, setQuizzes] = useState([]);
-    const [features] = useState({ sandboxEnabled: false, notesEnabled: true });
+    const [announcements, setAnnouncements] = useState([]);
+    const [features] = useState({ sandboxEnabled: false, notesEnabled: false });
+
     const dragState = useRef(null);
     const resizeState = useRef(null);
 
@@ -42,10 +42,10 @@ export default function ViewClassroom() {
         listTopicsAPI(classroomId, token)
             .then((res) => {
                 if (!mounted) return;
-                setTopics(Array.isArray(res) ? res : []);
-                if (Array.isArray(res) && res.length) {
-                    setSelectedTopicId((id) => id || res[0]._id);
-                }
+                const arr = Array.isArray(res) ? res : [];
+                setTopics(arr);
+                if (arr.length) setSelectedTopicId((id) => id || arr[0]._id);
+                else setSelectedTopicId(null);
             })
             .catch((err) => {
                 console.error("Failed to load topics", err);
@@ -68,14 +68,16 @@ export default function ViewClassroom() {
                 return;
             }
             try {
-                const [a, q] = await Promise.allSettled([
+                const [aRes, qRes] = await Promise.allSettled([
                     listAssignmentsByTopicAPI(topicId, token).catch(() => []),
-                    typeof listQuizzesByTopicAPI === "function"
-                        ? listQuizzesByTopicAPI(topicId, token).catch(() => [])
+                    typeof listPublishedQuizzesByTopicAPI === "function"
+                        ? listPublishedQuizzesByTopicAPI(topicId, token).catch(() => [])
                         : Promise.resolve([]),
                 ]);
-                setAssignments(Array.isArray(a.value) ? a.value : a.value?.data ?? []);
-                setQuizzes(Array.isArray(q.value) ? q.value : q.value?.data ?? []);
+                const a = Array.isArray(aRes.value) ? aRes.value : aRes.value?.data ?? [];
+                const q = Array.isArray(qRes.value) ? qRes.value : qRes.value?.data ?? [];
+                setAssignments(a);
+                setQuizzes(q);
             } catch (err) {
                 console.warn("loadTopicExtras", err);
             }
@@ -87,13 +89,92 @@ export default function ViewClassroom() {
         loadTopicExtras(selectedTopicId);
     }, [selectedTopicId, loadTopicExtras]);
 
+    const handleOpenSub = useCallback(
+        (sub) => {
+            if (!sub) return;
+
+            if (sub.link && typeof sub.link === "string" && sub.link.trim()) {
+                try {
+                    if (sub.link.startsWith("/")) {
+                        navigate(sub.link, { state: { fromClassroom: true, classroomId } });
+                    } else {
+                        window.open(sub.link, "_blank", "noopener");
+                    }
+                } catch (err) {
+                    try {
+                        window.open(sub.link, "_blank", "noopener");
+                    } catch (e) {
+                        console.warn("failed to open subsection link", e);
+                        toast.error("Unable to open subsection");
+                    }
+                }
+                return;
+            }
+
+            if (sub.refCourseId && sub.refSectionId && sub.refId) {
+                const url = `/view-course/${sub.refCourseId}/section/${sub.refSectionId}/sub-section/${sub.refId}`;
+                try {
+                    navigate(url, { state: { fromClassroom: true, classroomId } });
+                } catch (e) {
+                    window.open(url, "_blank", "noopener");
+                }
+                return;
+            }
+
+            if (sub.refId) {
+                const fallback1 = `/view-subsection/${sub.refId}`;
+                try {
+                    navigate(fallback1, { state: { fromClassroom: true, classroomId } });
+                } catch {
+                    window.open(fallback1, "_blank", "noopener");
+                }
+                return;
+            }
+
+            toast("No available link for this subsection", { icon: "ℹ️" });
+        },
+        [navigate, classroomId]
+    );
+
     useEffect(() => {
-        const hasExternal = !!(selectedTopic && selectedTopic.items && selectedTopic.items.find((it) => it.type === "subsection" && it.link));
-        const hasPdf = !!(selectedTopic && selectedTopic.items && selectedTopic.items.find((it) => it.attachments && it.attachments.find((a) => (a.mimeType || "").toLowerCase() === "application/pdf")));
-        const hasVideo = !!(selectedTopic && selectedTopic.items && selectedTopic.items.find((it) => it.attachments && it.attachments.find((a) => (a.resourceType || "").startsWith("video"))));
-        const layout = generateClassroomLayout({ features, hasExternal, hasPdf, hasVideo, sectionWidth: 16 });
+        const materialsCount =
+            selectedTopic && Array.isArray(selectedTopic.items)
+                ? selectedTopic.items.filter((i) => i.type === "material").length
+                : 0;
+
+        const hasAssignments = assignments && assignments.length > 0;
+        const hasQuizzes = quizzes && quizzes.length > 0;
+        const hasMaterials = materialsCount > 0;
+        const hasAnnouncements = announcements && announcements.length > 0;
+
+        const panelsToShow = [];
+        if (hasAssignments) panelsToShow.push("assignments");
+        if (hasMaterials) panelsToShow.push("materials");
+        if (hasQuizzes) panelsToShow.push("quizzes");
+        if (hasAnnouncements) panelsToShow.push("announcements");
+
+        const layout = generateClassroomLayout({
+            features,
+            hasExternal: false,
+            hasPdf: false,
+            hasVideo: false,
+            sectionWidth: 16,
+            panelsIncluded: panelsToShow,
+        });
 
         const boxesMapped = layout.map((tile) => {
+            if (tile.id === "announcements") {
+                if (!hasAnnouncements) return { ...tile, visible: false, z: 100, component: () => null, componentProps: {} };
+                return {
+                    ...tile,
+                    visible: true,
+                    z: 275,
+                    title: "Announcements",
+                    component: AnnouncementPanel,
+                    componentProps: { announcements },
+                };
+            }
+
             if (tile.id === "topics") {
                 return {
                     ...tile,
@@ -104,17 +185,20 @@ export default function ViewClassroom() {
                     componentProps: { topics, selectedTopicId, onSelect: setSelectedTopicId },
                 };
             }
+
             if (tile.id === "sections") {
                 return {
                     ...tile,
                     visible: true,
                     z: 350,
                     title: "Sections",
-                    component: SectionSidebar,
-                    componentProps: { topic: selectedTopic, onOpenSub: () => { } },
+                    component: ClassroomSectionSidebar,
+                    componentProps: { topic: selectedTopic, onOpenSub: handleOpenSub },
                 };
             }
+
             if (tile.id === "assignments") {
+                if (!hasAssignments) return { ...tile, visible: false, z: 100, component: () => null, componentProps: {} };
                 return {
                     ...tile,
                     visible: true,
@@ -124,7 +208,9 @@ export default function ViewClassroom() {
                     componentProps: { topicId: selectedTopicId, assignments, refresh: () => loadTopicExtras(selectedTopicId) },
                 };
             }
+
             if (tile.id === "materials") {
+                if (!hasMaterials) return { ...tile, visible: false, z: 100, component: () => null, componentProps: {} };
                 return {
                     ...tile,
                     visible: true,
@@ -134,7 +220,9 @@ export default function ViewClassroom() {
                     componentProps: { topic: selectedTopic, token },
                 };
             }
+
             if (tile.id === "quizzes") {
+                if (!hasQuizzes) return { ...tile, visible: false, z: 280, component: () => null, componentProps: {} };
                 return {
                     ...tile,
                     visible: true,
@@ -144,63 +232,12 @@ export default function ViewClassroom() {
                     componentProps: { topicId: selectedTopicId, quizzes },
                 };
             }
-            if (tile.id === "attachments") {
-                return {
-                    ...tile,
-                    visible: true,
-                    z: 270,
-                    title: "Attachments",
-                    component: SupportFilesPanel,
-                    componentProps: { supportMaterials: (selectedTopic?.items || []).flatMap((it) => it.attachments || []) },
-                };
-            }
-            if (tile.id === "external") {
-                return {
-                    ...tile,
-                    visible: true,
-                    z: 260,
-                    title: "External",
-                    component: ExternalVideo,
-                    componentProps: { url: (selectedTopic?.items || []).find((i) => i.type === "subsection")?.link || null },
-                };
-            }
-            if (tile.id === "video" || tile.id === "pdf") {
-                const firstAttachment = (selectedTopic?.items || []).flatMap((it) => it.attachments || [])[0] || null;
-                return {
-                    ...tile,
-                    visible: true,
-                    z: 240,
-                    title: tile.id === "video" ? "Primary Video" : "Primary Document",
-                    component: ResourceViewer,
-                    componentProps: { resource: firstAttachment, token },
-                };
-            }
-            if (tile.id === "notes") {
-                return {
-                    ...tile,
-                    visible: true,
-                    z: 200,
-                    title: "Notes",
-                    component: NotePanel,
-                    componentProps: { classroomId, topicId: selectedTopicId },
-                };
-            }
-            if (tile.id === "sandbox") {
-                return {
-                    ...tile,
-                    visible: true,
-                    z: 150,
-                    title: "Sandbox",
-                    component: SandboxPanel,
-                    componentProps: { language: "javascript" },
-                };
-            }
 
             return { ...tile, visible: false, z: 100, component: () => null, componentProps: {} };
         });
 
         setBoxes(boxesMapped);
-    }, [selectedTopic, topics, assignments, quizzes, features, classroomId, token, loadTopicExtras]);
+    }, [selectedTopic, topics, assignments, quizzes, features, selectedTopicId, token, handleOpenSub, loadTopicExtras]);
 
     const bringToFront = useCallback((id) => {
         setBoxes((prev) => {
@@ -209,21 +246,24 @@ export default function ViewClassroom() {
         });
     }, []);
 
-    const onPointerDownDrag = useCallback((e, id) => {
-        const clientX = e.clientX ?? (e.touches?.[0]?.clientX);
-        const clientY = e.clientY ?? (e.touches?.[0]?.clientY);
-        bringToFront(id);
-        setBoxes((prev) => {
-            const box = prev.find((b) => b.id === id);
-            if (!box) return prev;
-            dragState.current = { id, startX: clientX, startY: clientY, startLeft: box.left, startTop: box.top };
-            window.addEventListener("mousemove", onPointerMoveDrag);
-            window.addEventListener("touchmove", onPointerMoveDrag, { passive: false });
-            window.addEventListener("mouseup", onPointerUpDrag);
-            window.addEventListener("touchend", onPointerUpDrag);
-            return prev;
-        });
-    }, [bringToFront]);
+    const onPointerDownDrag = useCallback(
+        (e, id) => {
+            const clientX = e.clientX ?? (e.touches?.[0]?.clientX);
+            const clientY = e.clientY ?? (e.touches?.[0]?.clientY);
+            bringToFront(id);
+            setBoxes((prev) => {
+                const box = prev.find((b) => b.id === id);
+                if (!box) return prev;
+                dragState.current = { id, startX: clientX, startY: clientY, startLeft: box.left, startTop: box.top };
+                window.addEventListener("mousemove", onPointerMoveDrag);
+                window.addEventListener("touchmove", onPointerMoveDrag, { passive: false });
+                window.addEventListener("mouseup", onPointerUpDrag);
+                window.addEventListener("touchend", onPointerUpDrag);
+                return prev;
+            });
+        },
+        [bringToFront]
+    );
 
     const onPointerMoveDrag = useCallback((e) => {
         if (!dragState.current) return;
@@ -237,7 +277,7 @@ export default function ViewClassroom() {
         const newLeft = Math.max(0, Math.min(100, startLeft + (dx / vw) * 100));
         const newTop = Math.max(0, Math.min(100, startTop + (dy / vh) * 100));
         setBoxes((prev) => prev.map((b) => (b.id === id ? { ...b, left: newLeft, top: newTop } : b)));
-        e.preventDefault?.();
+        e?.preventDefault?.();
     }, []);
 
     const onPointerUpDrag = useCallback(() => {
@@ -248,21 +288,24 @@ export default function ViewClassroom() {
         window.removeEventListener("touchend", onPointerUpDrag);
     }, [onPointerMoveDrag]);
 
-    const onPointerDownResize = useCallback((e, id) => {
-        const clientX = e.clientX ?? (e.touches?.[0]?.clientX);
-        const clientY = e.clientY ?? (e.touches?.[0]?.clientY);
-        bringToFront(id);
-        setBoxes((prev) => {
-            const box = prev.find((b) => b.id === id);
-            if (!box) return prev;
-            resizeState.current = { id, startX: clientX, startY: clientY, startW: box.width, startH: box.height };
-            window.addEventListener("mousemove", onPointerMoveResize);
-            window.addEventListener("touchmove", onPointerMoveResize, { passive: false });
-            window.addEventListener("mouseup", onPointerUpResize);
-            window.addEventListener("touchend", onPointerUpResize);
-            return prev;
-        });
-    }, [bringToFront]);
+    const onPointerDownResize = useCallback(
+        (e, id) => {
+            const clientX = e.clientX ?? (e.touches?.[0]?.clientX);
+            const clientY = e.clientY ?? (e.touches?.[0]?.clientY);
+            bringToFront(id);
+            setBoxes((prev) => {
+                const box = prev.find((b) => b.id === id);
+                if (!box) return prev;
+                resizeState.current = { id, startX: clientX, startY: clientY, startW: box.width, startH: box.height };
+                window.addEventListener("mousemove", onPointerMoveResize);
+                window.addEventListener("touchmove", onPointerMoveResize, { passive: false });
+                window.addEventListener("mouseup", onPointerUpResize);
+                window.addEventListener("touchend", onPointerUpResize);
+                return prev;
+            });
+        },
+        [bringToFront]
+    );
 
     const onPointerMoveResize = useCallback((e) => {
         if (!resizeState.current) return;
@@ -278,7 +321,7 @@ export default function ViewClassroom() {
         const newW = Math.max(10, Math.min(100, startW + deltaW));
         const newH = Math.max(10, Math.min(100, startH + deltaH));
         setBoxes((prev) => prev.map((b) => (b.id === id ? { ...b, width: newW, height: newH } : b)));
-        e.preventDefault?.();
+        e?.preventDefault?.();
     }, []);
 
     const onPointerUpResize = useCallback(() => {
@@ -298,6 +341,13 @@ export default function ViewClassroom() {
             window.removeEventListener("drop", preventDefault);
         };
     }, []);
+
+    useEffect(() => {
+        // TODO: replace with real API call to fetch classroom announcements
+        // Example:
+        // listAnnouncementsAPI(classroomId, token).then(setAnnouncements).catch(() => setAnnouncements([]));
+        setAnnouncements((prev) => prev || []); // keep present
+    }, [classroomId, token]);
 
     if (loading) {
         return (

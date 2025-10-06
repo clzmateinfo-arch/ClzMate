@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { listAssignmentsByTopicAPI, updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
+import { listPublishedAssignmentsByTopicAPI, updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
 import AssignmentCard from "./AssignmentCard";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
@@ -18,7 +18,7 @@ export default function AssignmentPanel({ topicId, assignments: initial = [], re
         if (!topicId) return;
         let mounted = true;
         setLoading(true);
-        listAssignmentsByTopicAPI(topicId, token)
+        listPublishedAssignmentsByTopicAPI(topicId, token)
             .then((res) => {
                 if (!mounted) return;
                 setAssignments(Array.isArray(res) ? res : res?.data ?? []);

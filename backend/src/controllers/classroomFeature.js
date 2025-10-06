@@ -451,6 +451,23 @@ exports.listAssignmentsByTopic = async (req, res) => {
     }
 };
 
+exports.listPublishedAssignmentsByTopic = async (req, res) => {
+    try {
+        const { topicId } = req.params;
+        if (!isValidId(topicId)) {
+            return res.status(400).json({ success: false, message: "Invalid topic id" });
+        }
+        const assignments = await Assignment.find({ topic: topicId, publish: true })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return res.json({ success: true, data: assignments });
+    } catch (err) {
+        console.error("listPublishedAssignmentsByTopic", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 exports.getAssignment = async (req, res) => {
     try {
         const { assignmentId } = req.params;
@@ -610,6 +627,18 @@ exports.listQuizzesByTopic = async (req, res) => {
         return res.json({ success: true, data: quizzes });
     } catch (err) {
         console.error("listQuizzesByTopic", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.listPublishedQuizzesByTopic = async (req, res) => {
+    try {
+        const { topicId } = req.params;
+        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
+        const quizzes = await Quiz.find({ topic: topicId, publish: true  }).sort({ createdAt: -1 }).lean();
+        return res.json({ success: true, data: quizzes });
+    } catch (err) {
+        console.error("listPublishedQuizzesByTopic", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 };

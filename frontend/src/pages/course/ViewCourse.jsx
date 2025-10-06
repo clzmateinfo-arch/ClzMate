@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import Box from "../../shared/components/app/Box";
 import NotePanel from "../../shared/components/app/NotePanel";
 import SandboxPanel from "../../shared/components/app/SandboxPanel";
@@ -37,6 +38,10 @@ export default function ViewCourse() {
   const { drawMode } = useSelector((s) => s.course || {});
   const [wbStatus, setWbStatus] = useState("idle");
   const wbRef = useRef(null);
+
+  const location = useLocation();
+  const fromClassroom = !!(location && location.state && location.state.fromClassroom);
+  const originatingClassroomId = location?.state?.classroomId || null;
 
   useEffect(() => {
     let mounted = true;
@@ -85,7 +90,14 @@ export default function ViewCourse() {
           visible: true,
           z: 300,
           component: SectionSidebar,
-          componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
+          componentProps: {
+            course: courseEntireData,
+            sections: courseSectionData,
+            currentSectionId: sectionId,
+            currentSubId: subSectionId,
+            showBackToClassroom: fromClassroom,
+            classroomId: originatingClassroomId
+          },
         };
       }
 
@@ -365,20 +377,21 @@ export default function ViewCourse() {
           }}
         >
           <div
-            className="w-full h-full"
+            className="fixed inset-0 z-[800]"
+            aria-hidden={!drawMode || !fromClassroom}
             style={{
-              width: "100%",
-              height: "100%",
-              touchAction: drawMode ? "none" : "auto",
+              display: drawMode && fromClassroom ? "block" : "none",
+              pointerEvents: drawMode && fromClassroom ? "auto" : "none",
+              background: "transparent",
             }}
           >
-            {/* <Whiteboard
+            <Whiteboard
               ref={wbRef}
               courseId={courseId}
               onStatusChange={(s) => {
                 setWbStatus(s);
               }}
-            /> */}
+            />
           </div>
         </div>
       </div>
