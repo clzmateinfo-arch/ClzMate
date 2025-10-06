@@ -1,13 +1,15 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import NotePanel from "../../features/courseViewer/ui/NotePanel";
-import SandboxPanel from "../../features/courseViewer/ui/SandboxPanel";
-import SupportFilesPanel from "../../features/courseViewer/ui/SupportFilesPanel";
-import SectionSidebar from "../../features/courseViewer/ui/SectionSidebar";
-import ExternalVideo from "../../shared/components/ui/ExternalVideo";
-import Box from "../../features/courseViewer/ui/Box";
-import Whiteboard from "../../features/courseViewer/ui/Whiteboard";
+import Box from "../../shared/components/app/Box";
+import NotePanel from "../../shared/components/app/NotePanel";
+import SandboxPanel from "../../shared/components/app/SandboxPanel";
+import SupportFilesPanel from "../../shared/components/app/SupportFilesPanel";
+import SectionSidebar from "../../shared/components/app/SectionSidebar";
+import ExternalVideo from "../../shared/components/app/ExternalVideo";
+import Whiteboard from "../../shared/components/app/Whiteboard";
+import ResourceViewer from "../../shared/components/app/ResourceViewer";
+import { generateCourseLayout } from "../../shared/utils/generateCourseLayout";
 import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
   setCourseSectionData,
@@ -16,8 +18,6 @@ import {
   setTotalNoOfLectures,
   setDrawMode,
 } from "../../entities/course/model/courseSlice";
-import ResourceViewer from "../../features/courseViewer/ui/ResourceViewer";
-import { generateLayout } from "../../shared/utils/generateLayout";
 
 const DEFAULT_SECTION_WIDTH = 15;
 
@@ -76,7 +76,7 @@ export default function ViewCourse() {
 
   useEffect(() => {
     const features = courseEntireData?.features ?? { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
-    const layout = generateLayout({ features, currentSub, sectionWidth: DEFAULT_SECTION_WIDTH });
+    const layout = generateCourseLayout({ features, currentSub, sectionWidth: DEFAULT_SECTION_WIDTH });
 
     const boxesMapped = layout.map((tile) => {
       if (tile.id === "section") {
@@ -372,13 +372,13 @@ export default function ViewCourse() {
               touchAction: drawMode ? "none" : "auto",
             }}
           >
-            <Whiteboard
+            {/* <Whiteboard
               ref={wbRef}
               courseId={courseId}
               onStatusChange={(s) => {
                 setWbStatus(s);
               }}
-            />
+            /> */}
           </div>
         </div>
       </div>
