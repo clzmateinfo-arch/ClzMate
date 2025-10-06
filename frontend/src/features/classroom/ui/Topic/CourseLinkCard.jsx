@@ -25,7 +25,7 @@ export default function CourseLinkCard({
 
     return (
         <div
-            className={`relative w-full min-h-[150px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}
+            className={`relative w-full min-h-[170px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}
             role="group"
             aria-label={title}
         >

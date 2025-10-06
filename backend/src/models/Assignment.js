@@ -23,6 +23,7 @@ const assignmentSchema = new mongoose.Schema({
     assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     classesAssigned: [{ type: mongoose.Schema.Types.ObjectId, ref: "Classroom" }],
     references: { type: String, default: "" },
+    lockSubmissions: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });

@@ -274,7 +274,7 @@ export default function MaterialCard({
     const isPublished = Boolean(item.status === "published" || item.publish);
 
     return (
-        <div className={`relative w-full min-h-[150px] sm:min-w-[20rem] rounded-lg border border-[#f3eff9]/70 bg-white px-4 py-4 transition hover:shadow-sm ${className}`}>
+        <div className={`relative w-full min-h-[170px] sm:min-w-[20rem] rounded-lg border border-[#f3eff9]/70 bg-white px-4 py-4 transition hover:shadow-sm ${className}`}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 max-w-full">
                     <button onClick={() => scrollBy("left")} className="p-2 rounded bg-white/90 hover:shadow-sm hidden sm:inline-flex">

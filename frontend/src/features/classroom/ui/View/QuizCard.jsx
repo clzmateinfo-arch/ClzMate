@@ -1,10 +1,12 @@
 import React from "react";
 import { FiClock } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function QuizCard({ quiz = {}, onStart = () => { }, onTogglePublish = () => { } }) {
     const title = quiz.title || "Quiz";
     const description = quiz.description || "";
     const published = !!quiz.publish;
+    const navigate = useNavigate();
 
     return (
         <article
@@ -48,7 +50,7 @@ export default function QuizCard({ quiz = {}, onStart = () => { }, onTogglePubli
 
                 <div>
                     <button
-                        onClick={() => onStart(quiz)}
+                        onClick={() => navigate(`/quizz/${quiz._id}/play`)}
                         className="px-3 py-1 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium shadow-sm hover:shadow-md transition"
                     >
                         Start

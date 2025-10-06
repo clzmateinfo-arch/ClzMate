@@ -13,7 +13,7 @@ export default function LinkCard({
     const subtitle = url ? (new URL(url, "http://example.com").hostname || url) : (item.type || "Link");
 
     return (
-        <div className={`relative w-full min-h-[150px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
+        <div className={`relative w-full min-h-[170px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
             <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-gradient-to-r from-[#c7f9cc]/10 to-[#8be9b8]/10 text-[#0b6b3a]">
                     <FiLink className="w-5 h-5" />

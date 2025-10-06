@@ -30,6 +30,10 @@ router.get("/topics/:topicId/assignments", auth, classroomControllers.listAssign
 router.get("/topics/:topicId/assignments/published", auth, classroomControllers.listPublishedAssignmentsByTopic);
 router.get("/assignments/:assignmentId", auth, classroomControllers.getAssignment);
 router.patch("/assignments/:assignmentId", auth, isInstructor, classroomControllers.updateAssignment);
+router.post("/assignments/:assignmentId/submit", auth, classroomControllers.submitAssignment);
+router.get("/assignments/:assignmentId/submission", auth, classroomControllers.getMySubmission);
+router.get("/assignments/:assignmentId/submissions", auth, isInstructor, classroomControllers.getSubmissions);
+router.patch("/assignments/:assignmentId/submissions/:submissionId", auth, isInstructor, classroomControllers.updateSubmission);
 
 router.post("/topics/:topicId/quizzes", auth, isInstructor, classroomControllers.createQuiz);
 router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);

@@ -430,6 +430,9 @@ export default function TopicItem({
                                                         onDelete={() => handleDeleteAssignment(it)}
                                                         onCopy={() => handleCopyItem(it)}
                                                         onToggle={() => handleTogglePublishAssignment(it)}
+                                                        onViewSubmissions={() => {
+                                                            navigate(`/classroom/${topic.classroom || topic.classroomId || classroomId}/classwork/assignment/${it._id}/submissions`);
+                                                        }}
                                                     />
                                                 </div>
                                             );

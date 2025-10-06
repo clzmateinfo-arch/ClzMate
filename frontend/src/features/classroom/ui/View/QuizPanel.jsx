@@ -9,7 +9,6 @@ export default function QuizPanel({ topicId, quizzes = [], onStart = () => { }, 
         <div className="p-3 h-full overflow-auto">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Quizzes</h3>
                     <div className="text-xs text-slate-500 dark:text-slate-400">{count} item{count !== 1 ? "s" : ""}</div>
                 </div>
             </div>

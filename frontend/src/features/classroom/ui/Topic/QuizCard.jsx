@@ -20,7 +20,7 @@ export default function QuizCard({
     const statusLabel = quiz.publish ? "Published" : "Draft";
 
     return (
-        <div className={`relative w-full min-h-[150px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
+        <div className={`relative w-full min-h-[170px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
             <div>
                 <div className="absolute top-3 right-3">
                     <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">

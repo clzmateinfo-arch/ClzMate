@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { FiClock, FiCheckCircle, FiPaperclip, FiX } from "react-icons/fi";
+import React, { useState, useEffect, useRef } from "react";
+import { FiClock, FiPaperclip, FiX } from "react-icons/fi";
 import ResourceViewer from "@/shared/components/app/ResourceViewer";
 import PlayerPanel from "@/shared/components/app/PlayerPanel";
 import ExternalVideo from "@/shared/components/app/ExternalVideo";
 import { MdOutlinePreview } from "react-icons/md";
+import { getMySubmissionAPI, submitAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
+import MultiUpload from "@/shared/components/ui/MultiUpload";
+import Textarea from "@/shared/components/ui/Textarea";
+import IconBtn from "@/shared/components/ui/IconBtn";
+import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
+
 
 export default function AssignmentCard({
     assignment = {},
     onTogglePublish = () => { },
-    onSubmit = () => { },
+    onSubmit = null,
+    token = null,
 }) {
     const [submitting, setSubmitting] = useState(false);
     const title = assignment.title || "Assignment";
@@ -17,38 +25,63 @@ export default function AssignmentCard({
     const attachments = assignment.attachments || [];
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewResource, setPreviewResource] = useState(null);
+    const [submitOpen, setSubmitOpen] = useState(false);
+    const [existingSubmission, setExistingSubmission] = useState(null);
+    const [loadingSubmission, setLoadingSubmission] = useState(false);
+    const [loadingInitialSubmission, setLoadingInitialSubmission] = useState(false);
+
+    const { register, setValue, getValues, formState: { errors }, reset } = useForm();
+
+    const [note, setNote] = useState("");
+    const inputRef = useRef(null);
 
     useEffect(() => {
-        if (previewOpen) {
+        if (previewOpen || submitOpen) {
             const prev = document.body.style.overflow;
             document.body.style.overflow = "hidden";
             return () => {
                 document.body.style.overflow = prev || "";
             };
         }
-    }, [previewOpen]);
+    }, [previewOpen, submitOpen]);
 
     useEffect(() => {
         const onKey = (e) => {
-            if (e.key === "Escape" && previewOpen) {
-                setPreviewOpen(false);
-                setPreviewResource(null);
+            if (e.key === "Escape") {
+                if (previewOpen) {
+                    setPreviewOpen(false);
+                    setPreviewResource(null);
+                }
+                if (submitOpen) {
+                    setSubmitOpen(false);
+                }
             }
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [previewOpen]);
+    }, [previewOpen, submitOpen]);
 
-    const handleSubmit = async () => {
-        try {
-            setSubmitting(true);
-            await Promise.resolve(onSubmit(assignment));
-        } catch (e) {
-            console.warn("submit assignment", e);
-        } finally {
-            setSubmitting(false);
-        }
-    };
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            if (!token || !assignment?._id) {
+                setExistingSubmission(null);
+                // return;
+            }
+            setLoadingInitialSubmission(true);
+            try {
+                const sub = await getMySubmissionAPI(assignment._id, token);
+                if (mounted) {
+                    setExistingSubmission(sub || null);
+                }
+            } catch (err) {
+                console.warn("Failed to fetch existing submission", err);
+            } finally {
+                if (mounted) setLoadingInitialSubmission(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [assignment?._id, token, assignment.publish]);
 
     const openPreview = (file) => {
         if (!file) return;
@@ -72,6 +105,128 @@ export default function AssignmentCard({
 
     const isPdfResource = (r = {}) =>
         mt(r) === "application/pdf" || (name(r) || "").endsWith(".pdf") || ((r.resourceType || "").startsWith("raw") && (name(r) || "").endsWith(".pdf"));
+
+    const nowIsAfterDue = () => {
+        if (!assignment?.dueDate) return false;
+        const now = new Date();
+        return now > new Date(assignment.dueDate);
+    };
+
+    const studentCanSubmit = () => {
+        const now = new Date();
+        if (assignment.lockSubmissions) return false;
+        if (assignment.dueDate && now > new Date(assignment.dueDate)) return false;
+        if (existingSubmission?.grade !== null && existingSubmission?.grade !== undefined) return false;
+        return true;
+    };
+
+    const openSubmitModal = async () => {
+        setExistingSubmission(null);
+        setLoadingSubmission(true);
+        reset();
+        setNote("");
+        setSubmitOpen(true);
+
+        try {
+            if (token && assignment._id) {
+                const sub = await getMySubmissionAPI(assignment._id, token);
+                if (sub) {
+                    setExistingSubmission(sub);
+                    setNote(sub.content || "");
+                    setValue("submissionFiles", sub.attachments || []);
+                } else {
+                    setExistingSubmission(null);
+                    setValue("submissionFiles", []);
+                }
+            } else {
+                setValue("submissionFiles", []);
+            }
+        } catch (err) {
+            console.warn("Failed to load existing submission", err);
+            toast.error("Failed to load your submission");
+        } finally {
+            setLoadingSubmission(false);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!studentCanSubmit()) {
+            toast.error("Submissions are closed or locked for this assignment.");
+            return;
+        }
+
+        const mu = getValues("submissionFiles") || { existing: [], new: [], remove: [] };
+        const newFiles = Array.isArray(mu.new) ? mu.new : [];
+        const removeAttachments = Array.isArray(mu.remove) ? mu.remove : [];
+
+        if (!token && typeof onSubmit === "function") {
+            try {
+                setSubmitting(true);
+                await onSubmit(assignment, { files: newFiles, content: note, removeAttachments });
+                toast.success("Submitted");
+                setSubmitOpen(false);
+                return;
+            } catch (err) {
+                console.error("parent onSubmit error", err);
+                toast.error("Submission failed");
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
+
+        if (!assignment._id) {
+            toast.error("Invalid assignment");
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+            const payload = {
+                files: newFiles,
+                content: note || "",
+                removeAttachments,
+            };
+
+            const result = await submitAssignmentAPI(assignment._id, payload, token);
+            toast.success("Submission saved");
+            setExistingSubmission(result);
+            setValue("submissionFiles", result.attachments || []);
+            setNote(result.content || "");
+            setSubmitOpen(false);
+        } catch (err) {
+            console.error("submit error", err);
+            toast.error(err?.response?.data?.message || err?.message || "Submission failed");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const locked = !!assignment.lockSubmissions;
+    const duePassed = nowIsAfterDue();
+    const showLockedBanner = locked || duePassed;
+    const bannerText = locked ? "Submissions are locked for this assignment." : (duePassed ? "Submission due date has passed." : "");
+
+    const getGradeClasses = (grade, max) => {
+        const numericGrade = Number(grade);
+        const percent = (max && typeof max === "number" && max > 0)
+            ? Math.round((numericGrade / Number(max)) * 100)
+            : Math.round(isNaN(numericGrade) ? 0 : numericGrade);
+
+        const p = Math.max(0, Math.min(100, isNaN(percent) ? 0 : percent));
+
+        if (p >= 85) {
+            return "border-green-200 bg-green-50 text-green-900 dark:border-green-800/40 dark:bg-green-800/10 dark:text-green-300";
+        } else if (p >= 70) {
+            return "border-lime-200 bg-lime-50 text-lime-900 dark:border-lime-800/40 dark:bg-lime-800/10 dark:text-lime-300";
+        } else if (p >= 50) {
+            return "border-yellow-200 bg-yellow-50 text-yellow-900 dark:border-yellow-700/40 dark:bg-yellow-700/10 dark:text-yellow-200";
+        } else if (p >= 35) {
+            return "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-700/40 dark:bg-amber-700/10 dark:text-amber-200";
+        } else {
+            return "border-red-200 bg-red-50 text-red-900 dark:border-red-700/40 dark:bg-red-700/10 dark:text-red-200";
+        }
+    };
 
     return (
         <>
@@ -108,6 +263,14 @@ export default function AssignmentCard({
                         </div>
                     </div>
                 </div>
+
+                {showLockedBanner && (
+                    <div className="mt-4">
+                        <div className="w-full rounded-md border border-red-200 bg-red-50 text-red-800 px-3 py-2 text-sm font-medium">
+                            {bannerText}
+                        </div>
+                    </div>
+                )}
 
                 {attachments.length > 0 && (
                     <div className="mt-4 space-y-2">
@@ -147,11 +310,43 @@ export default function AssignmentCard({
                     </div>
                 )}
 
+                {existingSubmission && (existingSubmission.grade !== null && existingSubmission.grade !== undefined) && (
+                    <div className="mt-4">
+                        <div className={`w-full rounded-md border px-3 py-3 text-sm ${getGradeClasses(existingSubmission.grade, assignment.points)}`}>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <div className="text-xs text-slate-400 font-medium">Grade</div>
+                                    <div className="text-lg font-semibold">{existingSubmission.grade} {assignment.points ? ` / ${assignment.points}` : ""}</div>
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-xs text-slate-400 font-medium">Feedback</div>
+                                    <div className="text-sm text-slate-500 truncate">{existingSubmission.feedback || "No feedback provided"}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                        <button disabled={submitting} onClick={handleSubmit} className="px-3 py-1 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium shadow-sm hover:shadow-md transition disabled:opacity-60">
-                            {submitting ? "Submitting..." : "Submit"}
+                        <button
+                            disabled={!studentCanSubmit()}
+                            onClick={openSubmitModal}
+                            className={`px-3 py-1 rounded-md ${studentCanSubmit() ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white" : "bg-slate-200 text-slate-500"} text-sm font-medium shadow-sm hover:shadow-md transition disabled:opacity-60`}
+                        >
+                            {existingSubmission ? "Resubmit" : "Submit"}
                         </button>
+                    </div>
+
+                    <div>
+                        {loadingInitialSubmission ? (
+                            <div className="text-xs text-slate-400">Checking submission...</div>
+                        ) : existingSubmission ? (
+                            <div className="text-xs text-slate-600 dark:text-slate-300">Submitted: {new Date(existingSubmission.submittedAt).toLocaleString()}</div>
+                        ) : (
+                            <div className="text-xs text-slate-400">Not submitted</div>
+                        )}
                     </div>
                 </div>
 
@@ -163,7 +358,6 @@ export default function AssignmentCard({
             {previewOpen && previewResource && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Attachment preview">
                     <div className="absolute inset-0 bg-black/70" onClick={() => { setPreviewOpen(false); setPreviewResource(null); }} />
-
                     <div className="relative w-[92%] md:w-3/4 lg:w-2/3 h-[86%] bg-white dark:bg-slate-900 rounded-lg overflow-hidden shadow-2xl z-[1001]">
                         <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                             <div className="text-sm font-medium truncate text-white">{previewResource.originalName || previewResource.url || "Preview"}</div>
@@ -189,6 +383,57 @@ export default function AssignmentCard({
                             ) : (
                                 <ResourceViewer resource={previewResource} course={null} token={null} />
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {submitOpen && (
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Submit assignment">
+                    <div className="absolute inset-0 bg-black/70" onClick={() => setSubmitOpen(false)} />
+
+                    <div className="relative w-[94%] md:w-3/4 lg:w-2/3 h-[86%] bg-white rounded-lg overflow-auto shadow-2xl z-[1101]">
+                        <div className="flex items-center justify-between px-4 py-3 text-white border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-20">
+                            <div className="text-sm font-medium truncate">Submit: {assignment.title}</div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setSubmitOpen(false)} className="px-3 py-1 rounded text-black bg-slate-100">Close</button>
+                            </div>
+                        </div>
+
+                        <div className="p-4 space-y-4">
+                            <div className="mt-3 mb-1">
+                                <Textarea
+                                    label="Add note (optional)"
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value)}
+                                    rows={4}
+                                />
+                            </div>
+
+                            <div className="mt-3 mb-1">
+                                <MultiUpload
+                                    name="submissionFiles"
+                                    label="Attach files (images, video, pdf)"
+                                    className="mt-1 text-white"
+                                    register={register}
+                                    setValue={setValue}
+                                    errors={errors}
+                                    viewData={existingSubmission ? existingSubmission.attachments || [] : []}
+                                    allowedTypes="image/*,video/*,application/pdf,.zip"
+                                    disabled={true}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 mt-3 mb-1">
+                                <IconBtn textClass="text-black" text="Cancel" onClick={() => setSubmitOpen(false)} outline={true} />
+                                <IconBtn
+                                    text={submitting ? "Submitting..." : "Submit"}
+                                    textClass="text-black"
+                                    onClick={handleSubmit}
+                                    disabled={submitting || loadingSubmission}
+                                    className={`bg-gradient-to-r from-indigo-600 to-purple-600 text-white ${submitting || loadingSubmission ? "opacity-60" : ""}`}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

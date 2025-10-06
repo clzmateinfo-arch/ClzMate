@@ -10,7 +10,7 @@ const {
     CREATE_TOPIC_API,
     LIST_TOPICS_API,
     MANAGE_TOPICS_API,
-    ASSIGNMENTS_API, 
+    ASSIGNMENTS_API,
     QUIZZES_API,
 } = classroomEndpoints || {};
 
@@ -351,43 +351,43 @@ export async function updateQuizAPI(quizId, payload, token) {
 }
 
 export async function listQuizzesByTopicAPI(topicId, token) {
-  try {
-    const headers = safeHeaders(token);
-    const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes`, null, headers);
-    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
-    return response.data.data || [];
-  } catch (err) {
-    console.error("listQuizzesByTopicAPI error", err);
-    toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
-    throw err;
-  }
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        return response.data.data || [];
+    } catch (err) {
+        console.error("listQuizzesByTopicAPI error", err);
+        toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
+        throw err;
+    }
 }
 
 export async function listPublishedQuizzesByTopicAPI(topicId, token) {
-  try {
-    const headers = safeHeaders(token);
-    const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes/published`, null, headers);
-    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
-    return response.data.data || [];
-  } catch (err) {
-    console.error("listPublishedQuizzesByTopicAPI error", err);
-    toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
-    throw err;
-  }
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("GET", `${MANAGE_TOPICS_API}/${topicId}/quizzes/published`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        return response.data.data || [];
+    } catch (err) {
+        console.error("listPublishedQuizzesByTopicAPI error", err);
+        toast.error(err?.response?.data?.message || err?.message || "Failed to load quizzes");
+        throw err;
+    }
 }
 
 export async function deleteQuizAPI(quizId, token) {
-  try {
-    const headers = safeHeaders(token);
-    const response = await apiConnector("DELETE", `${QUIZZES_API}/${quizId}`, null, headers);
-    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
-    toast.success("Quiz deleted");
-    return response.data;
-  } catch (err) {
-    console.error("deleteQuizAPI error", err);
-    toast.error(err?.response?.data?.message || err?.message || "Failed to delete quiz");
-    throw err;
-  }
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("DELETE", `${QUIZZES_API}/${quizId}`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        toast.success("Quiz deleted");
+        return response.data;
+    } catch (err) {
+        console.error("deleteQuizAPI error", err);
+        toast.error(err?.response?.data?.message || err?.message || "Failed to delete quiz");
+        throw err;
+    }
 }
 
 export async function createScreenAPI(quizId, payload, token) {
@@ -440,6 +440,66 @@ export async function reorderScreensAPI(quizId, order, token) {
     } catch (err) {
         console.error("reorderScreensAPI", err);
         toast.error(err?.response?.data?.message || err?.message || "Failed to reorder screens");
+        throw err;
+    }
+}
+
+export async function submitAssignmentAPI(assignmentId, { files = [], content = "", removeAttachments = [] } = {}, token) {
+    try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const form = new FormData();
+        form.append("content", content || "");
+        if (Array.isArray(removeAttachments) && removeAttachments.length) {
+            form.append("removeAttachments", JSON.stringify(removeAttachments));
+        }
+        if (Array.isArray(files) && files.length) {
+            files.forEach((f) => {
+                form.append("attachments", f);
+            });
+        }
+        const response = await apiConnector("POST", `${ASSIGNMENTS_API}/${assignmentId}/submit`, form, headers, { isFormData: true });
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to submit assignment");
+        return response.data.data;
+    } catch (err) {
+        console.error("submitAssignmentAPI error", err);
+        throw err;
+    }
+}
+
+export async function getMySubmissionAPI(assignmentId, token) {
+    try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await apiConnector("GET", `${ASSIGNMENTS_API}/${assignmentId}/submission`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        return response.data.data;
+    } catch (err) {
+        console.error("getMySubmissionAPI error", err);
+        throw err;
+    }
+}
+
+export async function getSubmissionsByAssignmentAPI(assignmentId, token) {
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("GET", `${ASSIGNMENTS_API}/${assignmentId}/submissions`, null, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        return response.data.data || [];
+    } catch (err) {
+        console.error("getSubmissionsByAssignmentAPI error", err);
+        throw err;
+    }
+}
+
+export async function updateSubmissionAPI(assignmentId, submissionId, payload = {}, token) {
+    try {
+        const headers = safeHeaders(token);
+        const response = await apiConnector("PATCH", `${ASSIGNMENTS_API}/${assignmentId}/submissions/${submissionId}`, payload, headers);
+        if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+        toast.success("Submission updated");
+        return response.data.data;
+    } catch (err) {
+        console.error("updateSubmissionAPI error", err);
+        toast.error(err?.response?.data?.message || err?.message || "Failed to update submission");
         throw err;
     }
 }
