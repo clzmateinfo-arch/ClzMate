@@ -19,7 +19,7 @@ export default function MultipleEditor({ screen = {}, onChange = () => { } }) {
     };
 
     const addOption = () =>
-        update({ options: [...opts, { text: "New option", correct: false }] });
+        update({ options: [...opts, { text: "", correct: false }] });
 
     const removeOption = (idx) => {
         const copy = [...opts];
