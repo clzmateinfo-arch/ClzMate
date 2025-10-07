@@ -7,7 +7,7 @@ import { setAssignment, setStep, setEditAssignment } from "@/entities/classroom/
 import Input from "@/shared/components/ui/Input";
 import Textarea from "@/shared/components/ui/Textarea";
 import Button from "@/shared/components/ui/Button";
-import DateSelector from "../../../../shared/components/ui/DateSelector";
+import DateSelector from "@/shared/components/ui/DateSelector";
 import { toast } from "react-hot-toast";
 
 export default function AssignmentInfoForm({ classroomId, topicId }) {
