@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 
-const DateInp = forwardRef(
+const Dateselector = forwardRef(
     (
         {
             id,
@@ -119,4 +119,4 @@ const DateInp = forwardRef(
     }
 );
 
-export default DateInp;
+export default Dateselector;
