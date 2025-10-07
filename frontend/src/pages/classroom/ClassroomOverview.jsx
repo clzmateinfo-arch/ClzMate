@@ -40,7 +40,7 @@ export default function ClassroomOverview() {
             } catch (errOverview) {
                 console.warn("Overview endpoint failed, falling back to announcements only", errOverview);
                 try {
-                    const items = []; //await listAnnouncementsAPI(classId, token);
+                    const items = [];
                     setAnnouncements(Array.isArray(items) ? items : []);
                 } catch (eAnn) {
                     console.warn("listAnnouncementsAPI failed", eAnn);
