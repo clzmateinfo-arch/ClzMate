@@ -7,10 +7,13 @@ import { Toaster } from 'react-hot-toast';
 import App from '@/app/App.jsx';
 import '@/app/index.css';
 import rootReducer from './store/rootReducer';
+import { setupAxiosInterceptors } from "@/shared/services/api/apiConnector";
 
 const store = configureStore({
   reducer: rootReducer
 });
+
+setupAxiosInterceptors();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

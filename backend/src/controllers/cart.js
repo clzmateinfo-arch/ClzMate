@@ -1,6 +1,6 @@
 // backend/src/controllers/cart.js
-const User = require("../models/user");
-const Course = require("../models/course");
+const User = require("../models/User");
+const Course = require("../models/Course");
 
 /**
  * GET /cart

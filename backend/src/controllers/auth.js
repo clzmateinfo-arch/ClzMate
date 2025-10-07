@@ -1,13 +1,13 @@
 require("dotenv-flow").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("./../models/user");
-const Profile = require("./../models/profile");
 const otpGenerator = require("otp-generator");
-const OTP = require("../models/OTP");
 const mailSender = require("../utils/mailSender");
 const otpTemplate = require("../mail/templates/emailVerificationTemplate");
 const { passwordUpdated } = require("../mail/templates/passwordUpdate");
+const User = require("../models/User");
+const Profile = require("../models/Profile");
+const OTP = require("../models/OTP");
 
 const JWT_EXPIRES = "24h";
 

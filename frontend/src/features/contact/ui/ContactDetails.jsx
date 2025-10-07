@@ -4,6 +4,7 @@ import * as IconBi from "react-icons/bi";
 import * as IconIo from "react-icons/io5";
 import * as IconHi from "react-icons/hi2";
 import * as IconFa from "react-icons/fa";
+import { BiMailSend } from "react-icons/bi";
 
 const contactDetails = [
   {
@@ -61,7 +62,7 @@ const ContactDetails = () => {
             IconIo[ele.icon] ||
             IconHi[ele.icon] ||
             IconFa[ele.icon] ||
-            IconBi.BiMail;
+            BiMailSend;
           return (
             <div
               key={i}

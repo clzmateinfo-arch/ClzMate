@@ -56,7 +56,7 @@ export default function CourseSidebar() {
         aria-label="Quick links"
         className="fixed right-4 mr-1 top-1/3 z-[99999] flex -translate-y-1/2 flex-col items-center gap-3"
       >
-        <button
+        {/* <button
           aria-controls="full-sidebar"
           onClick={() => dispatch(setDrawMode(!drawMode))}
           title="Home"
@@ -69,7 +69,7 @@ export default function CourseSidebar() {
           >
             Whiteboard
           </span>
-        </button>
+        </button> */}
         <button
           aria-controls="full-sidebar"
           onClick={() => handleNavigate(-1)}

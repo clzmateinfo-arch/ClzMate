@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useRef, useEffect } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
@@ -95,7 +94,7 @@ export default function FieldsetRadio({
                 });
               }}
               className={`inline-flex items-center gap-3 px-4 py-2 rounded-full cursor-pointer select-none transition-all border-2
-                ${isActive ? "border-violet-500 bg-violet-50 shadow-sm" : "border-[#E6EAF2] hover:bg-violet-50/30"}
+                ${isActive ? "border-violet-500/30 bg-violet-50 shadow-sm" : "border-[#E6EAF2] hover:bg-violet-50/30"}
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#996bec]/40`}
             >
               <span
@@ -117,9 +116,8 @@ export default function FieldsetRadio({
               </span>
 
               <span
-                className={`text-sm font-medium ${
-                  isActive ? "text-[#0b1220]" : "text-[#374151]"
-                }`}
+                className={`text-sm font-medium ${isActive ? "text-[#0b1220]" : "text-[#374151]"
+                  }`}
               >
                 {opt.label}
               </span>

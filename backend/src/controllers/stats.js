@@ -1,7 +1,7 @@
 // backend/src/controllers/stats.js
-const User = require("../models/user");
-const Course = require("../models/course");
-const CourseProgress = require("../models/courseProgress");
+const User = require("../models/User");
+const Course = require("../models/Course");
+const CourseProgress = require("../models/CourseProgress");
 
 async function safeCount(model, query = {}) {
     try {

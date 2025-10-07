@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { forwardRef, useState, useId } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 

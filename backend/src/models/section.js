@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const sectionSchema = new mongoose.Schema({
     sectionName: {
@@ -13,4 +14,4 @@ const sectionSchema = new mongoose.Schema({
     ],
 });
 
-module.exports = mongoose.model("Section", sectionSchema);
+module.exports = createModel("Section", sectionSchema);

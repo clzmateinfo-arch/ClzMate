@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const categorySchema = new mongoose.Schema({
     name: {
@@ -16,4 +17,4 @@ const categorySchema = new mongoose.Schema({
     ],
 });
 
-module.exports = mongoose.model("Category", categorySchema);
+module.exports = createModel("Category", categorySchema);

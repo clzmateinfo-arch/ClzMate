@@ -8,6 +8,7 @@ export default function IconBtn({
   className = "",
   customClasses = "",
   type = "button",
+  textClass = "text-white",
 }) {
   const handleClick = (e) => {
     if (disabled) return;
@@ -16,10 +17,10 @@ export default function IconBtn({
   };
 
   const base = "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2";
-  const filled = "text-white shadow-sm hover:shadow-md hover:brightness-95 focus:ring-violet-300";
+  const filled = "shadow-sm hover:shadow-md hover:brightness-95 focus:ring-violet-300";
   const outlineStyle = "bg-white/6 text-violet-600 border border-white/10 backdrop-blur-md hover:bg-white/10 focus:ring-violet-200";
   const disabledCls = disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : "cursor-pointer";
-  const classes = ` ${customClasses} ${base} ${outline ? outlineStyle : filled} ${disabledCls} ${className}`;
+  const classes = ` ${customClasses} ${base} ${outline ? outlineStyle : filled} ${disabledCls} ${className} ${textClass}`;
 
   return (
     <button
