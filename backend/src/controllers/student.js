@@ -1,7 +1,7 @@
-const Course = require("../models/Course");
-const CourseProgress = require("../models/CourseProgress");
-const User = require("../models/User");
-const { convertSecondsToDuration } = require("../utils/secToDuration"); // optional if needed
+const Course = require("../models/course");
+const CourseProgress = require("../models/courseProgress");
+const User = require("../models/user");
+const { convertSecondsToDuration } = require("../utils/secToDuration");
 
 exports.getStudentDashboard = async (req, res) => {
     try {

@@ -5,8 +5,8 @@ const otpGenerator = require("otp-generator");
 const mailSender = require("../utils/mailSender");
 const otpTemplate = require("../mail/templates/emailVerificationTemplate");
 const { passwordUpdated } = require("../mail/templates/passwordUpdate");
-const User = require("../models/User");
-const Profile = require("../models/Profile");
+const User = require("../models/user");
+const Profile = require("../models/profile");
 const OTP = require("../models/OTP");
 
 const JWT_EXPIRES = "24h";
