@@ -1,8 +1,0 @@
-@tailwind utilities;
-
-@import "tailwindcss";
-@import "tailwindcss/preflight";
-@import "@shared/styles/theme.css";
-@import "@shared/styles/base.css";
-@import "@shared/styles/excalidraw/index.css";
-
