@@ -7,7 +7,7 @@ import { setAssignment, setStep, setEditAssignment } from "@/entities/classroom/
 import Input from "@/shared/components/ui/Input";
 import Textarea from "@/shared/components/ui/Textarea";
 import Button from "@/shared/components/ui/Button";
-import DateSelector from "@/shared/components/ui/DateSelector";
+import Dateinput from "@/shared/components/ui/Dateinput";
 import { toast } from "react-hot-toast";
 
 export default function AssignmentInfoForm({ classroomId, topicId }) {
@@ -98,7 +98,7 @@ export default function AssignmentInfoForm({ classroomId, topicId }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                    <DateSelector
+                    <Dateinput
                         label="Due Date"
                         name="dueDate"
                         value={dueDate}
