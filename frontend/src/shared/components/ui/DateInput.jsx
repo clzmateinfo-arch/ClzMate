@@ -1,7 +1,7 @@
 import React, { forwardRef, useId } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { CalendarDays } from "lucide-react"; // main icon
+import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 
 const Dateinput = forwardRef(
@@ -17,7 +17,7 @@ const Dateinput = forwardRef(
             autoFocus = false,
             className = "",
             inputClass = "",
-            minDate, // optional, we’ll override below
+            minDate,
             maxDate,
             dateFormat = "yyyy-MM-dd",
             showTimeSelect = false,
@@ -26,15 +26,14 @@ const Dateinput = forwardRef(
             error,
             helpText,
             ariaLabel,
-            leftIcon = <CalendarDays className="w-5 h-5" />, // ✅ visible by default
-            onlyFuture = true, // ✅ optional flag for future dates
+            leftIcon = <CalendarDays className="w-5 h-5" />,
+            onlyFuture = true,
             ...rest
         },
         ref
     ) => {
         const uid = useId();
 
-        // ✅ automatically restrict to today & future if onlyFuture is true
         const today = new Date();
         const minSelectableDate = onlyFuture ? today : minDate;
 
@@ -66,7 +65,6 @@ const Dateinput = forwardRef(
                 )}
 
                 <div className="relative mt-2">
-                    {/* ✅ Ensure the icon container always renders */}
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-[#ba7bf0]/10 to-[#996bec]/10 ring-1 ring-[#996bec]/10 text-[#7C3AED]">
                             {leftIcon}
@@ -86,7 +84,7 @@ const Dateinput = forwardRef(
                         showTimeSelect={showTimeSelect}
                         timeFormat={timeFormat}
                         timeIntervals={timeIntervals}
-                        minDate={minSelectableDate} // ✅ only today and future
+                        minDate={minSelectableDate}
                         maxDate={maxDate}
                         autoFocus={autoFocus}
                         aria-label={ariaLabel || label || name}
