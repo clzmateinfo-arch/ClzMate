@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const Course = require("../models/Course");
-const User = require("../models/User");
-const Category = require("../models/Category");
-const Section = require("../models/Section");
-const SubSection = require("../models/SubSection");
-const CourseProgress = require("../models/CourseProgress");
-const Note = require("../models/Note");
+const Course = require("../models/course");
+const User = require("../models/user");
+const Category = require("../models/category");
+const Section = require("../models/section");
+const SubSection = require("../models/subSection");
+const CourseProgress = require("../models/courseProgress");
+const Note = require("../models/note");
 const {
     uploadFileToCloudinary,
     deleteResourceFromCloudinary,
