@@ -6,7 +6,7 @@
   "scripts": {
     "start": "vite",
     "dev": "npm run build && vite",
-    "clean": "rimraf dist && npm cache clean --f",
+    "clean": "rm -rf node_modules/.vite && rm -rf node_modules/.vite-temp || true && rimraf dist && npm cache clean --f",
     "build": "npm run clean && vite build",
     "build:render": "npm run clean && vite build",
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
