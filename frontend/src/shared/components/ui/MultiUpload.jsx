@@ -1,4 +1,3 @@
-// MultiUpload.jsx (replace file)
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";

@@ -51,6 +51,7 @@ export default function TopicItem({
     const [quizzes, setQuizzes] = useState([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
 
+    // small UI states
     const [search, setSearch] = useState("");
     const [pageIndex, setPageIndex] = useState(0);
     const pageSize = 6;
@@ -59,15 +60,51 @@ export default function TopicItem({
     const [materialModalOpen, setMaterialModalOpen] = useState(false);
     const [linkCourseModalOpen, setLinkCourseModalOpen] = useState(false);
 
+    // Keep items in sync when topic prop changes
     useEffect(() => {
         setItems(topic.items || []);
         setPageIndex(0);
     }, [topic]);
 
+    // --- NEW: pre-fetch assignments & quizzes counts once when topic is mounted ---
+    // This ensures counts in the header pill reflect assignments/quizzes even before user expands the topic.
     useEffect(() => {
-        if (open) loadAssignmentsAndQuizzes();
-    }, [open, topic?._id]);
+        let cancelled = false;
+        (async () => {
+            if (!topic?._id || !token) return;
+            try {
+                // We use Promise.allSettled to tolerate missing endpoints
+                const [assignRes, quizRes] = await Promise.allSettled([
+                    listAssignmentsByTopicAPI(topic._id, token),
+                    typeof listQuizzesByTopicAPI === "function"
+                        ? listQuizzesByTopicAPI(topic._id, token)
+                        : Promise.resolve([]),
+                ]);
 
+                if (cancelled) return;
+
+                const arrA = Array.isArray(assignRes?.value)
+                    ? assignRes.value
+                    : assignRes?.value?.data ?? assignRes?.value?.assignments ?? [];
+                const arrQ = Array.isArray(quizRes?.value)
+                    ? quizRes.value
+                    : quizRes?.value?.data ?? quizRes?.value?.quizzes ?? [];
+
+                // store results so header can compute correct total
+                setAssignments(arrA || []);
+                setQuizzes(arrQ || []);
+            } catch (err) {
+                console.warn("Failed to prefetch assignment/quiz counts for topic header", err);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+        // only run when topic id changes or token changes
+    }, [topic?._id, token]);
+
+    // Existing function used when user expands to load full lists (preserves original behaviour)
     const loadAssignmentsAndQuizzes = async () => {
         setLoadingAssignments(true);
         try {
@@ -97,6 +134,7 @@ export default function TopicItem({
 
     const toggleOpen = () => {
         setOpen((s) => !s);
+        // when opening, refresh the lists to get latest items
         if (!open) {
             loadAssignmentsAndQuizzes();
         }
@@ -250,6 +288,7 @@ export default function TopicItem({
         }
     };
 
+    // merge items/assignments/quizzes for listing (and for header count)
     const combined = useMemo(() => {
         const normalizedItems = (items || []).map((it) => ({ ...it, __kind: "item" }));
         const normalizedAssignments = (assignments || []).map((a) => ({ ...a, __kind: "assignment" }));
@@ -263,6 +302,7 @@ export default function TopicItem({
         return merged;
     }, [items, assignments, quizzes]);
 
+    // filtered results based on search
     const filtered = useMemo(() => {
         const t = (search || "").trim().toLowerCase();
         if (!t) return combined;
@@ -274,6 +314,7 @@ export default function TopicItem({
         });
     }, [combined, search]);
 
+    // pagination management
     const totalPages = Math.max(1, Math.ceil((filtered.length || 0) / pageSize));
     useEffect(() => {
         if (pageIndex >= totalPages) setPageIndex(totalPages - 1);
@@ -287,6 +328,9 @@ export default function TopicItem({
 
     const goPrev = () => setPageIndex((p) => Math.max(0, p - 1));
     const goNext = () => setPageIndex((p) => Math.min(totalPages - 1, p + 1));
+
+    // --- header count: compute from merged sources so it reflects full state ---
+    const headerCount = (items?.length || 0) + (assignments?.length || 0) + (quizzes?.length || 0);
 
     return (
         <article className="relative overflow-hidden rounded-2xl border border-[#efe7ff] bg-white shadow-sm transition my-2">
@@ -312,7 +356,8 @@ export default function TopicItem({
 
                 <div className="flex items-center gap-2 mt-3 sm:mt-0">
                     <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 ring-1 ring-[#e9defc] text-[#4c1d95] font-semibold text-sm min-w-[56px] justify-center">
-                        <span className="text-sm md:text-base">{(topic.items || []).length}</span>
+                        {/* Use headerCount so assignments/quizzes are included */}
+                        <span className="text-sm md:text-base">{headerCount}</span>
                         <span className="text-xs md:text-xs text-[#6b7280] ml-1">item(s)</span>
                     </div>
 
@@ -385,6 +430,9 @@ export default function TopicItem({
                                                         onDelete={() => handleDeleteAssignment(it)}
                                                         onCopy={() => handleCopyItem(it)}
                                                         onToggle={() => handleTogglePublishAssignment(it)}
+                                                        onViewSubmissions={() => {
+                                                            navigate(`/classroom/${topic.classroom || topic.classroomId || classroomId}/classwork/assignment/${it._id}/submissions`);
+                                                        }}
                                                     />
                                                 </div>
                                             );
@@ -418,7 +466,6 @@ export default function TopicItem({
                                                 </div>
                                             );
                                         } else if ((it.type || "").toLowerCase() === "subsection") {
-                                            // Use CourseLinkCard for subsection items
                                             return (
                                                 <div key={key} className="w-full">
                                                     <CourseLinkCard
@@ -429,6 +476,7 @@ export default function TopicItem({
                                                         }}
                                                         onDelete={() => handleDeleteItem(it)}
                                                         onCopy={() => handleCopyItem(it)}
+                                                        onToggle={() => handleToggleItemStatus(it)}
                                                     />
                                                 </div>
                                             );

@@ -94,7 +94,7 @@ export default function ClassSidebar() {
 
     const listFirst = Array.isArray(classroomState?.list) && classroomState.list.length > 0 ? classroomState.list[0]._id : null;
     if (listFirst) {
-      try { localStorage.setItem("currentClassroomId", listFirst); } catch (e) { /* ignore */ }
+      try { localStorage.setItem("currentClassroomId", listFirst); } catch (e) { console.warn("Could not store currentClassroomId in localStorage", e); }
       const newPath = String(rawPath).replace(":classroomId", listFirst);
       if (newPath.includes(":")) {
         console.warn("Replacement still contains tokens, aborting:", newPath);
@@ -130,12 +130,12 @@ export default function ClassSidebar() {
       >
         <button
           aria-controls="full-sidebar"
-          onClick={() => safeNavigate("/dashboard/classrooms")}
+          onClick={() => safeNavigate("/dashboard")}
           title="Exit"
           className={`group relative mt-3 } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <MdOutlineExitToApp size={18} />
-          <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
+          <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
             Exit
           </span>
         </button>

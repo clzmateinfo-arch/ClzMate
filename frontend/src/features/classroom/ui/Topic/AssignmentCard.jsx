@@ -1,5 +1,5 @@
 import React from "react";
-import { FiEdit, FiCopy, FiTrash2, FiUpload } from "react-icons/fi";
+import { FiEdit, FiCopy, FiTrash2, FiUpload, FiUsers } from "react-icons/fi";
 
 export default function AssignmentCard({
     assignment = {},
@@ -7,7 +7,8 @@ export default function AssignmentCard({
     onDelete,
     onCopy,
     onToggle,
-    className = ""
+    className = "",
+    onViewSubmissions,
 }) {
     const title = assignment.title || "Untitled Assignment";
     const points = assignment.points ?? null;
@@ -19,12 +20,12 @@ export default function AssignmentCard({
     const subtitle = subtitleParts.join(" • ");
 
     return (
-        <div className={`relative w-full min-h-[150px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
+        <div className={`relative w-full min-h-[170px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
             <div>
                 <div className="absolute top-3 right-3">
-                    <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#8b5cf6]/10 to-[#7c3aed]/10 text-[#5b21b6] border border-[#efe6ff]">
+                    {/* <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#8b5cf6]/10 to-[#7c3aed]/10 text-[#5b21b6] border border-[#efe6ff]">
                         Assignment
-                    </span>
+                    </span> */}
                 </div>
 
                 <div className="flex items-start gap-3">
@@ -35,6 +36,7 @@ export default function AssignmentCard({
                     <div className="min-w-0 flex-1">
                         <div className="text-sm md:text-base font-medium text-[#0b1220] line-clamp-2 truncate">{title}</div>
                         {subtitle && <div className="text-xs md:text-sm text-[#6b7280] mt-1 truncate">{subtitle}</div>}
+                        {assignment.assigneeType && <div className="text-xs text-slate-400 bg-slate-50/50 py-0.5 rounded truncate">{assignment.assigneeType}</div>}
                     </div>
                 </div>
 
@@ -48,10 +50,18 @@ export default function AssignmentCard({
                     <div className={`text-xs px-2 py-0.5 rounded ${assignment.publish ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-700"}`}>
                         {statusLabel}
                     </div>
-                    {assignment.assigneeType && <div className="text-xs text-slate-400 bg-slate-50/50 px-2 py-0.5 rounded truncate">{assignment.assigneeType}</div>}
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {onViewSubmissions && (
+                        <button
+                            onClick={onViewSubmissions}
+                            title="View submissions"
+                            className="p-2 rounded hover:bg-black/5"
+                        >
+                            <FiUsers className="w-4 h-4" />
+                        </button>
+                    )}
                     {onEdit && <button onClick={onEdit} title="Edit" className="p-2 rounded hover:bg-black/5"><FiEdit className="w-4 h-4" /></button>}
                     {onCopy && <button onClick={onCopy} title="Copy" className="p-2 rounded hover:bg-black/5"><FiCopy className="w-4 h-4" /></button>}
                     {onDelete && <button onClick={onDelete} title="Delete" className="p-2 rounded hover:bg-black/5 text-red-600"><FiTrash2 className="w-4 h-4" /></button>}

@@ -6,7 +6,9 @@ const Assignment = require("../models/assignment");
 const Submission = require("../models/submission");
 const User = require("../models/user");
 const Quiz = require("../models/quiz");
+const Attempt = require("../models/attempt");
 const { uploadFileToCloudinary, deleteResourceFromCloudinary } = require("../utils/fileUploader");
+const { evaluateScreenAnswer } = require("../utils/quizz");
 
 const pickSingle = (files, key) => {
     if (!files) return null;
@@ -377,13 +379,16 @@ exports.createAssignment = async (req, res) => {
     try {
         const { topicId } = req.params;
         if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
-        let { title, description, dueDate, maxScore, resources, assigneeType, references, publish } = req.body || {};
+
+        let { title, description, dueDate, maxScore, resources, assigneeType, references, publish, lockSubmissions } = req.body || {};
         title = title || req.body?.title;
         description = description || req.body?.description || req.body?.instructions || "";
         const points = Number(maxScore ?? req.body?.points) || 100;
         if (!title) return res.status(400).json({ success: false, message: "title required" });
+
         const topic = await Topic.findById(topicId).select("classroom").lean();
         const topicClassroom = topic?.classroom ? String(topic.classroom) : null;
+
         let classesAssignedRaw = req.body?.classesAssigned ?? req.body?.otherClasses ?? [];
         if (!classesAssignedRaw) classesAssignedRaw = [];
         if (typeof classesAssignedRaw === "string") {
@@ -402,6 +407,7 @@ exports.createAssignment = async (req, res) => {
             classesAssignedRaw.unshift(topicClassroom);
         }
         const classesAssigned = Array.from(new Set(classesAssignedRaw));
+
         const supportFiles = pickMany(req.files, "attachments");
         const attachments = [];
         if (supportFiles && supportFiles.length) {
@@ -410,13 +416,14 @@ exports.createAssignment = async (req, res) => {
                 attachments.push({
                     url: uploaded.secure_url || null,
                     publicId: uploaded.public_id || null,
-                    originalName: f.name || f.name,
+                    originalName: f.name || f.originalname || f.name,
                     mimeType: f.mimetype || null,
                     size: f.size || null,
                     resourceType: uploaded.resource_type || uploaded._resource_type || null,
                 });
             }
         }
+
         const a = await Assignment.create({
             topic: topicId,
             title,
@@ -431,7 +438,9 @@ exports.createAssignment = async (req, res) => {
             classesAssigned,
             references: references || "",
             resources: resources || [],
+            lockSubmissions: !!(lockSubmissions === "1" || lockSubmissions === true || lockSubmissions === "true"),
         });
+
         await Topic.findByIdAndUpdate(topicId, { $inc: { assignmentsCount: 1 } });
         return res.json({ success: true, data: a });
     } catch (err) {
@@ -447,6 +456,66 @@ exports.listAssignmentsByTopic = async (req, res) => {
         return res.json({ success: true, data: assignments });
     } catch (err) {
         console.error("listAssignmentsByTopic", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.listPublishedAssignmentsByTopic = async (req, res) => {
+    try {
+        const { topicId } = req.params;
+        if (!isValidId(topicId)) {
+            return res.status(400).json({ success: false, message: "Invalid topic id" });
+        }
+
+        // Load all published assignments for the topic
+        const assignments = await Assignment.find({ topic: topicId, publish: true })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // If no user info (shouldn't happen because route is protected), just return what we have
+        const user = req.user || {};
+        const userIdStr = user.id ? String(user.id) : null;
+        const acct = (user.accountType || user.role || "").toString().toLowerCase();
+
+        // Treat instructors/admins as privileged: return all published assignments
+        const isInstructorLike =
+            acct === "instructor" || acct === "admin" || !!user.isInstructor || !!user.isAdmin;
+
+        if (isInstructorLike) {
+            return res.json({ success: true, data: assignments });
+        }
+
+        // Non-instructor user (student/guest/etc.) -> filter assignments to only those relevant to the user
+
+        // 1) find classrooms where the user is a member (to match against classesAssigned)
+        const userClassroomIds = await Classroom.find({ "members.user": user.id }).distinct("_id");
+        const userClassIdsStr = (userClassroomIds || []).map((c) => String(c));
+
+        // 2) filter assignments:
+        // - if assigneeType === 'selected' => include only if assignees includes the user
+        // - if assigneeType !== 'selected' (treat as 'all') => include if classesAssigned intersects user's classrooms
+        //   - if classesAssigned is empty, treat it as global and include
+        const filtered = (assignments || []).filter((a) => {
+            const assigneeType = (a.assigneeType || "all").toString().toLowerCase();
+
+            // selected explicit students
+            if (assigneeType === "selected") {
+                const explicit = (a.assignees || []).map(String);
+                if (!userIdStr) return false;
+                return explicit.includes(userIdStr);
+            }
+
+            // 'all' case: match by classesAssigned intersection
+            const assignedClasses = (a.classesAssigned || []).map(String);
+            // If no classes assigned, treat as global (accessible to everyone)
+            if (!assignedClasses || assignedClasses.length === 0) return true;
+            // otherwise require intersection
+            return assignedClasses.some((cid) => userClassIdsStr.includes(cid));
+        });
+
+        return res.json({ success: true, data: filtered });
+    } catch (err) {
+        console.error("listPublishedAssignmentsByTopic", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 };
@@ -471,6 +540,7 @@ exports.updateAssignment = async (req, res) => {
         if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid id" });
         const a = await Assignment.findById(assignmentId);
         if (!a) return res.status(404).json({ success: false, message: "Assignment not found" });
+
         if (payload.title !== undefined) a.title = payload.title;
         if (payload.description !== undefined) a.instructions = payload.description;
         if (payload.instructions !== undefined) a.instructions = payload.instructions;
@@ -481,6 +551,12 @@ exports.updateAssignment = async (req, res) => {
         if (payload.publish !== undefined) a.publish = !!payload.publish;
         if (payload.assigneeType !== undefined) a.assigneeType = payload.assigneeType;
         if (Array.isArray(payload.assignees)) a.assignees = payload.assignees;
+
+        // NEW: lockSubmissions handling (instructor can toggle)
+        if (payload.lockSubmissions !== undefined) {
+            a.lockSubmissions = !!payload.lockSubmissions;
+        }
+
         if (Array.isArray(payload.classesAssigned)) {
             a.classesAssigned = payload.classesAssigned;
         } else if (payload.classesAssigned !== undefined) {
@@ -491,6 +567,7 @@ exports.updateAssignment = async (req, res) => {
             if (!Array.isArray(list)) list = [list];
             a.classesAssigned = list.map(String).filter(Boolean);
         }
+
         let removeList = payload.removeAttachments || payload.removeAttachments || [];
         if (typeof removeList === "string") {
             try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
@@ -505,6 +582,7 @@ exports.updateAssignment = async (req, res) => {
                 return !match;
             });
         }
+
         const newFiles = pickMany(req.files, "attachments");
         if (newFiles && newFiles.length) {
             for (const f of newFiles) {
@@ -519,6 +597,7 @@ exports.updateAssignment = async (req, res) => {
                 });
             }
         }
+
         a.updatedAt = new Date();
         await a.save();
         return res.json({ success: true, data: a });
@@ -531,16 +610,111 @@ exports.updateAssignment = async (req, res) => {
 exports.submitAssignment = async (req, res) => {
     try {
         const { assignmentId } = req.params;
-        const { content } = req.body;
-        const submission = await Submission.create({
-            assignment: assignmentId,
-            student: req.user.id,
-            content: content || "",
-            attachments: req.body.attachments || [],
-        });
-        return res.json({ success: true, data: submission });
+        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid assignment id" });
+
+        const assignment = await Assignment.findById(assignmentId).lean();
+        if (!assignment) return res.status(404).json({ success: false, message: "Assignment not found" });
+
+        // Check lock or due date
+        const now = new Date();
+        if (assignment.lockSubmissions) {
+            return res.status(403).json({ success: false, message: "Submissions have been locked by the instructor" });
+        }
+        if (assignment.dueDate && now > new Date(assignment.dueDate)) {
+            return res.status(403).json({ success: false, message: "Submission window has closed (due date passed)" });
+        }
+
+        // parse body fields
+        const content = req.body.content || "";
+        let removeList = req.body.removeAttachments || req.body.remove || [];
+        if (typeof removeList === "string") {
+            try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
+        }
+        if (!Array.isArray(removeList)) removeList = [];
+
+        // handle uploaded files
+        const newFiles = pickMany(req.files, "attachments");
+        const uploadedAttachments = [];
+        if (newFiles && newFiles.length) {
+            for (const f of newFiles) {
+                try {
+                    const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "submissions");
+                    uploadedAttachments.push({
+                        url: uploaded.secure_url || null,
+                        publicId: uploaded.public_id || null,
+                        originalName: f.originalname || f.name,
+                        mimeType: f.mimetype || null,
+                        size: f.size || null,
+                        resourceType: uploaded.resource_type || uploaded._resource_type || null,
+                    });
+                } catch (uerr) {
+                    console.warn("upload for submission file failed", uerr);
+                }
+            }
+        }
+
+        // find existing submission for this student
+        let sub = await Submission.findOne({ assignment: assignmentId, student: req.user.id });
+
+        if (!sub) {
+            // create new submission
+            sub = new Submission({
+                assignment: assignmentId,
+                student: req.user.id,
+                content,
+                attachments: uploadedAttachments,
+                submittedAt: new Date(),
+            });
+            await sub.save();
+            return res.json({ success: true, data: sub });
+        }
+
+        // existing submission -> revise if allowed (we already checked lock/dueDate)
+        // remove attachments listed in removeList (if any)
+        if (Array.isArray(removeList) && removeList.length) {
+            const kept = [];
+            for (const att of sub.attachments || []) {
+                const match = removeList.includes(att.publicId) || removeList.includes(att.url) || removeList.includes(att.originalName) || removeList.includes(att._id?.toString?.());
+                if (match) {
+                    try {
+                        if (att.publicId) await deleteResourceFromCloudinary(att.publicId, att.resourceType);
+                    } catch (e) {
+                        console.warn("failed to delete old submission file:", e);
+                    }
+                    // skip
+                } else {
+                    kept.push(att);
+                }
+            }
+            sub.attachments = kept;
+        }
+
+        // append new uploaded files (do not delete old ones unless requested)
+        if (uploadedAttachments.length) {
+            sub.attachments = (sub.attachments || []).concat(uploadedAttachments);
+        }
+
+        // update content and timestamp
+        sub.content = content || sub.content;
+        sub.submittedAt = new Date();
+        await sub.save();
+
+        return res.json({ success: true, data: sub });
     } catch (err) {
         console.error("submitAssignment", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getMySubmission = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid assignment id" });
+        const sub = await Submission.findOne({ assignment: assignmentId, student: req.user.id }).lean();
+        if (!sub) return res.json({ success: true, data: null });
+        return res.json({ success: true, data: sub });
+    } catch (err) {
+        console.error("getMySubmission", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 };
@@ -610,6 +784,18 @@ exports.listQuizzesByTopic = async (req, res) => {
         return res.json({ success: true, data: quizzes });
     } catch (err) {
         console.error("listQuizzesByTopic", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.listPublishedQuizzesByTopic = async (req, res) => {
+    try {
+        const { topicId } = req.params;
+        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
+        const quizzes = await Quiz.find({ topic: topicId, publish: true }).sort({ createdAt: -1 }).lean();
+        return res.json({ success: true, data: quizzes });
+    } catch (err) {
+        console.error("listPublishedQuizzesByTopic", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 };
@@ -719,3 +905,152 @@ exports.reorderScreens = async (req, res) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 };
+
+exports.updateSubmission = async (req, res) => {
+    try {
+        const { assignmentId, submissionId } = req.params;
+        const payload = req.body || {};
+        if (!isValidId(assignmentId) || !isValidId(submissionId)) return res.status(400).json({ success: false, message: "Invalid id" });
+
+        const sub = await Submission.findOne({ _id: submissionId, assignment: assignmentId });
+        if (!sub) return res.status(404).json({ success: false, message: "Submission not found" });
+
+        let changed = false;
+        if (payload.grade !== undefined) {
+            sub.grade = payload.grade === "" || payload.grade === null ? null : Number(payload.grade);
+            changed = true;
+        }
+        if (payload.feedback !== undefined) {
+            sub.feedback = payload.feedback;
+            changed = true;
+        }
+        if (changed) {
+            sub.gradedBy = req.user.id;
+            sub.gradedAt = new Date();
+            await sub.save();
+        }
+
+        const populated = await Submission.findById(sub._id).populate("student", "firstName lastName email image").populate("gradedBy", "firstName lastName email").lean();
+
+        return res.json({ success: true, data: populated });
+    } catch (err) {
+        console.error("updateSubmission", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.submitAttempt = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+        const userId = req.user.id;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
+            return res.status(400).json({ success: false, message: "Invalid quiz id" });
+        }
+
+        const payload = req.body || {};
+        const incoming = Array.isArray(payload.answers) ? payload.answers : [];
+        const finishNow = !!payload.finish;
+
+        const quiz = await Quiz.findById(quizId).lean();
+        if (!quiz) return res.status(404).json({ success: false, message: "Quiz not found" });
+
+        let attempt = await Attempt.findOne({ quiz: quizId, user: userId });
+        if (!attempt) {
+            attempt = new Attempt({ quiz: quizId, user: userId, answers: [], totalPoints: 0 });
+        }
+
+        const screenMap = {};
+        (quiz.screens || []).forEach(s => { screenMap[String(s._id)] = s; });
+
+        for (const ans of incoming) {
+            const sid = String(ans.screenId);
+            if (!screenMap[sid]) continue;
+            const timeTaken = Number(ans.timeTaken || 0);
+            const provided = ans.provided;
+            const evalRes = evaluateScreenAnswer(screenMap[sid], provided, timeTaken);
+
+            const idx = attempt.answers.findIndex(a => String(a.screenId) === sid);
+            const entry = {
+                screenId: new mongoose.Types.ObjectId(sid),
+                provided,
+                correct: !!evalRes.correct,
+                points: evalRes.pointsEarned,
+                basePoints: evalRes.base,
+                timeTaken: evalRes.timeTaken,
+                timeBonus: evalRes.timeBonus
+            };
+
+            if (idx === -1) attempt.answers.push(entry);
+            else attempt.answers[idx] = entry;
+        }
+
+        attempt.totalPoints = (attempt.answers || []).reduce((s, a) => s + (a.points || 0), 0);
+        if (finishNow) attempt.finishedAt = new Date();
+        attempt.meta = attempt.meta || {};
+        attempt.meta.updatedAt = new Date();
+        await attempt.save();
+
+        return res.json({ success: true, data: attempt });
+    } catch (err) {
+        console.error("submitAttempt", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
+            return res.status(400).json({ success: false, message: "Invalid quiz id" });
+        }
+
+        const pipeline = [
+            { $match: { quiz: new mongoose.Types.ObjectId(quizId) } },
+            { $sort: { totalPoints: -1, finishedAt: 1 } },
+            {
+                $group: {
+                    _id: "$user",
+                    bestScore: { $max: "$totalPoints" },
+                    lastAttemptAt: { $first: "$finishedAt" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: "$user" },
+            {
+                $project: {
+                    _id: 0,
+                    userId: "$_id",
+                    name: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+                    score: "$bestScore",
+                    lastAttemptAt: 1
+                }
+            },
+            { $sort: { score: -1, lastAttemptAt: 1 } }
+        ];
+
+        const rows = await Attempt.aggregate(pipeline).allowDiskUse(true);
+
+        const board = (rows || []).map((r, i) => ({
+            id: String(r.userId),
+            name: r.name || "Unknown",
+            score: r.score || 0,
+            rank: i + 1
+        }));
+
+        const userIdStr = String(req.user.id);
+        const meRow = board.find(b => b.id === userIdStr) || null;
+
+        return res.json({ success: true, data: { board, me: meRow } });
+    } catch (err) {
+        console.error("getLeaderboard", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+

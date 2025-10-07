@@ -27,18 +27,26 @@ router.patch("/topics/:topicId/items/:itemId/toggle", auth, isInstructor, classr
 
 router.post("/topics/:topicId/assignments", auth, isInstructor, classroomControllers.createAssignment);
 router.get("/topics/:topicId/assignments", auth, classroomControllers.listAssignmentsByTopic);
+router.get("/topics/:topicId/assignments/published", auth, classroomControllers.listPublishedAssignmentsByTopic);
 router.get("/assignments/:assignmentId", auth, classroomControllers.getAssignment);
 router.patch("/assignments/:assignmentId", auth, isInstructor, classroomControllers.updateAssignment);
+router.post("/assignments/:assignmentId/submit", auth, classroomControllers.submitAssignment);
+router.get("/assignments/:assignmentId/submission", auth, classroomControllers.getMySubmission);
+router.get("/assignments/:assignmentId/submissions", auth, isInstructor, classroomControllers.getSubmissions);
+router.patch("/assignments/:assignmentId/submissions/:submissionId", auth, isInstructor, classroomControllers.updateSubmission);
 
 router.post("/topics/:topicId/quizzes", auth, isInstructor, classroomControllers.createQuiz);
 router.get("/quizzes/:quizId", auth, classroomControllers.getQuiz);
 router.get("/topics/:topicId/quizzes", auth, classroomControllers.listQuizzesByTopic);
+router.get("/topics/:topicId/quizzes/published", auth, classroomControllers.listPublishedQuizzesByTopic);
 router.patch("/quizzes/:quizId", auth, isInstructor, classroomControllers.updateQuiz);
 router.delete("/quizzes/:quizId", auth, isInstructor, classroomControllers.deleteQuiz);
 router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers.createScreen);
 router.patch("/quizzes/screens/:screenId", auth, isInstructor, classroomControllers.updateScreen);
 router.delete("/quizzes/:quizId/screens/:screenId", auth, isInstructor, classroomControllers.deleteScreen);
 router.post("/quizzes/:quizId/screens/reorder", auth, isInstructor, classroomControllers.reorderScreens);
+router.post("/quizzes/:quizId/attempts", auth, classroomControllers.submitAttempt);
+router.get("/quizzes/:quizId/leaderboard", auth, classroomControllers.getLeaderboard);
 
 
 module.exports = router;

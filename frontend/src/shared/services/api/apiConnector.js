@@ -4,17 +4,18 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-const setupInterceptors = () => {
+let interceptorsInitialized = false;
+
+export const setupAxiosInterceptors = () => {
+  if (interceptorsInitialized) return;
+  interceptorsInitialized = true;
+
   axiosInstance.interceptors.request.use(
     (config) => {
-      try {
-        const token = localStorage.getItem("token");
-        if (token) {
-          config.headers = config.headers || {};
-          config.headers["Authorization"] = `Bearer ${token}`;
-        }
-      } catch (err) {
-        console.warn("Error attaching token to request", err);
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers["Authorization"] = `Bearer ${token}`;
       }
       return config;
     },
@@ -27,21 +28,21 @@ const setupInterceptors = () => {
       const response = error?.response;
       if (!response) return Promise.reject(error);
 
-      const { status, data } = response;
+      const { status, data, config } = response;
+      const isLoginRoute = window.location.pathname.startsWith("/login");
 
       if (
         status === 401 &&
+        !isLoginRoute &&
         data &&
         ["TOKEN_EXPIRED", "TOKEN_MISSING", "TOKEN_INVALID"].includes(data.code)
       ) {
-        try {
-          localStorage.removeItem("token");
-          window.location.replace("/login");
-        } catch (e) {
-          window.location.replace("/login");
-        }
+        console.warn("Auth expired or missing → redirecting to login…");
+        localStorage.removeItem("token");
 
-        return Promise.reject(error);
+        setTimeout(() => {
+          window.location.replace("/login");
+        }, 300);
       }
 
       return Promise.reject(error);
@@ -49,14 +50,12 @@ const setupInterceptors = () => {
   );
 };
 
-setupInterceptors();
-
 export const apiConnector = (method, url, bodyData, headers, params) => {
   return axiosInstance({
-    method: `${method}`,
-    url: `${url}`,
-    data: bodyData ? bodyData : null,
-    headers: headers ? headers : null,
-    params: params ? params : null,
+    method,
+    url,
+    data: bodyData ?? null,
+    headers: headers ?? null,
+    params: params ?? null,
   });
 };

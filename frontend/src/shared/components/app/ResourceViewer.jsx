@@ -94,7 +94,7 @@ export default function ResourceViewer({
             if (mounted) {
               setSignedUrl(resource.url);
               setSrcUrl(resource.url);
-              setQualities([]);
+              setQualities(isCloudinary ? defaultCloudinaryQualities : []);
               setQualitySelected("Auto");
             }
           }
@@ -114,17 +114,25 @@ export default function ResourceViewer({
     return () => { mounted = false; };
   }, [resource?.publicId, resource?.url, resource?.resourceType, token, isCloudinary]);
 
-  const mt = (resource.mimeType || "").toLowerCase();
-  const name = (resource.originalName || "").toLowerCase();
+  const mt = (resource?.mimeType || "").toLowerCase();
+  const name = (resource?.originalName || "").toLowerCase();
+
   const isPdf =
     mt === "application/pdf" ||
     name.endsWith(".pdf") ||
-    ((resource.resourceType || "").startsWith("raw") && name.endsWith(".pdf"));
+    ((resource?.resourceType || "").startsWith("raw") && name.endsWith(".pdf"));
+
+  const isImage =
+    mt.startsWith?.("image/") ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name) ||
+    (resource?.resourceType || "").startsWith("image");
+
   const isVideo =
     (mt && mt.startsWith("video/")) ||
     /\.(mp4|webm|mov)$/i.test(name) ||
     (srcUrl && /\.(mp4|webm|mov)$/i.test(String(srcUrl)));
 
+  // PDF handling (unchanged)
   if (isPdf) {
     if (presentMode) {
       return (
@@ -155,6 +163,46 @@ export default function ResourceViewer({
     );
   }
 
+  // IMAGE handling (new)
+  if (isImage) {
+    // present mode: full screen-like, black background
+    if (presentMode) {
+      return (
+        <div className="w-full h-full bg-black flex items-center justify-center">
+          {srcUrl ? (
+            <img
+              src={srcUrl}
+              alt={resource?.originalName || "image"}
+              className="max-w-full max-h-full object-contain"
+              onContextMenu={(e) => e.preventDefault()}
+            />
+          ) : (
+            <div className="text-slate-400">Loading preview...</div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black">
+        {loading ? (
+          <div className="text-slate-400">Loading preview...</div>
+        ) : srcUrl ? (
+          <img
+            src={srcUrl}
+            alt={resource?.originalName || "image"}
+            className="max-w-full max-h-full object-contain"
+            onContextMenu={(e) => e.preventDefault()}
+            style={{ display: "block" }}
+          />
+        ) : (
+          <div className="text-slate-400">No image preview available</div>
+        )}
+      </div>
+    );
+  }
+
+  // Video handling (unchanged)
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -361,6 +409,7 @@ export default function ResourceViewer({
   }, []);
 
   if (!isVideo || !srcUrl) {
+    // If it's not a video (and we already handled PDF & Image above), show a fallback text
     return (
       <div className="w-full h-full flex items-center justify-center text-slate-400">
         {loading ? "Loading preview..." : "No video preview available"}
