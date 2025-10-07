@@ -1,0 +1,26 @@
+{
+    "name": "mongo-ejson-backup",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "once": "node index.js --once",
+        "get-token": "node get-refresh-token.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "bson": "^5.4.0",
+        "cron": "^2.3.2",
+        "dotenv": "^16.1.4",
+        "express": "^4.18.2",
+        "fs-extra": "^11.1.1",
+        "googleapis": "latest",
+        "mongodb": "^5.8.0",
+        "node-cron": "^3.0.2",
+        "open": "^10.2.0",
+        "tar": "^6.1.11"
+    }
+}
