@@ -291,6 +291,7 @@ exports.login = async (req, res) => {
             accountType: user.accountType,
         };
 
+        console.log("Signin token", process.env.JWT_SECRET);
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         user = user.toObject();
