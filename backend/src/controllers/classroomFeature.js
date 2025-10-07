@@ -6,7 +6,9 @@ const Assignment = require("../models/assignment");
 const Submission = require("../models/submission");
 const User = require("../models/user");
 const Quiz = require("../models/quiz");
+const Attempt = require("../models/attempt");
 const { uploadFileToCloudinary, deleteResourceFromCloudinary } = require("../utils/fileUploader");
+const { evaluateScreenAnswer } = require("../utils/quizz");
 
 const pickSingle = (files, key) => {
     if (!files) return null;
@@ -936,3 +938,119 @@ exports.updateSubmission = async (req, res) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 };
+
+exports.submitAttempt = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+        const userId = req.user.id;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
+            return res.status(400).json({ success: false, message: "Invalid quiz id" });
+        }
+
+        const payload = req.body || {};
+        const incoming = Array.isArray(payload.answers) ? payload.answers : [];
+        const finishNow = !!payload.finish;
+
+        const quiz = await Quiz.findById(quizId).lean();
+        if (!quiz) return res.status(404).json({ success: false, message: "Quiz not found" });
+
+        let attempt = await Attempt.findOne({ quiz: quizId, user: userId });
+        if (!attempt) {
+            attempt = new Attempt({ quiz: quizId, user: userId, answers: [], totalPoints: 0 });
+        }
+
+        const screenMap = {};
+        (quiz.screens || []).forEach(s => { screenMap[String(s._id)] = s; });
+
+        for (const ans of incoming) {
+            const sid = String(ans.screenId);
+            if (!screenMap[sid]) continue;
+            const timeTaken = Number(ans.timeTaken || 0);
+            const provided = ans.provided;
+            const evalRes = evaluateScreenAnswer(screenMap[sid], provided, timeTaken);
+
+            const idx = attempt.answers.findIndex(a => String(a.screenId) === sid);
+            const entry = {
+                screenId: new mongoose.Types.ObjectId(sid),
+                provided,
+                correct: !!evalRes.correct,
+                points: evalRes.pointsEarned,
+                basePoints: evalRes.base,
+                timeTaken: evalRes.timeTaken,
+                timeBonus: evalRes.timeBonus
+            };
+
+            if (idx === -1) attempt.answers.push(entry);
+            else attempt.answers[idx] = entry;
+        }
+
+        attempt.totalPoints = (attempt.answers || []).reduce((s, a) => s + (a.points || 0), 0);
+        if (finishNow) attempt.finishedAt = new Date();
+        attempt.meta = attempt.meta || {};
+        attempt.meta.updatedAt = new Date();
+        await attempt.save();
+
+        return res.json({ success: true, data: attempt });
+    } catch (err) {
+        console.error("submitAttempt", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const { quizId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
+            return res.status(400).json({ success: false, message: "Invalid quiz id" });
+        }
+
+        const pipeline = [
+            { $match: { quiz: new mongoose.Types.ObjectId(quizId) } },
+            { $sort: { totalPoints: -1, finishedAt: 1 } },
+            {
+                $group: {
+                    _id: "$user",
+                    bestScore: { $max: "$totalPoints" },
+                    lastAttemptAt: { $first: "$finishedAt" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: "$user" },
+            {
+                $project: {
+                    _id: 0,
+                    userId: "$_id",
+                    name: { $concat: ["$user.firstName", " ", "$user.lastName"] },
+                    score: "$bestScore",
+                    lastAttemptAt: 1
+                }
+            },
+            { $sort: { score: -1, lastAttemptAt: 1 } }
+        ];
+
+        const rows = await Attempt.aggregate(pipeline).allowDiskUse(true);
+
+        const board = (rows || []).map((r, i) => ({
+            id: String(r.userId),
+            name: r.name || "Unknown",
+            score: r.score || 0,
+            rank: i + 1
+        }));
+
+        const userIdStr = String(req.user.id);
+        const meRow = board.find(b => b.id === userIdStr) || null;
+
+        return res.json({ success: true, data: { board, me: meRow } });
+    } catch (err) {
+        console.error("getLeaderboard", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+

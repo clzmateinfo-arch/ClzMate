@@ -503,3 +503,29 @@ export async function updateSubmissionAPI(assignmentId, submissionId, payload = 
         throw err;
     }
 }
+
+export async function submitQuizAttemptAPI(quizId, payload = {}, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("POST", `${QUIZZES_API}/${quizId}/attempts`, payload, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+    return response.data.data;
+  } catch (err) {
+    console.error("submitQuizAttemptAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to submit attempt");
+    throw err;
+  }
+}
+
+export async function getQuizLeaderboardAPI(quizId, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("GET", `${QUIZZES_API}/${quizId}/leaderboard`, null, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to fetch leaderboard");
+    return response.data.data; // { board, me }
+  } catch (err) {
+    console.error("getQuizLeaderboardAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to load leaderboard");
+    throw err;
+  }
+}

@@ -45,6 +45,8 @@ router.post("/quizzes/:quizId/screens", auth, isInstructor, classroomControllers
 router.patch("/quizzes/screens/:screenId", auth, isInstructor, classroomControllers.updateScreen);
 router.delete("/quizzes/:quizId/screens/:screenId", auth, isInstructor, classroomControllers.deleteScreen);
 router.post("/quizzes/:quizId/screens/reorder", auth, isInstructor, classroomControllers.reorderScreens);
+router.post("/quizzes/:quizId/attempts", auth, classroomControllers.submitAttempt);
+router.get("/quizzes/:quizId/leaderboard", auth, classroomControllers.getLeaderboard);
 
 
 module.exports = router;
