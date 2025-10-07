@@ -1,0 +1,164 @@
+const Category = require("../models/category");
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
+exports.createCategory = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+
+    if (!name || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    const categoryDetails = await Category.create({
+      name: name,
+      description: description,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Category created successfully",
+    });
+  } catch (error) {
+    console.log("Error while creating Category");
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error while creating Category",
+      error: error.message,
+    });
+  }
+};
+
+exports.showAllCategories = async (req, res) => {
+  try {
+    const allCategories = await Category.find(
+      {},
+      { name: true, description: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: allCategories,
+      message: "All allCategories fetched successfully",
+    });
+  } catch (error) {
+    console.log("Error while fetching all allCategories");
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error while fetching all allCategories",
+    });
+  }
+};
+
+exports.getCategoryPageDetails = async (req, res) => {
+  try {
+    const { categoryId } = req.body;
+
+    const selectedCategory = await Category.findById(categoryId)
+      .populate({
+        path: "courses",
+        match: { status: "Published" },
+        populate: "ratingAndReviews",
+      })
+      .exec();
+
+    if (!selectedCategory) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
+    }
+
+    if (selectedCategory.courses.length === 0) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "No courses found for the selected category.",
+      });
+    }
+
+    const categoriesExceptSelected = await Category.find({
+      _id: { $ne: categoryId },
+    });
+
+    let differentCategory = [];
+    if (
+      categoriesExceptSelected != null &&
+      categoriesExceptSelected.length != 0
+    ) {
+      differentCategory = await Category.findOne(
+        categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
+          ._id
+      )
+        .populate({
+          path: "courses",
+          match: { status: "Published" },
+        })
+        .exec();
+    }
+
+    const allCategories = await Category.find()
+      .populate({
+        path: "courses",
+        match: { status: "Published" },
+        populate: {
+          path: "instructor",
+        },
+      })
+      .exec();
+
+    const allCourses = allCategories.flatMap((category) => category.courses);
+    const mostSellingCourses = allCourses
+      .sort((a, b) => b.sold - a.sold)
+      .slice(0, 10);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        selectedCategory,
+        differentCategory,
+        mostSellingCourses,
+      },
+    });
+  } catch (error) {
+    console.log("Error while getting the caregories: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateCategory = async (req, res) => {
+  try {
+    const { categoryId, name, description } = req.body;
+    if (!categoryId) return res.status(400).json({ success: false, message: "categoryId required" });
+    const updated = await Category.findByIdAndUpdate(categoryId, { name, description }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ success: false, message: "Category not found" });
+    return res.status(200).json({ success: true, data: updated, message: "Category updated" });
+  } catch (error) {
+    console.error("updateCategory", error);
+    return res.status(500).json({ success: false, message: "Error while updating category", error: error.message });
+  }
+};
+
+exports.deleteCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.body;
+    if (!categoryId) return res.status(400).json({ success: false, message: "categoryId required" });
+    const deleted = await Category.findByIdAndDelete(categoryId).lean();
+    if (!deleted) return res.status(404).json({ success: false, message: "Category not found" });
+    return res.status(200).json({ success: true, message: "Category deleted" });
+  } catch (error) {
+    console.error("deleteCategory", error);
+    return res.status(500).json({ success: false, message: "Error while deleting category", error: error.message });
+  }
+};
+
