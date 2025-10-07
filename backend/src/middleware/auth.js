@@ -1,102 +1,112 @@
-const jwt = require("jsonwebtoken");
+const { verifyToken } = require("../utils/jwt");
 require("dotenv-flow").config();
 
-exports.auth = (req, res, next) => {
-    try {
-        const token =
-            req.body?.token ||
-            req.cookies?.token ||
-            req.header("Authorization")?.replace("Bearer ", "");
+function extractTokenFromReq(req) {
+  let token = req.body?.token || req.cookies?.token || req.header("Authorization") || "";
 
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Token is Missing",
-            });
-        }
-
-        try {
-            console.log("Decoding token", process.env.JWT_SECRET);
-            const decode = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = decode;
-        } catch (error) {
-            console.log("Error while decoding token");
-            console.log(error);
-            return res.status(401).json({
-                success: false,
-                error: error.message,
-                messgae: "Error while decoding token",
-            });
-        }
-        next();
-    } catch (error) {
-        console.log("Error while token validating");
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            messgae: "Error while token validating",
-        });
+  if (typeof token === "string") {
+    token = token.trim();
+    if (token.toLowerCase().startsWith("bearer ")) {
+      token = token.slice(7).trim();
     }
+    if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
+      token = token.slice(1, -1);
+    }
+  }
+
+  return token || null;
+}
+
+exports.auth = (req, res, next) => {
+  try {
+    const token = extractTokenFromReq(req);
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is Missing",
+      });
+    }
+
+    try {
+      const decoded = verifyToken(token);
+      req.user = decoded;
+      return next();
+    } catch (err) {
+      console.log("JWT verify failed:", err && err.message);
+      return res.status(401).json({
+        success: false,
+        error: err?.message || "Error while decoding token",
+        messgae: "Error while decoding token",
+      });
+    }
+  } catch (error) {
+    console.log("Error while token validating", error);
+    return res.status(500).json({
+      success: false,
+      messgae: "Error while token validating",
+    });
+  }
 };
 
 exports.isStudent = (req, res, next) => {
-    try {
-        if (req.user?.accountType != "Student") {
-            return res.status(401).json({
-                success: false,
-                messgae: "This Page is protected only for student",
-            });
-        }
-        next();
-    } catch (error) {
-        console.log("Error while cheching user validity with student accountType");
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            error: error.message,
-            messgae: "Error while cheching user validity with student accountType",
-        });
+  try {
+    if (req.user?.accountType != "Student") {
+      return res.status(401).json({
+        success: false,
+        messgae: "This Page is protected only for student",
+      });
     }
+    next();
+  } catch (error) {
+    console.log("Error while cheching user validity with student accountType");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      messgae: "Error while cheching user validity with student accountType",
+    });
+  }
 };
 
 exports.isInstructor = (req, res, next) => {
-    try {
-        if (req.user?.accountType != "Instructor") {
-            return res.status(401).json({
-                success: false,
-                messgae: "This Page is protected only for Instructor",
-            });
-        }
-        next();
-    } catch (error) {
-        console.log(
-            "Error while cheching user validity with Instructor accountType"
-        );
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            error: error.message,
-            messgae: "Error while cheching user validity with Instructor accountType",
-        });
+  try {
+    if (req.user?.accountType != "Instructor") {
+      return res.status(401).json({
+        success: false,
+        messgae: "This Page is protected only for Instructor",
+      });
     }
+    next();
+  } catch (error) {
+    console.log(
+      "Error while cheching user validity with Instructor accountType"
+    );
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      messgae: "Error while cheching user validity with Instructor accountType",
+    });
+  }
 };
 
 exports.isAdmin = (req, res, next) => {
-    try {
-        if (req.user.accountType != "Admin") {
-            return res.status(401).json({
-                success: false,
-                messgae: "This Page is protected only for Admin",
-            });
-        }
-        next();
-    } catch (error) {
-        console.log("Error while cheching user validity with Admin accountType");
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            error: error.message,
-            messgae: "Error while cheching user validity with Admin accountType",
-        });
+  try {
+    if (req.user.accountType != "Admin") {
+      return res.status(401).json({
+        success: false,
+        messgae: "This Page is protected only for Admin",
+      });
     }
+    next();
+  } catch (error) {
+    console.log("Error while cheching user validity with Admin accountType");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      messgae: "Error while cheching user validity with Admin accountType",
+    });
+  }
 };

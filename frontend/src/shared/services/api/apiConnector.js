@@ -28,14 +28,14 @@ export const setupAxiosInterceptors = () => {
       const response = error?.response;
       if (!response) return Promise.reject(error);
 
-      const { status, error, config } = response;
+      const { status, messgae, config } = response;
       const isLoginRoute = window.location.pathname.startsWith("/login");
 
       if (
         status === 401 &&
         !isLoginRoute &&
-        error &&
-        error.includes("invalid token")
+        messgae &&
+        messgae.includes("token")
       ) {
         console.warn("Auth expired or missing → redirecting to login…");
         localStorage.removeItem("token");
