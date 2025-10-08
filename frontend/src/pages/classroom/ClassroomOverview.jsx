@@ -240,7 +240,7 @@ export default function ClassroomOverview() {
                             </div>
                         </div>
 
-                        {isInstructor && <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                        {isInstructor && <div className=" mt-3 mb-1 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                             <h4 className="text-sm font-semibold text-slate-800">Quick actions</h4>
                             <div className="mt-3 flex flex-col gap-2">
                                 <Button onClick={() => setShowEditor(true)} className="px-4 py-2">
