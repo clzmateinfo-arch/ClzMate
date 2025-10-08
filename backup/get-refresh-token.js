@@ -1,7 +1,6 @@
-// get-refresh-token-local.js
 import http from "http";
 import { URL } from "url";
-import open from "open"; // optional: attempt to auto-open browser, won't break if not installed
+import open from "open";
 import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
@@ -32,7 +31,6 @@ console.log("\nOpen this URL in your browser (or it may open automatically):\n")
 console.log(authUrl, "\n");
 
 (async () => {
-  // try to open browser, optional; ignore if 'open' not installed
   try { await open(authUrl); } catch (_) { }
 
   const server = http.createServer(async (req, res) => {
@@ -55,9 +53,7 @@ console.log(authUrl, "\n");
           return;
         }
 
-        // Exchange code for tokens
         const { tokens } = await oauth2Client.getToken(code);
-        // tokens contains access_token, refresh_token, expiry_date, etc.
         console.log("\nSuccess! Save these into your server .env:");
         console.log("GOOGLE_OAUTH_CLIENT_ID=" + CLIENT_ID);
         console.log("GOOGLE_OAUTH_CLIENT_SECRET=" + CLIENT_SECRET);

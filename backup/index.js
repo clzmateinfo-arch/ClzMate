@@ -1,4 +1,3 @@
-// index.js
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -28,7 +27,7 @@ const {
     TOKEN_FILE_PATH = path.join(process.cwd(), "drive_access_token.json"),
     RETENTION_COUNT = "10",
     RESTORE_BATCH_SIZE = "1000",
-    PORT = "3000"
+    PORT = "3500"
 } = process.env;
 
 if (!MONGO_URI) {
@@ -528,9 +527,9 @@ async function startScheduler(runOnce = false) {
     if (runOnce) {
         try { await backupOnce(); console.log("One-time backup completed."); process.exit(0); } catch (err) { console.error("One-time backup failed:", err && err.message); process.exit(1); }
     } else {
-        console.log("Starting scheduler: will run every 6 hours (cron: '0 */6 * * *') timezone Asia/Colombo");
+        console.log("Starting scheduler: will run every 12 hours (cron: '0 */12 * * *') timezone Asia/Colombo");
         try { await backupOnce(); } catch (err) { console.warn("Initial backup failed:", err && err.message); }
-        cron.schedule("0 */6 * * *", async () => {
+        cron.schedule("0 */12 * * *", async () => {
             console.log(`[${new Date().toISOString()}] Scheduled run starting...`);
             try { await backupOnce(); } catch (err) { console.error("Scheduled backup failed:", err && err.message); }
         }, { timezone: "Asia/Colombo" });
