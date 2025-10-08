@@ -147,16 +147,16 @@ export default function AppRoutes() {
                 <Route path=":classroomId/classwork" element={<ClassroomClasswork />} />
                 <Route path=":classroomId/classwork/manage-assignment/:topicId" element={<ManageAssignment />} />
                 <Route path=":classroomId/classwork/assignment/:assignmentId/edit" element={<ManageAssignment />} />
-                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} /> 
+                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
                 <Route path=":classroomId/classwork/manage-quiz/:topicId" element={<ManageQuiz />} />
                 <Route path=":classroomId/classwork/quiz/:quizId/edit" element={<ManageQuiz />} />
                 <Route path=":classroomId/classwork/manage-link-course/:topicId" element={<ManageLinkCourse />} />
                 <Route path=":classroomId/classwork/link-course/:linkId/edit" element={<ManageLinkCourse />} />
                 <Route path=":classroomId/view" element={<ViewClassroom />} />
+                <Route path=":classroomId/quizz/:quizId/play" element={<QuizPlayer />} />
             </Route>
 
-            
-                <Route path="quizz/:quizId/play" element={<QuizPlayer/>} />
+
 
 
             {/* Errors */}

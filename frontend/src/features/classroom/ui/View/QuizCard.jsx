@@ -1,12 +1,21 @@
-import React from "react";
 import { FiClock } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-export default function QuizCard({ quiz = {}, onStart = () => { }, onTogglePublish = () => { } }) {
+export default function QuizCard({ quiz = {}, onStart = () => {}, onTogglePublish = () => {} }) {
     const title = quiz.title || "Quiz";
     const description = quiz.description || "";
     const published = !!quiz.publish;
     const navigate = useNavigate();
+    const { classroomId } = useParams();
+
+    console.log("QuizCard", quiz, "classroomId:", classroomId);
+
+    const handleStart = () => {
+        const path = classroomId
+            ? `/classroom/${classroomId}/quizz/${quiz?._id}/play`
+            : `/quizz/${quiz?._id}/play`;
+        navigate(path);
+    };
 
     return (
         <article
@@ -47,10 +56,9 @@ export default function QuizCard({ quiz = {}, onStart = () => { }, onTogglePubli
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-3">
-
                 <div>
                     <button
-                        onClick={() => navigate(`/quizz/${quiz._id}/play`)}
+                        onClick={handleStart}
                         className="px-3 py-1 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium shadow-sm hover:shadow-md transition"
                     >
                         Start
