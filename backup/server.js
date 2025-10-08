@@ -1,3 +1,4 @@
+import os from "os";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -191,7 +192,7 @@ async function createDriveClient() {
     throw new Error("No Drive authentication configured: set GOOGLE_OAUTH_CLIENT_ID/SECRET and optionally GOOGLE_OAUTH_REFRESH_TOKEN, or set GOOGLE_SERVICE_ACCOUNT_KEY_PATH for Shared Drive usage.");
 }
 
-/* ---------- Backup/restore logic (unchanged) ---------- */
+/* ---------- Backup/restore logic (unchanged except safe-delete additions) ---------- */
 
 async function createEjsonDump(tmpDir) {
     const client = new MongoClient(MONGO_URI, { useUnifiedTopology: true });
@@ -281,7 +282,66 @@ async function uploadToDriveResumable(drive, filePath, fileName) {
         }
     );
     console.log("Drive upload complete:", res.data && res.data.id);
-    return res.data;
+    // return data including size (string) for verification
+    return res.data || {};
+}
+
+/**
+ * Safely delete a local backup after verifying uploaded size.
+ * - Verifies uploaded size matches local size (if uploadedSize provided).
+ * - Moves file to BACKUP_DIR/.to_delete/<filename>.deleting_<ts> then attempts to remove.
+ * - If remove fails, move file back to original location to avoid accidental data loss.
+ *
+ * Returns true if file removed, false otherwise.
+ */
+async function safeDeleteLocalBackup(localPath, uploadedSize = null) {
+    try {
+        if (!await fsExtra.pathExists(localPath)) {
+            console.warn("Local path does not exist for deletion:", localPath);
+            return false;
+        }
+        const st = await fsp.stat(localPath);
+        const localSize = st.size;
+        const uploadedNum = uploadedSize ? Number(uploadedSize) : null;
+
+        if (uploadedNum && Number.isFinite(uploadedNum)) {
+            // Allow a small delta (1% or 1KB whichever is larger) to account for metadata differences
+            const allowedDelta = Math.max(1024, Math.floor(localSize * 0.01));
+            if (Math.abs(localSize - uploadedNum) > allowedDelta) {
+                console.warn("Uploaded size differs significantly from local size — aborting local delete.", { localSize, uploadedSize: uploadedNum, allowedDelta });
+                return false;
+            }
+        } else {
+            // If we don't have an uploaded size, we choose to be conservative and skip deletion
+            console.warn("No uploaded size available — skipping local delete for safety:", localPath);
+            return false;
+        }
+
+        const deleteDir = path.join(BACKUP_DIR, ".to_delete");
+        await ensureDir(deleteDir);
+        const base = path.basename(localPath);
+        const tempName = `${base}.deleting_${nowTs()}`;
+        const tempPath = path.join(deleteDir, tempName);
+
+        // Atomic move to a quarantined deletion dir
+        await fsExtra.move(localPath, tempPath, { overwrite: true });
+        try {
+            await fsExtra.remove(tempPath);
+            console.log("Safely deleted local backup:", base);
+            return true;
+        } catch (err) {
+            console.warn("Failed to remove temp file; attempting to move it back to backups:", err && err.message);
+            try {
+                await fsExtra.move(tempPath, localPath, { overwrite: true });
+            } catch (moveBackErr) {
+                console.error("Failed to move file back after failed delete — manual cleanup required:", moveBackErr && moveBackErr.message);
+            }
+            return false;
+        }
+    } catch (err) {
+        console.warn("Safe delete failed:", err && err.message);
+        return false;
+    }
 }
 
 async function enforceLocalRetention() {
@@ -328,7 +388,7 @@ async function enforceDriveRetention(drive) {
 
 async function backupOnce() {
     const stamp = nowTs();
-    const runDir = path.join(BACKUP_DIR, `dump_${stamp}`);
+    const runDir = path.join(os.tmpdir(), `mongo_backup_dump_${stamp}`);
     await ensureDir(runDir);
     const tmpDir = path.join(runDir, "data");
     await ensureDir(tmpDir);
@@ -342,13 +402,30 @@ async function backupOnce() {
         await ensureDir(BACKUP_DIR);
         const finalLocalPath = path.join(BACKUP_DIR, archiveName);
         await fsExtra.move(archivePath, finalLocalPath, { overwrite: true });
-        try { await fsExtra.remove(tmpDir); } catch (_) { }
+
+        try { await fsExtra.remove(runDir); } catch (err) { console.warn("Failed to remove tmp runDir:", runDir, err && err.message); }
+
         const drive = await createDriveClient();
-        await uploadToDriveResumable(drive, finalLocalPath, archiveName);
+        const uploadRes = await uploadToDriveResumable(drive, finalLocalPath, archiveName);
+
+        try {
+            const uploadedSize = uploadRes && (uploadRes.size || uploadRes.bytes) ? Number(uploadRes.size || uploadRes.bytes) : null;
+            if (uploadedSize && Number.isFinite(uploadedSize)) {
+                const deleted = await safeDeleteLocalBackup(finalLocalPath, uploadedSize);
+                if (!deleted) {
+                    console.warn("Local backup was not deleted after upload; manual cleanup may be required:", finalLocalPath);
+                }
+            } else {
+                console.warn("Upload did not return a size; local backup will be kept for safety:", finalLocalPath);
+            }
+        } catch (err) {
+            console.warn("Error while attempting safe local delete after upload:", err && err.message);
+        }
+
         await enforceLocalRetention();
         await enforceDriveRetention(drive);
         console.log("Backup cycle complete:", finalLocalPath);
-        return { localPath: finalLocalPath, name: archiveName, meta };
+        return { localPath: finalLocalPath, name: archiveName, meta, driveFile: uploadRes };
     } catch (err) {
         console.error("Backup failed:", err && err.stack ? err.stack : err);
         throw err;
