@@ -2,11 +2,20 @@
     "name": "mongo-ejson-backup",
     "version": "1.0.0",
     "type": "module",
-    "main": "index.js",
+    "main": "server.js",
     "scripts": {
-        "start": "node index.js",
-        "once": "node index.js --once",
-        "get-token": "node get-refresh-token.js"
+        "start": "node server.js",
+        "once": "node server.js --once",
+        "get-token": "node get-refresh-token.js",
+        "start:prod": "node server.js",
+        "start:dev": "cross-env NODE_ENV=development node server.js",
+        "start:render": "node server.js",
+        "dev": "cross-env NODE_ENV=development node server.js --watch",
+        "prod": "nodemon server.js --watch",
+        "build": "node scripts/build.js",
+        "build:render": "",
+        "test:prod": "nodemon dist/prod/server.js --watch",
+        "build-exe": "node scripts/pkg-build.js"
     },
     "engines": {
         "node": ">=18"
