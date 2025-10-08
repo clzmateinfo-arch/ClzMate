@@ -604,9 +604,9 @@ async function startScheduler(runOnce = false) {
     if (runOnce) {
         try { await backupOnce(); console.log("One-time backup completed."); process.exit(0); } catch (err) { console.error("One-time backup failed:", err && err.message); process.exit(1); }
     } else {
-        console.log("Starting scheduler: will run every 12 hours (cron: '0 */12 * * *') timezone Asia/Colombo");
+        console.log("Starting scheduler: will run every 12 hours (cron: '0 0 1 * *') timezone Asia/Colombo");
         try { await backupOnce(); } catch (err) { console.warn("Initial backup failed:", err && err.message); }
-        cron.schedule("0 */12 * * *", async () => {
+        cron.schedule("0 0 1 * *", async () => {
             console.log(`[${new Date().toISOString()}] Scheduled run starting...`);
             try { await backupOnce(); } catch (err) { console.error("Scheduled backup failed:", err && err.message); }
         }, { timezone: "Asia/Colombo" });
