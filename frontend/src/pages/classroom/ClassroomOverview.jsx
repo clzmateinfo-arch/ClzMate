@@ -231,7 +231,7 @@ export default function ClassroomOverview() {
                             </div>
 
                             <div className="mt-4 flex gap-3">
-                                <IconBtn onClick={() => navigate(`/classroom/${classroomId}/classwork`)} className="!px-3 !py-2 bg-violet-600 text-white">
+                                <IconBtn onClick={() => navigate(`/classroom/${classroomId}/view`)} className="!px-3 !py-2 bg-violet-600 text-white">
                                     View Classwork
                                 </IconBtn>
                                 {isInstructor && <IconBtn textClass="text-black" onClick={() => navigate(`/classroom/${classroomId}/members`)} className="bg-slate-100">
