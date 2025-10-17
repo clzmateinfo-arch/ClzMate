@@ -1,15 +1,16 @@
 require("dotenv-flow").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("./../models/user");
-const Profile = require("./../models/profile");
 const otpGenerator = require("otp-generator");
-const OTP = require("../models/OTP");
 const mailSender = require("../utils/mailSender");
 const otpTemplate = require("../mail/templates/emailVerificationTemplate");
 const { passwordUpdated } = require("../mail/templates/passwordUpdate");
+const User = require("../models/user");
+const Profile = require("../models/profile");
+const OTP = require("../models/OTP");
+const { signToken } = require("../utils/jwt");
 
-const JWT_EXPIRES = "24h";
+const JWT_EXPIRES = process.env.JWT_EXPIRES || "24h";
 
 function normalizeEmail(email) {
     return String(email || "").toLowerCase().trim();
@@ -291,7 +292,7 @@ exports.login = async (req, res) => {
             accountType: user.accountType,
         };
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = signToken(payload, JWT_EXPIRES);
 
         user = user.toObject();
         user.token = token;

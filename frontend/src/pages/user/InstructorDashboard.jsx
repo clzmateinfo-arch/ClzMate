@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
@@ -35,11 +34,10 @@ export default function InstructorDashboard() {
           search: searchTerm,
         });
         if (!mounted) return;
-        console.log("instructorApiData: ", instructorApiData, "instructorCoursesApiData: ", instructorCoursesApiData);
+        //console.log("instructorApiData: ", instructorApiData, "instructorCoursesApiData: ", instructorCoursesApiData);
         setInstructorData(Array.isArray(instructorApiData) ? instructorApiData : []);
         setCourses(Array.isArray(instructorCoursesApiData?.data) ? instructorCoursesApiData?.data : []);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("Instructor load failed", err);
       } finally {
         if (mounted) setLoading(false);

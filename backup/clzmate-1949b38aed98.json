@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "clzmate",
+  "private_key_id": "1949b38aed981524e56d3383c6904c0f109c1f8f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC6GTfpMiCBjjkq\n7hljckBMjzh+opP+no4XscssuX+kFnZDmH5O1QXHvT3OGoySgBzlNFGUCSFiQ71I\nqEY0i/yOJvhHr36/OOKyoRCvz0WccW/rAfLtRRWsVkdJKTcloEIeBszDMOkuJqVs\nUQ8HL55O+e80ck9muufl5wUeGlZISpAjnpo7Hgb7h6+0wMnLZ6GMj8qTDg9+8CXW\ndoOKErYS9EpzlG+8zF8QAF6XZfaXXak0xRfdt76GBgjA8e0pgceeb8mhN1ZUpqDb\nJJDgkdMC/FK4vCpweFNvfrRNGGTa5lRmMZXCIehjg5s2P60pz0+o1kHlteDaSPm1\ni69dRhc1AgMBAAECggEATj8XOpYog8Csecf15dHehjI740bxaf/5p63KSypNqE0H\necFu7i90SDjh+TxBecGjJJ4cZN1362ym9BtItYRcctqgzudTqAw/iTLepMVGNBKg\nJ5RAs5G2HKmEPJc3SDs7QYvDYZi5mn2GVWY5puBXNEazVH5xszSIF6rMhI03VRpJ\nINdQjFvvaCYDC2vRCWeB2G1Lp2frhOMfaFMTiPRlOwykxYFglqUs8rz3seDjwHmj\nozoNNxrrXjyrCciXYbnTkgHD5mqdgSCVyGJMaikpaUWh/KuERKjm9JpO1UOVyGQ1\nutQPXbbq8KjibBhJAi2nRCtqWKfB5HWDvZooraicawKBgQDhIZRfA7wWE4xivdn9\nrkv6IYaCnbsoX/CD2LX/OS44B4LwViR5+NhQbzMWyCr4qnRAc73P6aPl5AG4VkgH\nwfPW1LzYpQhi4va6U58oS+MVu0F4Ai8HHLJsvEiyYBN30JD0FMTKGCRDUTTsDIOQ\n7+ZMtwAwRH/6BlRKnSsJQfcQEwKBgQDTnYmfGr7JRwb436Fq3XDfOJ3DYhzwyOrn\nPe4KdEx2p51VivIj2sgrL/xDK59BtrLwWjlzDyTIYyO1UcrOPHDRN1mKj+GQKk3P\nLHrL0hKLet0QSaUvxk/k6V8HlT/fapJ8qszOBp9Fp4MKCDQ7wNnU47MC+TseJTD/\n6Stq0BF0lwKBgQCCHFoXn5zwVVPpLTfzOOyIHyASFP65ktj6GiD05CMmFpFCPUbP\nh1XdBqdMH1tWY4zUQxAMPUeP8XpdAuCWOy2ll0WdH6P9IpbdkL6HF3SidpqbtQdg\n4ODtntOU45ncwRlFN0uUUOeEUEZ5tbHD7iH3bDwbqTsdUNMeXD8nFoynKQKBgFRc\nAxboRJJcvEzOabz+VhbGrS3MmRjsH6jbqV+FiU3r9+64G1trxkxhLsFgTHaX7LGg\nZjKWIOW5j+yilKSut5LP6+QvA47DLo2ef71tG3N7IVFy6mUnO4ZX+kg9mV7pT0hf\nlpGzVh8gbj67kocXlD8oHp7a2FRmIyiBvYsxMyQ1AoGBALPW+HVATf1935Iy9dJ1\nAziALuNZ+8NSRgNZG8TvY2jG6fsfru/W7y1kwqzH045/SfGBgt9VnWsmQAZXyq78\nB/PezcZzz/xzASJRnMWaZ7Q+pWaupcg8b4Ebn7XUOBvQeAr6VQON+q9QP1LIaG4Z\nmNuUmc5jMZJSavH65TEZL2D1\n-----END PRIVATE KEY-----\n",
+  "client_email": "mongo-backup-uploader@clzmate.iam.gserviceaccount.com",
+  "client_id": "111251160753346874659",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mongo-backup-uploader%40clzmate.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

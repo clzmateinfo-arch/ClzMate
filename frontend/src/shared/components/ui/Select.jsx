@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 

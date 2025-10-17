@@ -1,11 +1,9 @@
 const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
-// COMMAN ENDPOINTS
 export const commanEndpoints = {
   SITE_STATS_API: BASE_URL + "/site/stats",
 }
 
-// AUTH ENDPOINTS
 export const endpoints = {
   SENDOTP_API: BASE_URL + "/auth/sendotp",
   VERIFYOTP_API: BASE_URL + "/auth/verifyotp",
@@ -15,7 +13,6 @@ export const endpoints = {
   RESETPASSWORD_API: BASE_URL + "/auth/reset-password",
 }
 
-// PROFILE ENDPOINTS
 export const profileEndpoints = {
   GET_USER_DETAILS_API: BASE_URL + "/profile/getUserDetails",
   GET_USER_ENROLLED_COURSES_API: BASE_URL + "/profile/getEnrolledCourses",
@@ -23,7 +20,6 @@ export const profileEndpoints = {
   GET_PUBLIC_PROFILE_API: BASE_URL + "/profile/public",
 }
 
-// STUDENTS ENDPOINTS
 export const studentEndpoints = {
   COURSE_PAYMENT_API: BASE_URL + "/payment/capturePayment",
   COURSE_VERIFY_API: BASE_URL + "/payment/verifyPayment",
@@ -31,7 +27,6 @@ export const studentEndpoints = {
   STUDENT_DASHBOARD_API: BASE_URL + "/student/dashboard",
 }
 
-// COURSE ENDPOINTS
 export const courseEndpoints = {
   GET_ALL_COURSE_API: BASE_URL + "/course/getAllCourses",
   COURSE_DETAILS_API: BASE_URL + "/course/getCourseDetails",
@@ -59,26 +54,22 @@ export const courseEndpoints = {
   TOGGLE_PUBLISH_API: BASE_URL + "/course/togglePublish"
 }
 
-// RATINGS AND REVIEWS
 export const ratingsEndpoints = {
   REVIEWS_DETAILS_API: BASE_URL + "/course/getReviews",
 }
 
-// CATAGORIES API
 export const categories = {
   CATEGORIES_API: BASE_URL + "/course/showAllCategories",
 }
 
-// CATALOG PAGE DATA
 export const catalogData = {
   CATALOGPAGEDATA_API: BASE_URL + "/course/getCategoryPageDetails",
 }
-// CONTACT-US API
+
 export const contactusEndpoint = {
   CONTACT_US_API: BASE_URL + "/reach/contact",
 }
 
-// SETTINGS PAGE API
 export const settingsEndpoints = {
   UPDATE_DISPLAY_PICTURE_API: BASE_URL + "/profile/updateUserProfileImage",
   UPDATE_PROFILE_API: BASE_URL + "/profile/updateProfile",
@@ -86,7 +77,6 @@ export const settingsEndpoints = {
   DELETE_PROFILE_API: BASE_URL + "/profile/deleteProfile",
 }
 
-// ADMIN
 export const adminEndpoints = {
   GET_USERS: BASE_URL + "/admin/getAllUsers",
   UPDATE_USER: BASE_URL + "/admin/updateUser",
@@ -99,4 +89,16 @@ export const adminEndpoints = {
 
 export const cartEndpoints = {
   CART_API: BASE_URL + "/cart",
+};
+
+export const classroomEndpoints = {
+  CREATE_CLASSROOM_API: BASE_URL + "/classroom/create",
+  GET_MY_CLASSROOMS_API: BASE_URL + "/classroom/my",
+  JOIN_CLASSROOM_API: BASE_URL + "/classroom/join",
+  GET_CLASS_OVERVIEW_API: BASE_URL + "/classroom",
+  CREATE_TOPIC_API: BASE_URL + "/classroom",
+  LIST_TOPICS_API: BASE_URL + "/classroom",
+  MANAGE_TOPICS_API: BASE_URL + "/classroom/topics",
+  ASSIGNMENTS_API: `${BASE_URL}/classroom/assignments`,
+  QUIZZES_API: `${BASE_URL}/classroom/quizzes`,
 };

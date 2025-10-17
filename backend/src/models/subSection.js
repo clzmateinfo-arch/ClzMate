@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const createModel = require('../utils/createModel');
 
 const supportMaterialSchema = new mongoose.Schema({
     url: { type: String },
@@ -28,4 +29,4 @@ const subSectionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("SubSection", subSectionSchema);
+module.exports = createModel("SubSection", subSectionSchema);

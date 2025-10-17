@@ -1,13 +1,16 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import NotePanel from "../../features/courseViewer/ui/NotePanel";
-import SandboxPanel from "../../features/courseViewer/ui/SandboxPanel";
-import SupportFilesPanel from "../../features/courseViewer/ui/SupportFilesPanel";
-import SectionSidebar from "../../features/courseViewer/ui/SectionSidebar";
-import ExternalVideo from "../../shared/components/ui/ExternalVideo";
-import Box from "../../features/courseViewer/ui/Box";
-import Whiteboard from "../../features/courseViewer/ui/Whiteboard";
+import { useLocation } from "react-router-dom";
+import Box from "../../shared/components/app/Box";
+import NotePanel from "../../shared/components/app/NotePanel";
+import SandboxPanel from "../../shared/components/app/SandboxPanel";
+import SupportFilesPanel from "../../shared/components/app/SupportFilesPanel";
+import SectionSidebar from "../../shared/components/app/SectionSidebar";
+import ExternalVideo from "../../shared/components/app/ExternalVideo";
+import Whiteboard from "../../shared/components/app/Whiteboard";
+import ResourceViewer from "../../shared/components/app/ResourceViewer";
+import { generateCourseLayout } from "../../shared/utils/generateCourseLayout";
 import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
   setCourseSectionData,
@@ -16,8 +19,6 @@ import {
   setTotalNoOfLectures,
   setDrawMode,
 } from "../../entities/course/model/courseSlice";
-import ResourceViewer from "../../features/courseViewer/ui/ResourceViewer";
-import { generateLayout } from "../../shared/utils/generateLayout";
 
 const DEFAULT_SECTION_WIDTH = 15;
 
@@ -37,6 +38,10 @@ export default function ViewCourse() {
   const { drawMode } = useSelector((s) => s.course || {});
   const [wbStatus, setWbStatus] = useState("idle");
   const wbRef = useRef(null);
+
+  const location = useLocation();
+  const fromClassroom = !!(location && location.state && location.state.fromClassroom);
+  const originatingClassroomId = location?.state?.classroomId || null;
 
   useEffect(() => {
     let mounted = true;
@@ -76,7 +81,7 @@ export default function ViewCourse() {
 
   useEffect(() => {
     const features = courseEntireData?.features ?? { sandboxEnabled: false, sandboxLanguage: "javascript", notesEnabled: true };
-    const layout = generateLayout({ features, currentSub, sectionWidth: DEFAULT_SECTION_WIDTH });
+    const layout = generateCourseLayout({ features, currentSub, sectionWidth: DEFAULT_SECTION_WIDTH });
 
     const boxesMapped = layout.map((tile) => {
       if (tile.id === "section") {
@@ -85,7 +90,14 @@ export default function ViewCourse() {
           visible: true,
           z: 300,
           component: SectionSidebar,
-          componentProps: { course: courseEntireData, sections: courseSectionData, currentSectionId: sectionId, currentSubId: subSectionId },
+          componentProps: {
+            course: courseEntireData,
+            sections: courseSectionData,
+            currentSectionId: sectionId,
+            currentSubId: subSectionId,
+            showBackToClassroom: fromClassroom,
+            classroomId: originatingClassroomId
+          },
         };
       }
 
@@ -365,11 +377,12 @@ export default function ViewCourse() {
           }}
         >
           <div
-            className="w-full h-full"
+            className="fixed inset-0 z-[800]"
+            aria-hidden={!drawMode || !fromClassroom}
             style={{
-              width: "100%",
-              height: "100%",
-              touchAction: drawMode ? "none" : "auto",
+              display: drawMode && fromClassroom ? "block" : "none",
+              pointerEvents: drawMode && fromClassroom ? "auto" : "none",
+              background: "transparent",
             }}
           >
             <Whiteboard

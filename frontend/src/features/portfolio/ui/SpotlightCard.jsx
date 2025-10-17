@@ -4,7 +4,7 @@ import spotlightImg from "@/shared/assets/images/porfolio/fireball.png";
 
 export default function SpotlightCard({
     img = spotlightImg,
-    title = "If you are a certified teacher \nthen become an instructor",
+    title = "If you are a certified instructor \nthen become an instructor",
     text = "Unlock new opportunities and earn by creating courses. Share your expertise and reach learners worldwide",
     ctaText = "Start Now",
     ctaHref = "/signup",

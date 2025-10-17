@@ -1,4 +1,4 @@
-export function generateLayout({
+export function generateCourseLayout({
     features = { sandboxEnabled: false, notesEnabled: true },
     currentSub = null,
     sectionWidth = 15,

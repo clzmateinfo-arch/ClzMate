@@ -1,17 +1,17 @@
 const Rajorpay = require("razorpay");
-const instance = require("../config/rajorpay");
+const { default: mongoose } = require("mongoose");
 const crypto = require("crypto");
+const instance = require("../config/rajorpay");
+const User = require("../models/user");
+const Course = require("../models/course");
+const CourseProgress = require("../models/courseProgress");
 const mailSender = require("../utils/mailSender");
 const {
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail");
 require("dotenv-flow").config();
 
-const User = require("../models/user");
-const Course = require("../models/course");
-const CourseProgress = require("../models/courseProgress");
 
-const { default: mongoose } = require("mongoose");
 
 exports.capturePayment = async (req, res) => {
   const { coursesId } = req.body;
