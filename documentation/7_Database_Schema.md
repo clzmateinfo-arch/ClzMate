@@ -1,107 +1,136 @@
-
-# Database Schema
+# Database Schema for ClzMate
 
 ## 1. Introduction
 
-This document describes the database schema for the ClzMate MVP. The schema is designed to store all the data for the application in a structured and efficient manner.
+### 1.1 Purpose
 
-## 2. Database
+This document provides a detailed description of the MongoDB database schema used by the ClzMate application. It is intended for developers to understand the data structures, relationships, and conventions used for data persistence.
 
-The application uses **MongoDB**, a NoSQL database, to store its data. The schema is defined using **Mongoose**, an ODM library for Node.js.
+### 1.2 Technology
 
-## 3. Collections
+-   **Database**: **MongoDB**, a NoSQL database that stores data in flexible, JSON-like documents.
+-   **ODM**: **Mongoose**, which provides a schema-based modeling environment for MongoDB, enforcing data structure and providing a clear interface for database interactions.
 
-### 3.1 `users`
+### 1.3 Conventions
 
-Stores information about the users of the application.
+-   **`_id`**: Each document has a unique `_id` of type `ObjectId`, which serves as its primary key.
+-   **References**: Relationships between collections are maintained using `ObjectId` references. For example, the `instructor` field in a `courses` document stores the `_id` of a document in the `users` collection.
+-   **Timestamps**: Many schemas automatically include `createdAt` and `updatedAt` fields to track the lifecycle of a document.
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the user. |
-| `preferredName` | String | The user's preferred name. |
-| `firstName` | String | The user's first name. |
-| `lastName` | String | The user's last name. |
-| `email` | String | The user's email address (unique). |
-| `password` | String | The user's hashed password. |
-| `accountType` | String | The user's account type (`Admin`, `Instructor`, or `Student`). |
-| `active` | Boolean | Whether the user's account is active. |
-| `approved` | Boolean | Whether the user's account is approved. |
-| `additionalDetails` | ObjectId | A reference to the user's profile in the `profiles` collection. |
-| `courses` | Array | An array of ObjectIds referencing the courses the user is enrolled in. |
-| `image` | String | The URL of the user's profile image. |
-| `token` | String | The user's JWT. |
-| `courseProgress` | Array | An array of ObjectIds referencing the user's course progress. |
+## 2. Core Collections
 
-### 3.2 `courses`
+### 2.1 `users`
 
-Stores information about the courses offered on the platform.
+This collection stores the primary record for every individual who can log in to the platform.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the course. |
-| `courseName` | String | The name of the course. |
-| `courseDescription` | String | A description of the course. |
-| `instructor` | ObjectId | A reference to the instructor of the course in the `users` collection. |
-| `whatYouWillLearn` | String | A summary of what students will learn in the course. |
-| `courseContent` | Array | An array of ObjectIds referencing the sections of the course. |
-| `ratingAndReviews` | Array | An array of ObjectIds referencing the ratings and reviews of the course. |
-| `price` | Number | The price of the course. |
-| `thumbnail` | String | The URL of the course's thumbnail image. |
-| `category` | ObjectId | A reference to the category of the course in the `categories` collection. |
-| `studentsEnrolled` | Array | An array of ObjectIds referencing the students enrolled in the course. |
+| `_id` | ObjectId | The unique identifier for the user. |
+| `preferredName` | String | The user's display name. |
+| `firstName`, `lastName` | String | The user's legal first and last name. |
+| `email` | String | The user's email address, used for login. **Must be unique.** |
+| `password` | String | The user's password, stored as a secure `bcrypt` hash. |
+| `accountType` | String | Defines the user's role. Enum: `["Admin", "Instructor", "Student"]`. |
+| `approved` | Boolean | (Admin-controlled) Whether the user is approved to use the platform. |
+| `additionalDetails` | ObjectId | A reference to this user's corresponding document in the `profiles` collection. |
+| `courses` | [ObjectId] | An array of `_id`s referencing the courses the user is enrolled in. |
+| `image` | String | A URL pointing to the user's profile picture (hosted on Cloudinary). |
+| `courseProgress` | [ObjectId] | An array of `_id`s referencing documents in the `courseprogresses` collection. |
 
-### 3.3 `classrooms`
+**Example `users` Document:**
+```json
+{
+  "_id": "60c72b2f9b1d8c001f8e4d2a",
+  "preferredName": "Jane I.",
+  "email": "jane.instructor@example.com",
+  "password": "bcrypt_hash_of_password",
+  "accountType": "Instructor",
+  "approved": true,
+  "additionalDetails": "60c72b2f9b1d8c001f8e4d2b",
+  "courses": [],
+  "image": "https://res.cloudinary.com/demo/image/upload/v1623665711/profile_jane.jpg"
+}
+```
 
-Stores information about the classrooms created by instructors.
+### 2.2 `profiles`
+
+This collection stores supplementary, non-essential information about a user.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the classroom. |
-| `title` | String | The title of the classroom. |
-| `description` | String | A description of the classroom. |
-| `owner` | ObjectId | A reference to the owner of the classroom in the `users` collection. |
-| `inviteCode` | String | The invite code for the classroom. |
-| `members` | Array | An array of objects representing the members of the classroom. |
+| `_id` | ObjectId | The unique identifier for the profile. |
+| `gender` | String | The user's self-identified gender. |
+| `dateOfBirth` | String | The user's date of birth. |
+| `about` | String | A short biography or description written by the user. |
+| `contactNumber` | String | The user's phone number. |
 
-### 3.4 `assignments`
+### 2.3 `courses`
 
-Stores information about the assignments created in classrooms.
+This collection contains all the information about a specific course.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the assignment. |
-| `topic` | ObjectId | A reference to the topic of the assignment in the `topics` collection. |
+| `_id` | ObjectId | The unique identifier for the course. |
+| `courseName` | String | The public name of the course. |
+| `courseDescription` | String | A detailed description of the course content and objectives. |
+| `instructor` | ObjectId | A reference to the `_id` of the instructor in the `users` collection. |
+| `courseContent` | [ObjectId] | An array of `_id`s referencing the `sections` that make up this course. |
+| `price` | Number | The cost of the course. `0` for free courses. |
+| `thumbnail` | String | A URL to the course's cover image (hosted on Cloudinary). |
+| `category` | ObjectId | A reference to the `_id` of the course's category in the `categories` collection. |
+| `studentsEnrolled` | [ObjectId] | An array of `_id`s referencing the `users` who are enrolled in this course. |
+| `status` | String | The publication status of the course. Enum: `["Draft", "Published"]`. |
+
+## 3. Classroom-Related Collections
+
+### 3.1 `classrooms`
+
+Stores the top-level information for a virtual classroom.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | The unique identifier for the classroom. |
+| `title` | String | The name of the classroom. |
+| `owner` | ObjectId | A reference to the `_id` of the instructor who owns the classroom. |
+| `inviteCode` | String | A unique, randomly generated code for students to join. |
+| `members` | [Sub-document] | An array of objects, each containing a user `_id` and their `role` in the class. |
+| `topics` | [ObjectId] | An array of `_id`s referencing the `topics` within this classroom. |
+
+### 3.2 `topics`
+
+Represents a module or unit within a classroom.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | The unique identifier for the topic. |
+| `classroom` | ObjectId | A reference back to the parent `classrooms` document. |
+| `title` | String | The name of the topic (e.g., "Week 1: Introduction"). |
+| `items` | [Sub-document] | An array of materials, assignments, or quizzes associated with this topic. |
+
+### 3.3 `assignments`
+
+Contains the details for a specific assignment.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | The unique identifier for the assignment. |
+| `topic` | ObjectId | A reference back to the parent `topics` document. |
 | `title` | String | The title of the assignment. |
-| `instructions` | String | The instructions for the assignment. |
-| `dueDate` | Date | The due date of the assignment. |
-| `points` | Number | The maximum points for the assignment. |
-| `attachments` | Array | An array of objects representing the attachments for the assignment. |
+| `instructions` | String | Detailed instructions for the assignment. |
+| `dueDate` | Date | The deadline for submissions. |
+| `points` | Number | The maximum possible score for the assignment. |
 
-### 3.5 `quizzes`
+### 3.4 `submissions`
 
-Stores information about the quizzes created in classrooms.
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the quiz. |
-| `topic` | ObjectId | A reference to the topic of the quiz in the `topics` collection. |
-| `title` | String | The title of the quiz. |
-| `description` | String | A description of the quiz. |
-| `timeLimit` | Number | The time limit for the quiz in minutes. |
-| `shuffle` | Boolean | Whether the questions in the quiz should be shuffled. |
-| `screens` | Array | An array of objects representing the questions in the quiz. |
-
-### 3.6 `submissions`
-
-Stores information about the submissions for assignments.
+Stores a student's work for a given assignment.
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `_id` | ObjectId | Unique identifier for the submission. |
-| `assignment` | ObjectId | A reference to the assignment in the `assignments` collection. |
-| `student` | ObjectId | A reference to the student who made the submission in the `users` collection. |
-| `content` | String | The content of the submission. |
-| `attachments` | Array | An array of objects representing the attachments for the submission. |
-| `submittedAt` | Date | The date and time the submission was made. |
-| `grade` | Number | The grade for the submission. |
-| `feedback` | String | The feedback for the submission. |
+| `_id` | ObjectId | The unique identifier for the submission. |
+| `assignment` | ObjectId | A reference to the `assignments` document this submission is for. |
+| `student` | ObjectId | A reference to the `users` document of the student who submitted. |
+| `content` | String | The text content of the submission. |
+| `attachments` | [Sub-document] | An array of files submitted by the student. |
+| `submittedAt` | Date | The timestamp of when the submission was made. |
+| `grade` | Number | The grade assigned by the instructor. |
+| `feedback` | String | Feedback provided by the instructor. |

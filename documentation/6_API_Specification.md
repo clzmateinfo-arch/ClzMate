@@ -1,73 +1,253 @@
-
-# API Specification
+# API Specification for ClzMate
 
 ## 1. Introduction
 
-This document provides a specification for the RESTful API of the ClzMate MVP.
+This document provides a detailed specification for the ClzMate RESTful API. It is intended for developers building clients or integrations that interact with the ClzMate platform.
 
-## 2. Authentication
+### 1.1 Base URL
 
-All API endpoints that require authentication expect a JSON Web Token (JWT) to be included in the `Authorization` header of the request.
+All API endpoints are prefixed with the following base URL:
+`/api/v1`
 
-`Authorization: Bearer <your_jwt>`
+### 1.2 Authentication
 
-## 3. API Endpoints
+Most endpoints require authentication. Authenticated requests must include an `Authorization` header containing a JSON Web Token (JWT) provided upon login.
 
-### 3.1 User Authentication
+**Format**: `Authorization: Bearer <your_jwt>`
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/signup` | Register a new user. |
-| `POST` | `/api/v1/auth/login` | Log in a user. |
-| `POST` | `/api/v1/auth/sendotp` | Send an OTP to the user's email for verification. |
-| `POST` | `/api/v1/auth/changepassword` | Change the password of a logged-in user. |
-| `POST` | `/api/v1/auth/reset-password-token` | Send a password reset token to the user's email. |
-| `POST` | `/api/v1/auth/reset-password` | Reset the user's password using a reset token. |
+### 1.3 Role-Based Access
 
-### 3.2 Courses
+-   **(S)** - Accessible by Students.
+-   **(I)** - Accessible by Instructors.
+-   **(A)** - Accessible by Admins.
+-   **(Public)** - No authentication required.
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/course/createCourse` | Create a new course. |
-| `GET` | `/api/v1/course/getAllCourses` | Get a list of all courses. |
-| `POST` | `/api/v1/course/getCourseDetails` | Get the details of a specific course. |
-| `POST` | `/api/v1/course/editCourse` | Edit an existing course. |
-| `DELETE` | `/api/v1/course/deleteCourse` | Delete a course. |
-| `GET` | `/api/v1/course/getInstructorCourses` | Get a list of courses for the logged-in instructor. |
+## 2. API Endpoints
 
-### 3.3 Classrooms
+---
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/classroom/create` | Create a new classroom. |
-| `GET` | `/api/v1/classroom/my` | Get a list of classrooms for the logged-in user. |
-| `GET` | `/api/v1/classroom/:id` | Get the details of a specific classroom. |
-| `POST` | `/api/v1/classroom/join` | Join a classroom using an invite code. |
-| `POST` | `/api/v1/classroom/:classroomId/announcements` | Create an announcement in a classroom. |
-| `POST` | `/api/v1/classroom/:topicId/assignments` | Create an assignment in a classroom. |
-| `POST` | `/api/v1/classroom/:topicId/quizzes` | Create a quiz in a classroom. |
+### 2.1 Authentication (`/auth`)
 
-### 3.4 Payments
+#### **POST `/auth/signup`**
+Registers a new user.
+-   **Request Body**:
+    ```json
+    {
+      "preferredName": "John D.",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "password": "a-strong-password",
+      "confirmPassword": "a-strong-password",
+      "accountType": "Student",
+      "otp": "123456"
+    }
+    ```
+-   **Success Response (201)**:
+    ```json
+    {
+      "success": true,
+      "message": "User registered and verified successfully",
+      "email": "john.doe@example.com"
+    }
+    ```
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/payments/capturePayment` | Capture a payment for a course enrollment. |
-| `POST` | `/api/v1/payments/verifyPayment` | Verify a payment. |
+#### **POST `/auth/login`**
+Authenticates a user and returns a JWT.
+-   **Request Body**:
+    ```json
+    {
+      "email": "john.doe@example.com",
+      "password": "a-strong-password"
+    }
+    ```
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "user": { "...user object..." },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "message": "User logged in successfully"
+    }
+    ```
 
-### 3.5 Profile
+---
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `PUT` | `/api/v1/profile/updateProfile` | Update the profile of the logged-in user. |
-| `GET` | `/api/v1/profile/getUserDetails` | Get the details of the logged-in user. |
-| `GET` | `/api/v1/profile/getEnrolledCourses` | Get a list of enrolled courses for the logged-in user. |
-| `PUT` | `/api/v1/profile/updateUserProfileImage` | Update the profile image of the logged-in user. |
-| `GET` | `/api/v1/profile/instructorDashboard` | Get the instructor dashboard data. |
+### 2.2 Courses (`/course`)
 
-### 3.6 Admin
+#### **GET `/course/getAllCourses` (Public)**
+Retrieves a paginated and filterable list of all published courses.
+-   **Query Parameters**: `?page=1&limit=10&search=React`
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "courses": [ "...array of course objects..." ],
+        "total": 15,
+        "page": 1,
+        "limit": 10,
+        "totalPages": 2
+      }
+    }
+    ```
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/admin/getAllUsers` | Get a list of all users. |
-| `POST` | `/api/v1/admin/updateUser` | Update a user's account. |
-| `POST` | `/api/v1/admin/deleteUser` | Delete a user's account. |
+#### **POST `/course/createCourse` (I)**
+Creates a new course. Requires `multipart/form-data` for the thumbnail image.
+-   **Request Body (form-data)**: `courseName`, `courseDescription`, `price`, `category`, `thumbnailImage` (file), etc.
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": { "...new course object..." },
+      "message": "New Course created successfully"
+    }
+    ```
+
+---
+
+### 2.3 Classrooms (`/classroom`)
+
+#### **POST `/classroom/create` (I)**
+Creates a new classroom.
+-   **Request Body**:
+    ```json
+    {
+      "title": "Introduction to Web Development",
+      "description": "A beginner's course on HTML, CSS, and JavaScript."
+    }
+    ```
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": { "...new classroom object with inviteCode..." }
+    }
+    ```
+
+#### **POST `/classroom/join` (S, I)**
+Allows a user to join a classroom using an invite code.
+-   **Request Body**:
+    ```json
+    {
+      "inviteCode": "a1b2c3d4"
+    }
+    ```
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": { "...classroom object..." }
+    }
+    ```
+
+#### **GET `/classroom/:classroomId/overview` (S, I)**
+Retrieves an overview of a classroom, including recent announcements and upcoming assignments.
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "classroom": { "...classroom details..." },
+        "announcements": [ "...announcements..." ],
+        "upcomingAssignments": [ "...assignments..." ],
+        "counts": { "members": 15, "topics": 5, "assignments": 10 }
+      }
+    }
+    ```
+
+---
+
+### 2.4 Payments (`/payments`)
+
+#### **POST `/payments/capturePayment` (S)**
+Initiates the payment process for one or more courses.
+-   **Request Body**:
+    ```json
+    {
+      "coursesId": ["course_id_1", "course_id_2"]
+    }
+    ```
+-   **Success Response (200)**: Returns payment gateway order details.
+
+#### **POST `/payments/verifyPayment` (S)**
+Verifies the payment after completion on the payment gateway.
+-   **Request Body**: Contains payment gateway specific details like `razorpay_order_id`, `razorpay_payment_id`, etc.
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "message": "Payment Verified"
+    }
+    ```
+
+---
+
+### 2.5 Profile (`/profile`)
+
+#### **PUT `/profile/updateProfile` (S, I, A)**
+Updates the profile of the currently authenticated user.
+-   **Request Body**:
+    ```json
+    {
+      "firstName": "Johnathan",
+      "additionalDetails": {
+        "about": "I am a passionate learner."
+      }
+    }
+    ```
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "updatedUserDetails": { "...updated user object..." },
+      "message": "Profile updated successfully"
+    }
+    ```
+
+#### **GET `/profile/getEnrolledCourses` (S)**
+Retrieves the list of courses the student is enrolled in, along with their progress.
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "courses": [
+          {
+            "_id": "course_id",
+            "courseName": "Full Stack Web Development",
+            "progressPercentage": 75,
+            "...other course details..."
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+---
+
+### 2.6 Admin (`/admin`)
+
+#### **POST `/admin/getAllUsers` (A)**
+Retrieves a paginated list of all users on the platform.
+-   **Request Body**:
+    ```json
+    {
+      "q": "john",
+      "page": 1,
+      "limit": 20
+    }
+    ```
+-   **Success Response (200)**:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "users": [ "...array of user objects..." ],
+        "total": 5,
+        "page": 1,
+        "limit": 20
+      }
+    }
+    ```
