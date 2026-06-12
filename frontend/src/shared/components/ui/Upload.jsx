@@ -20,6 +20,8 @@ export default function Upload({
 }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewSource, setPreviewSource] = useState(viewData ?? editData ?? "");
+  const [htmlDoc, setHtmlDoc] = useState(null);
+  const [htmlFetching, setHtmlFetching] = useState(false);
   const inputRef = useRef(null);
 
   const acceptMap = {
@@ -133,6 +135,22 @@ export default function Upload({
     };
   }, [viewData, editData]);
 
+  useEffect(() => {
+    if (fileType !== "html") return;
+    if (!previewSource || previewSource.startsWith("blob:")) {
+      setHtmlDoc(null);
+      return;
+    }
+    let mounted = true;
+    setHtmlFetching(true);
+    fetch(previewSource)
+      .then((r) => r.text())
+      .then((text) => { if (mounted) setHtmlDoc(text); })
+      .catch(() => { if (mounted) setHtmlDoc(null); })
+      .finally(() => { if (mounted) setHtmlFetching(false); });
+    return () => { mounted = false; };
+  }, [previewSource, fileType]);
+
   const handleClear = () => {
     if (previewSource && previewSource.startsWith("blob:")) {
       try {
@@ -200,12 +218,17 @@ export default function Upload({
                 </div>
               ) : fileType === "html" ? (
                 <div style={{ height: previewHeight }} className="w-full overflow-hidden rounded-xl bg-white border border-slate-200">
-                  <iframe
-                    src={previewSource}
-                    title="HTML Preview"
-                    className="w-full h-full border-0"
-                    sandbox="allow-scripts allow-forms"
-                  />
+                  {htmlFetching ? (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">Loading preview...</div>
+                  ) : (
+                    <iframe
+                      srcDoc={htmlDoc ?? undefined}
+                      src={htmlDoc ? undefined : previewSource}
+                      title="HTML Preview"
+                      className="w-full h-full border-0"
+                      sandbox="allow-scripts allow-forms"
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="p-4">

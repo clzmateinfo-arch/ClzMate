@@ -267,8 +267,23 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
       support.new.forEach((f) => formData.append("supportMaterials", f));
     }
 
-    if (Array.isArray(support.remove) && support.remove.length) {
-      formData.append("removeSupport", JSON.stringify(support.remove));
+    const toRemove = [...(Array.isArray(support.remove) ? support.remove : [])];
+
+    if (currentValues.lectureHtml && typeof currentValues.lectureHtml !== "string") {
+      const oldHtmlMat = (modalData?.supportMaterials || []).find((m) => m.isMainHtml);
+      if (oldHtmlMat?.publicId) toRemove.push(oldHtmlMat.publicId);
+    }
+    if (currentValues.lectureVideo && typeof currentValues.lectureVideo !== "string") {
+      const oldVideoMat = (modalData?.supportMaterials || []).find((m) => m.isMainVideo);
+      if (oldVideoMat?.publicId) toRemove.push(oldVideoMat.publicId);
+    }
+    if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
+      const oldPdfMat = (modalData?.supportMaterials || []).find((m) => m.isMainPdf);
+      if (oldPdfMat?.publicId) toRemove.push(oldPdfMat.publicId);
+    }
+
+    if (toRemove.length) {
+      formData.append("removeSupport", JSON.stringify(toRemove));
     }
 
     const meta = buildSupportMaterialsMeta(currentValues);
@@ -349,6 +364,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
   };
 
   const watchedExternal = watch("lectureExternalUrl");
+  const watchedVideo = watch("lectureVideo");
+  const watchedPdf = watch("lecturePdf");
+  const watchedHtml = watch("lectureHtml");
 
   return (
     <div className="fixed inset-0 z-[1000] grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -371,8 +389,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               errors={errors}
               fileType="video"
               required={false}
-              viewData={view ? getValues().lectureVideo : null}
-              editData={edit ? getValues().lectureVideo : null}
+              viewData={view ? watchedVideo : null}
+              editData={edit ? watchedVideo : null}
               previewHeight={320}
               disabled={view}
             />
@@ -387,8 +405,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               errors={errors}
               fileType="pdf"
               required={false}
-              viewData={view ? getValues().lecturePdf : null}
-              editData={edit ? getValues().lecturePdf : null}
+              viewData={view ? watchedPdf : null}
+              editData={edit ? watchedPdf : null}
               previewHeight={320}
               disabled={view}
             />
@@ -403,8 +421,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               errors={errors}
               fileType="html"
               required={false}
-              viewData={view ? getValues().lectureHtml : null}
-              editData={edit ? getValues().lectureHtml : null}
+              viewData={view ? watchedHtml : null}
+              editData={edit ? watchedHtml : null}
               previewHeight={320}
               disabled={view}
             />

@@ -22,7 +22,7 @@ const buildTransportOptions = () => {
 
     return {
         host: MAIL_HOST || "smtp.gmail.com",
-        port: Number(MAIL_PORT) || 465,
+        port: Number(MAIL_PORT) || 587,
         secure: String(MAIL_SECURE || "false").toLowerCase() === "true",
         auth: {
             user: MAIL_USER,

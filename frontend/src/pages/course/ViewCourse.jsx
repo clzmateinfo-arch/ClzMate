@@ -168,7 +168,7 @@ export default function ViewCourse() {
           visible: true,
           z: 170,
           component: SupportFilesPanel,
-          componentProps: { supportMaterials: (currentSub && currentSub.supportMaterials) || [] },
+          componentProps: { supportMaterials: (currentSub?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml) },
         };
       }
 
