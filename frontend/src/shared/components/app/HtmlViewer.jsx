@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiDownload } from "react-icons/fi";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 
 export default function HtmlViewer({ resource, token }) {
@@ -51,6 +52,19 @@ export default function HtmlViewer({ resource, token }) {
     };
   }, [resource?.publicId, resource?.url, resource?.resourceType, token]);
 
+  const handleDownload = () => {
+    if (!htmlContent) return;
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = resource?.originalName || "page.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  };
+
   if (!resource) {
     return (
       <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
@@ -84,11 +98,22 @@ export default function HtmlViewer({ resource, token }) {
   }
 
   return (
-    <iframe
-      srcDoc={htmlContent}
-      className="w-full h-full border-0"
-      title={resource?.originalName || "HTML Content"}
-      sandbox="allow-scripts allow-forms allow-modals"
-    />
+    <div className="relative w-full h-full">
+      <iframe
+        srcDoc={htmlContent}
+        className="w-full h-full border-0"
+        title={resource?.originalName || "HTML Content"}
+        sandbox="allow-scripts allow-forms allow-modals"
+      />
+      <button
+        onClick={handleDownload}
+        className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium transition-colors backdrop-blur-sm"
+        title={`Download ${resource?.originalName || "HTML file"}`}
+        type="button"
+      >
+        <FiDownload className="w-3.5 h-3.5" />
+        Download
+      </button>
+    </div>
   );
 }

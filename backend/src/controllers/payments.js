@@ -9,6 +9,9 @@ const mailSender = require("../utils/mailSender");
 const {
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail");
+const {
+  paymentSuccessEmail,
+} = require("../mail/templates/paymentSuccessEmail");
 require("dotenv-flow").config();
 
 
@@ -215,7 +218,7 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
 
   const userId = req.user.id;
 
-  if (!orderId || !paymentId || !amount || !userId) {
+  if (!orderId || !paymentId || amount == null || !userId) {
     return res
       .status(400)
       .json({ success: false, message: "Please provide all the fields" });
@@ -223,9 +226,12 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
 
   try {
     const enrolledStudent = await User.findById(userId);
+    if (!enrolledStudent) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
     await mailSender(
       enrolledStudent.email,
-      `Payment Recieved`,
+      `Payment Received`,
       paymentSuccessEmail(
         `${enrolledStudent.firstName}`,
         amount / 100,
@@ -233,6 +239,7 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
         paymentId
       )
     );
+    return res.status(200).json({ success: true, message: "Email sent" });
   } catch (error) {
     console.log("error in sending mail", error);
     return res
