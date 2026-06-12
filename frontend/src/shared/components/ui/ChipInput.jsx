@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { MdClose } from "react-icons/md";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
 
 export default function ChipInput({ label, name, placeholder, register, errors, setValue }) {
@@ -11,7 +10,7 @@ export default function ChipInput({ label, name, placeholder, register, errors, 
   useEffect(() => {
     if (editCourse && course?.tag) setChips(Array.isArray(course.tag) ? course.tag : []);
     register(name, { required: true, validate: (v) => Array.isArray(v) && v.length > 0 }, chips);
-  }, [useLocation().pathname]);
+  }, [editCourse, course?.tag, name]);
 
   useEffect(() => setValue(name, chips), [chips, name, setValue]);
 

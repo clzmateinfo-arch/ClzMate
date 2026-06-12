@@ -1,5 +1,4 @@
 // src/entities/contact/model/contactAPI.js
-import { toast } from "react-hot-toast";
 import { apiConnector } from "@/shared/services/api/apiConnector";
 import { contactusEndpoint } from "@/app/config/apis";
 import { showToast } from "@/shared/components/feedback/CustomToast";
@@ -27,7 +26,6 @@ export async function submitContact(payload) {
             throw new Error(response?.data?.message || "Failed to send message");
         }
 
-        toast.success(response.data.message || "Message sent   we'll reply shortly.");
         showToast("Message sent, we'll reply shortly", "success");
         return response.data;
     } catch (error) {

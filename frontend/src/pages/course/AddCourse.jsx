@@ -7,11 +7,12 @@ import CourseTipsDialog from "@/features/courceManager/ui/CourseTipsDialog";
 import { FiZap } from "react-icons/fi";
 
 export default function AddCourse() {
+  const location = useLocation();
   const [tipsOpen, setTipsOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
+  }, [location.pathname]);
 
   return (
     <div className="bg-transparent text-richblack-900 min-h-screen pb-24">

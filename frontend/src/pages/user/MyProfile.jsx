@@ -14,10 +14,11 @@ import Button from "@/shared/components/ui/Button";
 export default function MyProfile() {
   const { user } = useSelector((state) => state.profile);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
+  }, [location.pathname]);
 
   const displayName =
     user?.preferredName ||

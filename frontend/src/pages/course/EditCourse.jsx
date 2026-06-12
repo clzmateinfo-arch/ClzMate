@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
 import { setCourse, setEditCourse } from "@/entities/course/model/courseSlice";
 import RenderSteps from "@/features/courceManager/ui/RenderSteps";
@@ -30,7 +30,7 @@ export default function EditCourse() {
     };
 
     fetchFullCourseDetails();
-  }, [useLocation().pathname]);
+  }, [courseId, token]);
 
   if (loading) {
     return <Loading />;

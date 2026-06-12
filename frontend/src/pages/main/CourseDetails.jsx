@@ -29,6 +29,7 @@ function CourseDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const location = useLocation();
 
   const [response, setResponse] = useState(null);
   const [confirmationModal, setConfirmationModal] = useState(null);
@@ -43,13 +44,13 @@ function CourseDetails() {
       }
     };
     fectchCourseDetailsData();
-  }, [courseId, useLocation().pathname]);
+  }, [courseId]);
 
   const [avgReviewCount, setAvgReviewCount] = useState(0);
   useEffect(() => {
     const count = GetAvgRating(response?.data?.courseDetails.ratingAndReviews);
     setAvgReviewCount(count);
-  }, [response, useLocation().pathname]);
+  }, [response]);
 
   const [isActive, setIsActive] = useState([]);
   const handleActive = (id) => {
@@ -63,11 +64,11 @@ function CourseDetails() {
       lectures += sec.subSection?.length || 0;
     });
     setTotalNoOfLectures(lectures);
-  }, [response, useLocation().pathname]);
+  }, [response]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
+  }, [location.pathname]);
 
   if (paymentLoading || loading || !response) {
     return (

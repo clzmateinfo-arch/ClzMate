@@ -6,7 +6,7 @@ import AsidePanel from "@/features/auth/ui/AsidePanel";
 import UpdatePasswordForm from "@/features/auth/ui/UpdatePasswordForm";
 import backgroundImg from "@/shared/assets/images/auth/sign-up-right-banner.png";
 
-export default function SignUp() {
+export default function UpdatePassword() {
   const asideQuote = {
     lines: ["The more that you read, the more things you will know", "The more that you learn, the more places you'll go"],
     cite: " Dr. Seuss",

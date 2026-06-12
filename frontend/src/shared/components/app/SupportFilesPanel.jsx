@@ -3,6 +3,7 @@ import { FiX } from "react-icons/fi";
 import ResourceViewer from "@/shared/components/app/ResourceViewer";
 import PlayerPanel from "@/shared/components/app/PlayerPanel";
 import ExternalVideo from "@/shared/components/app/ExternalVideo";
+import HtmlViewer from "@/shared/components/app/HtmlViewer";
 
 export default function SupportFilesPanel({ supportMaterials = [], token = null }) {
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -69,6 +70,12 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
 
     const isPdfResource = (r = {}) =>
         mt(r) === "application/pdf" || (name(r) || "").endsWith(".pdf") || ((r.resourceType || "").startsWith("raw") && (name(r) || "").endsWith(".pdf"));
+
+    const isHtmlResource = (r = {}) =>
+        !!r.isMainHtml ||
+        mt(r).includes("html") ||
+        (name(r) || "").endsWith(".html") ||
+        (name(r) || "").endsWith(".htm");
 
     if (!Array.isArray(supportMaterials) || supportMaterials.length === 0) {
         return (
@@ -138,6 +145,8 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
                         <div className="w-full h-[calc(100%-48px)] bg-black">
                             {isYoutubeLike(previewResource.url || previewResource.link) ? (
                                 <ExternalVideo url={previewResource.url || previewResource.link} />
+                            ) : isHtmlResource(previewResource) ? (
+                                <HtmlViewer resource={previewResource} token={token} />
                             ) : (previewSub && (isVideoResource(previewResource) || isPdfResource(previewResource))) ? (
                                 <PlayerPanel
                                     sub={previewSub}

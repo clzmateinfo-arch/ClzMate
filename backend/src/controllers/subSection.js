@@ -34,11 +34,13 @@ exports.createSubSection = async (req, res) => {
 
     const legacyVideo = pickSingle(req.files, "video");
     const legacyPdf = pickSingle(req.files, "pdf");
+    const legacyHtml = pickSingle(req.files, "html");
     if (legacyVideo) incomingFiles.push(legacyVideo);
     if (legacyPdf) incomingFiles.push(legacyPdf);
+    if (legacyHtml) incomingFiles.push(legacyHtml);
 
     if (!incomingFiles.length && (!meta || meta.length === 0) && !externalVideoUrl) {
-      return res.status(400).json({ success: false, message: "At least one file (video or pdf) or an external video URL is required" });
+      return res.status(400).json({ success: false, message: "At least one file (video, pdf, or html) or an external video URL is required" });
     }
 
     const supportMaterials = [];
@@ -54,6 +56,7 @@ exports.createSubSection = async (req, res) => {
         resourceType: uploaded.resource_type || uploaded._resource_type || null,
         isMainVideo: !!foundMeta.isMainVideo,
         isMainPdf: !!foundMeta.isMainPdf,
+        isMainHtml: !!foundMeta.isMainHtml,
       });
     }
 
@@ -119,10 +122,12 @@ exports.updateSubSection = async (req, res) => {
     const newFiles = pickMany(req.files, "supportMaterials");
     const legacyVideo = pickSingle(req.files, "video");
     const legacyPdf = pickSingle(req.files, "pdf");
+    const legacyHtml = pickSingle(req.files, "html");
     const allNew = [];
     if (newFiles && newFiles.length) allNew.push(...newFiles);
     if (legacyVideo) allNew.push(legacyVideo);
     if (legacyPdf) allNew.push(legacyPdf);
+    if (legacyHtml) allNew.push(legacyHtml);
 
     if (allNew.length) {
       for (const f of allNew) {
@@ -137,13 +142,14 @@ exports.updateSubSection = async (req, res) => {
           resourceType: d.resource_type || d._resource_type || null,
           isMainVideo: !!fm.isMainVideo,
           isMainPdf: !!fm.isMainPdf,
+          isMainHtml: !!fm.isMainHtml,
         });
       }
     }
 
-    const hasMain = (subSection.supportMaterials || []).some((s) => s.isMainVideo || s.isMainPdf);
+    const hasMain = (subSection.supportMaterials || []).some((s) => s.isMainVideo || s.isMainPdf || s.isMainHtml);
     if (!hasMain && !subSection.externalVideoUrl) {
-      return res.status(400).json({ success: false, message: "SubSection must have at least one main video or main PDF or an external video URL" });
+      return res.status(400).json({ success: false, message: "SubSection must have at least one main video, main PDF, main HTML, or an external video URL" });
     }
 
     await subSection.save();

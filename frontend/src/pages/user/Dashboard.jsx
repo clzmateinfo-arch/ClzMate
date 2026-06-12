@@ -6,6 +6,11 @@ import Loading from "@/shared/components/navigation/Loading";
 const Dashboard = () => {
   const { loading: authLoading } = useSelector((state) => state.auth);
   const { loading: profileLoading } = useSelector((state) => state.profile);
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   if (profileLoading || authLoading) {
     return (
@@ -14,10 +19,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
 
   return (
     <div>

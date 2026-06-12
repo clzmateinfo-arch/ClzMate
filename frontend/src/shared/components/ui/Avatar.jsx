@@ -1,10 +1,16 @@
+import { useState } from "react";
+
 export const Avatar = ({ user }) => {
-    if (user?.image || user?.avatar) {
+    const [imgError, setImgError] = useState(false);
+    const src = user?.image || user?.avatar;
+
+    if (src && !imgError) {
         return (
             <img
-                src={user.image || user.avatar}
+                src={src}
                 alt={user?.preferredName || user?.firstName || "User avatar"}
                 className="h-8 w-8 rounded-full object-cover"
+                onError={() => setImgError(true)}
             />
         );
     }

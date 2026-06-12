@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
+import { apiConnector } from "@/shared/services/api/apiConnector";
 
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import Loading from "@/shared/components/navigation/Loading";
@@ -57,8 +58,8 @@ export default function ClassroomOverview() {
         try {
             const data = await fetchClassOverviewAPI(classroomId, token);
             if (data) {
-                setClassroom(data.classroom || data.classroom || null);
-                setAnnouncements(data.announcements || data.announcements || []);
+                setClassroom(data.classroom || null);
+                setAnnouncements(data.announcements || []);
                 setUpcoming(data.upcomingAssignments || data.upcoming || []);
             } else {
                 setClassroom(null);
@@ -76,7 +77,6 @@ export default function ClassroomOverview() {
             }
 
             try {
-                const { apiConnector } = require("@/shared/services/api/apiConnector");
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const resp = await apiConnector("GET", `/api/classroom/${classroomId}`, null, headers);
                 if (resp?.data?.success) {

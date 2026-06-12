@@ -1,11 +1,10 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react/prop-types */
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useOnClickOutside from "../../../hooks/useOnClickOutside";
 import Img from "@/shared/components/ui/Img";
-import { logout } from "../../../services/operations/authAPI";
+import { logout } from "@/entities/auth/model/authAPI";
 import { VscDashboard, VscSignOut } from "react-icons/vsc";
 import { AiOutlineCaretDown, AiOutlineHome } from "react-icons/ai";
 import { MdOutlineContactPhone } from "react-icons/md";
@@ -15,35 +14,32 @@ import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI"
 
 export default function MobileProfileDropDown() {
   const { user } = useSelector((state) => state.profile);
-  if (!user) return null;
-  // console.log('user data from store = ', user )
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const ref = useRef(null);
-
-  useOnClickOutside(ref, () => setOpen(false));
-
   const [open, setOpen] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [subLinks, setSubLinks] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
 
-  const fetchSublinks = async () => {
-    try {
-      setLoading(true);
-      const res = await fetchCourseCategories();
-      setSubLinks(res);
-    } catch (error) {
-      console.log("Could not fetch the category list = ", error);
-    }
-    setLoading(false);
-  };
+  useOnClickOutside(ref, () => setOpen(false));
 
   useEffect(() => {
-    fetchSublinks();
-  }, [useLocation().pathname]);
+    const doFetch = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchCourseCategories();
+        setSubLinks(res);
+      } catch (error) {
+        console.log("Could not fetch the category list = ", error);
+      }
+      setLoading(false);
+    };
+    doFetch();
+  }, []);
+
+  if (!user) return null;
 
   return (
     <button className="relative sm:hidden" onClick={() => setOpen(true)}>

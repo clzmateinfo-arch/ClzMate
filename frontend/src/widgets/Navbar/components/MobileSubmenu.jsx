@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { showToast } from "@/shared/components/feedback/CustomToast";
 import { HiOutlineChevronRight  } from "react-icons/hi2";
 
@@ -58,7 +58,7 @@ export default function MobileSubmenu({ source, path, basePath, onClose = () => 
         return () => {
             mountedRef.current = false;
         };
-    }, [source, useLocation().pathname]);
+    }, [source]);
 
     if (loading) return <div className="py-2 text-sm text-gray-600">Loading…</div>;
     if (!items || items.length === 0) return <div className="py-2 text-sm text-gray-600">No items</div>;

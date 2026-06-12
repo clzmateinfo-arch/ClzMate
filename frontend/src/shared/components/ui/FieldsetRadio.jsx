@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
-import { useLocation } from "react-router-dom";
 
 export default function FieldsetRadio({
   name,
@@ -28,7 +27,7 @@ export default function FieldsetRadio({
         optionRefs.current[i].current.tabIndex = -1;
       }
     });
-  }, [value, options, useLocation().pathname]);
+  }, [value, options]);
 
   const focusByIndex = (idx) => {
     const el = optionRefs.current[idx]?.current;
