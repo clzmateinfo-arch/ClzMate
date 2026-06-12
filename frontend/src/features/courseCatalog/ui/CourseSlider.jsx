@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
-import { useLocation } from "react-router-dom";
 
 export default function CourseSlider({
   categoryId,
@@ -26,14 +25,14 @@ export default function CourseSlider({
     setPage(1);
     setHasMore(true);
     setTotal(null);
-  }, [categoryId, initialFeatured, useLocation().pathname]);
+  }, [categoryId, initialFeatured]);
 
   useEffect(() => {
     setCourses([]);
     setPage(1);
     setHasMore(true);
     setTotal(null);
-  }, [searchTerm, filters, categoryId, useLocation().pathname]);
+  }, [searchTerm, filters, categoryId]);
 
   useEffect(() => {
     let mounted = true;
@@ -92,7 +91,7 @@ export default function CourseSlider({
     return () => {
       mounted = false;
     };
-  }, [page, categoryId, searchTerm, filters, pageSize, useLocation().pathname]);
+  }, [page, categoryId, searchTerm, filters, pageSize]);
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -111,7 +110,7 @@ export default function CourseSlider({
     if (current) observerRef.current.observe(current);
 
     return () => observerRef.current?.disconnect();
-  }, [hasMore, loading, useLocation().pathname]);
+  }, [hasMore, loading]);
 
   return (
     <section className="mb-8">

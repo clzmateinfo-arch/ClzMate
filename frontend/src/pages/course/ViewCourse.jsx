@@ -10,6 +10,7 @@ import SectionSidebar from "../../shared/components/app/SectionSidebar";
 import ExternalVideo from "../../shared/components/app/ExternalVideo";
 import Whiteboard from "../../shared/components/app/Whiteboard";
 import ResourceViewer from "../../shared/components/app/ResourceViewer";
+import HtmlViewer from "../../shared/components/app/HtmlViewer";
 import { generateCourseLayout } from "../../shared/utils/generateCourseLayout";
 import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
@@ -135,6 +136,22 @@ export default function ViewCourse() {
         };
       }
 
+      if (tile.id === "html") {
+        const mats = currentSub?.supportMaterials || [];
+        const mainHtml = mats.find((m) => !!m.isMainHtml) || mats.find((m) =>
+          (m.mimeType || "").toLowerCase().includes("html") ||
+          (m.originalName || "").toLowerCase().endsWith(".html") ||
+          (m.originalName || "").toLowerCase().endsWith(".htm")
+        );
+        return {
+          ...tile,
+          visible: true,
+          z: 195,
+          component: HtmlViewer,
+          componentProps: { resource: mainHtml, token },
+        };
+      }
+
       if (tile.id === "notes") {
         return {
           ...tile,
@@ -151,7 +168,7 @@ export default function ViewCourse() {
           visible: true,
           z: 170,
           component: SupportFilesPanel,
-          componentProps: { supportMaterials: (currentSub && currentSub.supportMaterials) || [] },
+          componentProps: { supportMaterials: (currentSub?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml) },
         };
       }
 

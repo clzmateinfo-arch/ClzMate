@@ -36,15 +36,15 @@ exports.auth = (req, res, next) => {
       console.log("JWT verify failed:", err && err.message);
       return res.status(401).json({
         success: false,
+        message: "Error while decoding token",
         error: err?.message || "Error while decoding token",
-        messgae: "Error while decoding token",
       });
     }
   } catch (error) {
     console.log("Error while token validating", error);
     return res.status(500).json({
       success: false,
-      messgae: "Error while token validating",
+      message: "Error while token validating",
     });
   }
 };
@@ -54,7 +54,7 @@ exports.isStudent = (req, res, next) => {
     if (req.user?.accountType != "Student") {
       return res.status(401).json({
         success: false,
-        messgae: "This Page is protected only for student",
+        message: "This Page is protected only for student",
       });
     }
     next();
@@ -63,8 +63,8 @@ exports.isStudent = (req, res, next) => {
     console.log(error);
     return res.status(500).json({
       success: false,
+      message: "Error while cheching user validity with student accountType",
       error: error.message,
-      messgae: "Error while cheching user validity with student accountType",
     });
   }
 };
@@ -74,7 +74,7 @@ exports.isInstructor = (req, res, next) => {
     if (req.user?.accountType != "Instructor") {
       return res.status(401).json({
         success: false,
-        messgae: "This Page is protected only for Instructor",
+        message: "This Page is protected only for Instructor",
       });
     }
     next();
@@ -85,8 +85,8 @@ exports.isInstructor = (req, res, next) => {
     console.log(error);
     return res.status(500).json({
       success: false,
+      message: "Error while cheching user validity with Instructor accountType",
       error: error.message,
-      messgae: "Error while cheching user validity with Instructor accountType",
     });
   }
 };
@@ -96,7 +96,7 @@ exports.isAdmin = (req, res, next) => {
     if (req.user.accountType != "Admin") {
       return res.status(401).json({
         success: false,
-        messgae: "This Page is protected only for Admin",
+        message: "This Page is protected only for Admin",
       });
     }
     next();
@@ -105,8 +105,8 @@ exports.isAdmin = (req, res, next) => {
     console.log(error);
     return res.status(500).json({
       success: false,
+      message: "Error while cheching user validity with Admin accountType",
       error: error.message,
-      messgae: "Error while cheching user validity with Admin accountType",
     });
   }
 };

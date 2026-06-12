@@ -3,9 +3,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-hot-toast";
 
 const initialState = {
-  cart: localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart") || "") : [],
-  total: localStorage.getItem("total") ? JSON.parse(localStorage.getItem("total") || "") : 0,
-  totalItems: localStorage.getItem("totalItems") ? JSON.parse(localStorage.getItem("totalItems") || "") : 0,
+  cart: (() => { try { const c = localStorage.getItem("cart"); return c ? JSON.parse(c) : []; } catch { return []; } })(),
+  total: (() => { try { const t = localStorage.getItem("total"); return t ? JSON.parse(t) : 0; } catch { return 0; } })(),
+  totalItems: (() => { try { const t = localStorage.getItem("totalItems"); return t ? JSON.parse(t) : 0; } catch { return 0; } })(),
 };
 
 const cartSlice = createSlice({

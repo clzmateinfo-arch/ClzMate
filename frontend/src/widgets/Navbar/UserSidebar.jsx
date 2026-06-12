@@ -17,6 +17,7 @@ import ProfileMenu from "./components/ProfileMenu"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 
 export default function UserSidebar() {
+  const location = useLocation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
@@ -29,7 +30,11 @@ export default function UserSidebar() {
     window.addEventListener("resize", handleResize)
     handleResize()
     return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch, useLocation().pathname])
+  }, [dispatch])
+
+  const handleSignOut = useCallback(() => {
+    dispatch(logout(navigate));
+  }, [dispatch, navigate]);
 
   if (profileLoading || authLoading) {
     return (
@@ -45,10 +50,6 @@ export default function UserSidebar() {
       navigate(path)
     }
   }
-
-  const handleSignOut = useCallback(() => {
-    dispatch(logout(navigate));
-  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <>
@@ -128,7 +129,14 @@ export default function UserSidebar() {
         )}
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleSignOut()}
+          onClick={() => setConfirmationModal({
+            text1: "Sign Out",
+            text2: "Are you sure you want to sign out?",
+            btn1Text: "Sign Out",
+            btn2Text: "Cancel",
+            btn1Handler: () => { handleSignOut(); setConfirmationModal(null); },
+            btn2Handler: () => setConfirmationModal(null),
+          })}
           title="Signout"
           className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"
             } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}

@@ -132,7 +132,7 @@ export default function ClassSidebar() {
           aria-controls="full-sidebar"
           onClick={() => safeNavigate("/dashboard")}
           title="Exit"
-          className={`group relative mt-3 } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <MdOutlineExitToApp size={18} />
           <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
@@ -218,7 +218,14 @@ export default function ClassSidebar() {
 
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleSignOut()}
+          onClick={() => setConfirmationModal({
+            text1: "Sign Out",
+            text2: "Are you sure you want to sign out?",
+            btn1Text: "Sign Out",
+            btn2Text: "Cancel",
+            btn1Handler: () => { handleSignOut(); setConfirmationModal(null); },
+            btn2Handler: () => setConfirmationModal(null),
+          })}
           title="Signout"
           className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"} flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >

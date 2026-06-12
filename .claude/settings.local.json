@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed 's/[^A-Za-z0-9_].*//')",
+      "Bash(Get-ChildItem -Path \"D:/Per/up/frontend/src/shared/components\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(npm run *)"
+    ]
+  }
+}

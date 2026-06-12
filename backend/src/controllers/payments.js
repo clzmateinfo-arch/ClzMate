@@ -66,7 +66,7 @@ exports.capturePayment = async (req, res) => {
     console.log(error);
     return res
       .status(500)
-      .json({ success: false, mesage: "Could not Initiate Order" });
+      .json({ success: false, message: "Could not Initiate Order" });
   }
 };
 

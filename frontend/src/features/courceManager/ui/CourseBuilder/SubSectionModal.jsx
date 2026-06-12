@@ -20,6 +20,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
       lectureDesc: "",
       lectureVideo: null,
       lecturePdf: null,
+      lectureHtml: null,
       lectureExternalUrl: "",
       supportMaterials: { existing: [], new: [], remove: [] },
     },
@@ -44,6 +45,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         resourceType: it.resourceType ?? null,
         isMainVideo: !!it.isMainVideo,
         isMainPdf: !!it.isMainPdf,
+        isMainHtml: !!it.isMainHtml,
         _id: it._id ?? null,
       };
     }).filter(Boolean);
@@ -56,9 +58,12 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         lectureDesc: modalData?.description ?? "",
         lectureVideo: null,
         lecturePdf: null,
+        lectureHtml: null,
         lectureExternalUrl: modalData?.externalVideoUrl ?? "",
         supportMaterials: {
-          existing: normalizeSupportForForm(modalData?.supportMaterials),
+          existing: normalizeSupportForForm(
+            (modalData?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml)
+          ),
           new: [],
           remove: [],
         },
@@ -69,6 +74,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
           const existing = normalizeSupportForForm(modalData?.supportMaterials);
           const mainVideo = existing.find((s) => s.isMainVideo) ?? existing.find((s) => (s.mimeType || "").startsWith("video/"));
           const mainPdf = existing.find((s) => s.isMainPdf) ?? existing.find((s) => (s.mimeType || "").includes("pdf") || (s.originalName || "").toLowerCase().endsWith(".pdf"));
+          const mainHtml = existing.find((s) => s.isMainHtml) ?? existing.find((s) => (s.mimeType || "").includes("html") || (s.originalName || "").toLowerCase().endsWith(".html") || (s.originalName || "").toLowerCase().endsWith(".htm"));
 
           if (mainVideo) {
             let signed = null;
@@ -89,10 +95,19 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
           } else {
             setValue("lecturePdf", modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null);
           }
+
+          if (mainHtml) {
+            let signed = null;
+            if (mainHtml.publicId) {
+              signed = await getSignedAssetUrl({ publicId: mainHtml.publicId, resourceType: mainHtml.resourceType || "raw" }, token);
+            }
+            setValue("lectureHtml", signed ?? mainHtml.url ?? null);
+          }
         } catch (err) {
           console.warn("Failed to obtain signed asset URL(s):", err);
           setValue("lectureVideo", modalData?.videoUrl ?? null);
           setValue("lecturePdf", modalData?.pdfUrl ?? modalData?.slidesUrl ?? modalData?.pdf ?? null);
+          setValue("lectureHtml", null);
         }
       })();
     } else {
@@ -101,6 +116,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         lectureDesc: "",
         lectureVideo: null,
         lecturePdf: null,
+        lectureHtml: null,
         lectureExternalUrl: "",
         supportMaterials: { existing: [], new: [], remove: [] },
       });
@@ -124,6 +140,13 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     const curPdf = current.lecturePdf;
     if (curPdf && typeof curPdf !== "string") return true;
     if ((curPdf ?? null) !== (origPdf ?? null)) return true;
+
+    const origHtmlMat = (modalData?.supportMaterials ?? []).find((s) => s.isMainHtml) ??
+      (modalData?.supportMaterials ?? []).find((s) => (s.mimeType || "").includes("html") || (s.originalName || "").toLowerCase().endsWith(".html") || (s.originalName || "").toLowerCase().endsWith(".htm"));
+    const origHtml = origHtmlMat?.url ?? null;
+    const curHtml = current.lectureHtml;
+    if (curHtml && typeof curHtml !== "string") return true;
+    if ((curHtml ?? null) !== (origHtml ?? null)) return true;
 
     const curExternal = (current.lectureExternalUrl ?? null);
     if ((curExternal ?? null) !== (origExternal ?? null)) return true;
@@ -169,6 +192,10 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
         if (lecturePdfVal && typeof lecturePdfVal !== "string" && lecturePdfVal.name === f.name) {
           m.isMainPdf = true;
         }
+        const lectureHtmlVal = currentValues.lectureHtml;
+        if (lectureHtmlVal && typeof lectureHtmlVal !== "string" && lectureHtmlVal.name === f.name) {
+          m.isMainHtml = true;
+        }
         meta.push(m);
       });
     }
@@ -191,14 +218,23 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
       }
     }
 
+    const lectureHtmlVal = currentValues.lectureHtml;
+    if (lectureHtmlVal && typeof lectureHtmlVal !== "string") {
+      if (!meta.some((m) => m.originalName === lectureHtmlVal.name)) {
+        meta.push({ originalName: lectureHtmlVal.name, isMainHtml: true });
+      } else {
+        meta.forEach((m) => { if (m.originalName === lectureHtmlVal.name) m.isMainHtml = true; });
+      }
+    }
+
     return meta;
   };
 
   const handleEditSubsection = async () => {
     const currentValues = getValues();
 
-    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
-      toast.error("Please upload either a video (MP4), a PDF, or provide an external video URL before saving.");
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !currentValues.lectureHtml && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
+      toast.error("Please upload a video (MP4), a PDF, an HTML page, or provide an external video URL before saving.");
       return;
     }
 
@@ -214,6 +250,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
       formData.append("pdf", currentValues.lecturePdf);
     }
+    if (currentValues.lectureHtml && typeof currentValues.lectureHtml !== "string") {
+      formData.append("html", currentValues.lectureHtml);
+    }
 
     const lectureExternal = currentValues.lectureExternalUrl ?? null;
     if (lectureExternal && typeof lectureExternal === "string" && lectureExternal.trim()) {
@@ -228,8 +267,23 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
       support.new.forEach((f) => formData.append("supportMaterials", f));
     }
 
-    if (Array.isArray(support.remove) && support.remove.length) {
-      formData.append("removeSupport", JSON.stringify(support.remove));
+    const toRemove = [...(Array.isArray(support.remove) ? support.remove : [])];
+
+    if (currentValues.lectureHtml && typeof currentValues.lectureHtml !== "string") {
+      const oldHtmlMat = (modalData?.supportMaterials || []).find((m) => m.isMainHtml);
+      if (oldHtmlMat?.publicId) toRemove.push(oldHtmlMat.publicId);
+    }
+    if (currentValues.lectureVideo && typeof currentValues.lectureVideo !== "string") {
+      const oldVideoMat = (modalData?.supportMaterials || []).find((m) => m.isMainVideo);
+      if (oldVideoMat?.publicId) toRemove.push(oldVideoMat.publicId);
+    }
+    if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
+      const oldPdfMat = (modalData?.supportMaterials || []).find((m) => m.isMainPdf);
+      if (oldPdfMat?.publicId) toRemove.push(oldPdfMat.publicId);
+    }
+
+    if (toRemove.length) {
+      formData.append("removeSupport", JSON.stringify(toRemove));
     }
 
     const meta = buildSupportMaterialsMeta(currentValues);
@@ -253,8 +307,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     if (view) return;
 
     const currentValues = getValues();
-    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
-      toast.error("Please upload either a video (MP4), a PDF, or provide an external video URL.");
+    if (!currentValues.lectureVideo && !currentValues.lecturePdf && !currentValues.lectureHtml && !(currentValues.lectureExternalUrl && currentValues.lectureExternalUrl.trim())) {
+      toast.error("Please upload a video (MP4), a PDF, an HTML page, or provide an external video URL.");
       return;
     }
 
@@ -277,6 +331,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
     }
     if (currentValues.lecturePdf && typeof currentValues.lecturePdf !== "string") {
       formData.append("pdf", currentValues.lecturePdf);
+    }
+    if (currentValues.lectureHtml && typeof currentValues.lectureHtml !== "string") {
+      formData.append("html", currentValues.lectureHtml);
     }
 
     const lectureExternal = currentValues.lectureExternalUrl ?? null;
@@ -307,6 +364,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
   };
 
   const watchedExternal = watch("lectureExternalUrl");
+  const watchedVideo = watch("lectureVideo");
+  const watchedPdf = watch("lecturePdf");
+  const watchedHtml = watch("lectureHtml");
 
   return (
     <div className="fixed inset-0 z-[1000] grid place-items-center bg-black/40 backdrop-blur-sm p-4">
@@ -329,8 +389,8 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               errors={errors}
               fileType="video"
               required={false}
-              viewData={view ? getValues().lectureVideo : null}
-              editData={edit ? getValues().lectureVideo : null}
+              viewData={view ? watchedVideo : null}
+              editData={edit ? watchedVideo : null}
               previewHeight={320}
               disabled={view}
             />
@@ -345,8 +405,24 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               errors={errors}
               fileType="pdf"
               required={false}
-              viewData={view ? getValues().lecturePdf : null}
-              editData={edit ? getValues().lecturePdf : null}
+              viewData={view ? watchedPdf : null}
+              editData={edit ? watchedPdf : null}
+              previewHeight={320}
+              disabled={view}
+            />
+          </div>
+
+          <div className="my-3">
+            <Upload
+              name="lectureHtml"
+              label="Interactive HTML Page"
+              register={register}
+              setValue={setValue}
+              errors={errors}
+              fileType="html"
+              required={false}
+              viewData={view ? watchedHtml : null}
+              editData={edit ? watchedHtml : null}
               previewHeight={320}
               disabled={view}
             />
@@ -356,7 +432,7 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
             <Controller
               name="lectureExternalUrl"
               control={control}
-              rules={{ required: !view }}
+              rules={{ required: false }}
               render={({ field }) => (
                 <Input
                   id="lectureExternalUrl"
@@ -386,9 +462,9 @@ export default function SubSectionModal({ modalData, setModalData, add = false, 
               register={register}
               setValue={setValue}
               errors={errors}
-              viewData={view ? modalData?.supportMaterials : null}
-              editData={edit ? modalData?.supportMaterials : null}
-              allowedTypes="image/*,video/*,application/pdf,.zip"
+              viewData={view ? (modalData?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml) : null}
+              editData={edit ? (modalData?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml) : null}
+              allowedTypes="image/*,video/*,application/pdf,.zip,text/html,.html,.htm"
               disabled={!view}
             />
           </div>

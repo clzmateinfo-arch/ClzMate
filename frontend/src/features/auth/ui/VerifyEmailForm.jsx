@@ -32,7 +32,7 @@ export default function VerifyEmailForm() {
                             value={otp}
                             onChange={setOtp}
                             numInputs={6}
-                            isInputNum={true}
+                            inputType="tel"
                             shouldAutoFocus
                             renderInput={(props) => (
                                 <input

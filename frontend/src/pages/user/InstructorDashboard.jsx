@@ -27,7 +27,7 @@ export default function InstructorDashboard() {
       setLoading(true);
       try {
         const instructorApiData = await getInstructorData(token);
-        const instructorCoursesApiData = await await fetchInstructorCourses({
+        const instructorCoursesApiData = await fetchInstructorCourses({
           token: token,
           page,
           limit: pageSize,

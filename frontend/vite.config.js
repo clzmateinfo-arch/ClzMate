@@ -19,4 +19,12 @@ export default defineConfig({
       "@features": path.resolve(__dirname, "src/features"),
     },
   },
+  optimizeDeps: {
+    include: [
+      "react-otp-input",
+      "chart.js",
+      "swiper",
+      "swiper/modules",
+    ],
+  },
 })

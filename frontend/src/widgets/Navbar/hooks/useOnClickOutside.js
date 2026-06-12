@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
 export default function useOnClickOutside(ref, handler) {
     useEffect(() => {
@@ -10,5 +8,5 @@ export default function useOnClickOutside(ref, handler) {
         };
         document.addEventListener("mousedown", listener);
         return () => document.removeEventListener("mousedown", listener);
-    }, [ref, handler, useLocation().pathname]);
+    }, [ref, handler]);
 }

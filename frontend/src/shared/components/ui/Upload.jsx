@@ -20,12 +20,15 @@ export default function Upload({
 }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewSource, setPreviewSource] = useState(viewData ?? editData ?? "");
+  const [htmlDoc, setHtmlDoc] = useState(null);
+  const [htmlFetching, setHtmlFetching] = useState(false);
   const inputRef = useRef(null);
 
   const acceptMap = {
     image: { "image/*": [".jpeg", ".jpg", ".png", ".webp"] },
     video: { "video/*": [".mp4", ".webm", ".mov"] },
     pdf: { "application/pdf": [".pdf"] },
+    html: { "text/html": [".html", ".htm"] },
     any: { "image/*": [], "video/*": [], "application/pdf": [], ".zip": [] },
   };
 
@@ -43,6 +46,9 @@ export default function Upload({
     }
     if (expectedType === "image") {
       return mimetype.includes("image");
+    }
+    if (expectedType === "html") {
+      return mimetype.includes("html") || ext === ".html" || ext === ".htm";
     }
 
     if (mimetype.includes("image/")) return true;
@@ -75,7 +81,9 @@ export default function Upload({
           ? "Please upload a valid video file (MP4/WEBM/MOV)."
           : fileType === "pdf"
             ? "Please upload a valid PDF file."
-            : "File type not allowed. Allowed: images, videos, PDF, ZIP."
+            : fileType === "html"
+              ? "Please upload a valid HTML file (.html, .htm)."
+              : "File type not allowed. Allowed: images, videos, PDF, ZIP."
       );
       return;
     }
@@ -126,6 +134,22 @@ export default function Upload({
       }
     };
   }, [viewData, editData]);
+
+  useEffect(() => {
+    if (fileType !== "html") return;
+    if (!previewSource || previewSource.startsWith("blob:")) {
+      setHtmlDoc(null);
+      return;
+    }
+    let mounted = true;
+    setHtmlFetching(true);
+    fetch(previewSource)
+      .then((r) => r.text())
+      .then((text) => { if (mounted) setHtmlDoc(text); })
+      .catch(() => { if (mounted) setHtmlDoc(null); })
+      .finally(() => { if (mounted) setHtmlFetching(false); });
+    return () => { mounted = false; };
+  }, [previewSource, fileType]);
 
   const handleClear = () => {
     if (previewSource && previewSource.startsWith("blob:")) {
@@ -192,6 +216,20 @@ export default function Upload({
                     </p>
                   </object>
                 </div>
+              ) : fileType === "html" ? (
+                <div style={{ height: previewHeight }} className="w-full overflow-hidden rounded-xl bg-white border border-slate-200">
+                  {htmlFetching ? (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">Loading preview...</div>
+                  ) : (
+                    <iframe
+                      srcDoc={htmlDoc ?? undefined}
+                      src={htmlDoc ? undefined : previewSource}
+                      title="HTML Preview"
+                      className="w-full h-full border-0"
+                      sandbox="allow-scripts allow-forms"
+                    />
+                  )}
+                </div>
               ) : (
                 <div className="p-4">
                   <Link to={previewSource} target="_blank" rel="noreferrer" className="underline">
@@ -207,7 +245,7 @@ export default function Upload({
                   Replace
                   <input
                     type="file"
-                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
+                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : fileType === "html" ? ".html,.htm,text/html" : undefined}
                     onChange={(e) => {
                       const f = e.target.files?.[0];
                       if (f) {
@@ -240,8 +278,8 @@ export default function Upload({
               <FiUploadCloud className="w-6 h-6" />
             </div>
             <div className="max-w-[540px]">
-              <p className="text-sm text-[#0b1220]">{isDragActive ? "Drop file to upload" : `Drag & drop ${fileType === "video" ? "a video" : fileType === "pdf" ? "a PDF" : fileType === "image" ? "an image" : "a file"} here, or click to browse`}</p>
-              <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : "PDF slides or notes"}</p>
+              <p className="text-sm text-[#0b1220]">{isDragActive ? "Drop file to upload" : `Drag & drop ${fileType === "video" ? "a video" : fileType === "pdf" ? "a PDF" : fileType === "image" ? "an image" : fileType === "html" ? "an HTML file" : "a file"} here, or click to browse`}</p>
+              <p className="mt-3 text-xs text-[#374151]">{fileType === "video" ? "Recommended: MP4/WEBM • Max 200MB • 16:9 aspect" : fileType === "image" ? "Recommended: 1024×576 (16:9) • WebP/JPEG" : fileType === "html" ? "Interactive HTML page (.html, .htm)" : "PDF slides or notes"}</p>
             </div>
             <div className="mt-4 flex gap-3">
               {!disabled ? (
@@ -249,7 +287,7 @@ export default function Upload({
                   Browse
                   <input
                     type="file"
-                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : undefined}
+                    accept={fileType === "video" ? "video/*" : fileType === "pdf" ? "application/pdf" : fileType === "image" ? "image/*" : fileType === "html" ? ".html,.htm,text/html" : undefined}
                     onChange={(e) => {
                       const f = e.target.files?.[0];
                       if (f) {

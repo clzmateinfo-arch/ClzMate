@@ -10,6 +10,7 @@ const supportMaterialSchema = new mongoose.Schema({
     resourceType: { type: String },
     isMainVideo: { type: Boolean, default: false },
     isMainPdf: { type: Boolean, default: false },
+    isMainHtml: { type: Boolean, default: false },
 });
 
 const subSectionSchema = new mongoose.Schema(

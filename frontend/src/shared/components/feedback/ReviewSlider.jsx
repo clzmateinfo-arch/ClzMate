@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import Img from "@/shared/components/ui/Img";
 import { apiConnector } from "@/shared/services/api/apiConnector";
 import { ratingsEndpoints } from "@/app/config/apis";
-import { useLocation } from "react-router-dom";
 
 
 function Stars({ rating = 0, size = 16 }) {
@@ -64,7 +63,7 @@ export default function ReviewSlider() {
     return () => {
       cancelled = true;
     };
-  }, [useLocation().pathname]);
+  }, []);
 
   if (loading) {
     return null;

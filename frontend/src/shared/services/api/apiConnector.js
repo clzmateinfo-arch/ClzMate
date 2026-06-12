@@ -28,21 +28,27 @@ export const setupAxiosInterceptors = () => {
       const response = error?.response;
       if (!response) return Promise.reject(error);
 
-      const { status, messgae, config } = response;
+      const { status } = response;
       const isLoginRoute = window.location.pathname.startsWith("/login");
 
-      if (
-        status === 401 &&
-        !isLoginRoute &&
-        messgae &&
-        messgae.includes("token")
-      ) {
-        console.warn("Auth expired or missing → redirecting to login…");
-        localStorage.removeItem("token");
+      if (status === 401 && !isLoginRoute) {
+        // Distinguish session-invalid 401s (token missing/expired) from role-guard 401s
+        // ("protected only for Instructor/Student/Admin"). Only clear session for the former.
+        const msg = (response.data?.message || response.data?.messgae || "").toLowerCase();
+        const isSessionError =
+          msg.includes("token") ||
+          msg.includes("missing") ||
+          msg.includes("decoding") ||
+          msg.includes("unauthorized");
 
-        setTimeout(() => {
-          window.location.replace("/login");
-        }, 300);
+        if (isSessionError) {
+          console.warn("Session invalid → clearing session and redirecting");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 300);
+        }
       }
 
       return Promise.reject(error);

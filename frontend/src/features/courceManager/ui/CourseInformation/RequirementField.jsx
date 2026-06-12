@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
 import Button from "../../../../shared/components/ui/Button";
 
@@ -15,7 +14,7 @@ export default function RequirementsField({ name, label, register, setValue, err
     if (editCourse && course?.instructions) setRequirementsList(Array.isArray(course.instructions) ? course.instructions : []);
     register(name, { required: true, validate: (v) => Array.isArray(v) && v.length > 0 }, requirementsList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useLocation().pathname]);
+  }, []);
 
   useEffect(() => setValue(name, requirementsList), [requirementsList, name, setValue]);
 

@@ -80,6 +80,7 @@ export default function MultiUpload({
         if (mime.startsWith("video/")) return true;
         if (mime === "application/pdf" || ext === ".pdf") return true;
         if (ext === ".zip" || mime === "application/zip") return true;
+        if (mime.includes("html") || ext === ".html" || ext === ".htm") return true;
         return false;
     };
 
@@ -90,7 +91,7 @@ export default function MultiUpload({
         const allowed = added.filter(isAllowed);
         const rejected = added.length - allowed.length;
         if (rejected > 0) {
-            window.alert("Some files were rejected   only images, videos, PDF and ZIP files are allowed.");
+            window.alert("Some files were rejected — only images, videos, PDF, ZIP and HTML files are allowed.");
         }
 
         if (!allowed.length) return;
