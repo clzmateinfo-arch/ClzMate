@@ -352,6 +352,7 @@ exports.instructorDashboard = async (req, res) => {
         });
 
         res.status(200).json({
+            success: true,
             courses: courseData,
             message: "Instructor Dashboard Data fetched successfully",
         });
