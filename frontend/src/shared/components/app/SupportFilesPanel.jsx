@@ -124,7 +124,7 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
     return (
         <>
             <div className="w-full h-full flex flex-col gap-3">
-                <div className="flex flex-col gap-2 overflow-auto m-5">
+                <div className="flex-1 min-h-0 overflow-y-auto sidebar-scroll m-5 flex flex-col gap-2">
                     {supportMaterials.map((m) => (
                         <div
                             key={m._id || m.publicId || m.url}

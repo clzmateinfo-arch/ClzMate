@@ -251,7 +251,7 @@ export default function Upload({
                       const f = e.target.files?.[0];
                       if (f) {
                         if (!isFileAllowed(f, fileType)) {
-                          window.alert("Selected file type not allowed.");
+                          showToast("Selected file type not allowed.", "error");
                           return;
                         }
                         setSelectedFiles([f]);
@@ -293,7 +293,7 @@ export default function Upload({
                       const f = e.target.files?.[0];
                       if (f) {
                         if (!isFileAllowed(f, fileType)) {
-                          window.alert("Selected file type not allowed.");
+                          showToast("Selected file type not allowed.", "error");
                           return;
                         }
                         setSelectedFiles([f]);
