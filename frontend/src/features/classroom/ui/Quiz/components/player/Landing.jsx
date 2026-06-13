@@ -36,7 +36,7 @@ export default function Landing({ quiz = {}, onStart = () => { }, onBack = () =>
                 </div>
 
                 <div className="mt-6 text-xs text-white/80">
-                    Tip: Each question has its own timer. If you don't answer, the quiz will automatically proceed
+                    Tip: Each question has its own timer. If you don&apos;t answer, the quiz will automatically proceed
                 </div>
                 <div className="w-full justify-end align-baseline mt-3 mb-1">
                     <IconBtn

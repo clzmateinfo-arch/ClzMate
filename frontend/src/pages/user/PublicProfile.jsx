@@ -1,5 +1,5 @@
 // frontend/src/pages/user/PublicProfile.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { apiConnector } from "@/shared/services/api/apiConnector";
 import { profileEndpoints } from "@/app/config/apis";

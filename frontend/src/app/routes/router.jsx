@@ -1,4 +1,4 @@
-import React, { lazy, useState, useEffect } from "react";
+import { lazy, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 

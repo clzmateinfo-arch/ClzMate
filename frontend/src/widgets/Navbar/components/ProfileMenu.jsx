@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import useOnClickOutside from "../hooks/useOnClickOutside";
 import { Avatar } from "@/shared/components/ui/Avatar";

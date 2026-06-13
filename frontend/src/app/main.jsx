@@ -40,6 +40,27 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Toaster
           position="bottom-right"
           reverseOrder={false}
+          toastOptions={{
+            style: {
+              background: 'linear-gradient(to top, rgba(59,7,100,0.95), rgba(46,16,101,0.95))',
+              color: '#ffffff',
+              borderRadius: '0.75rem',
+              padding: '12px 16px',
+              maxWidth: '384px',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+            },
+            success: {
+              iconTheme: { primary: '#22c55e', secondary: '#3b0764' },
+            },
+            error: {
+              iconTheme: { primary: '#ef4444', secondary: '#3b0764' },
+            },
+            loading: {
+              iconTheme: { primary: '#a855f7', secondary: '#3b0764' },
+            },
+            duration: 4500,
+          }}
         />
       </React.StrictMode>
     </Provider>

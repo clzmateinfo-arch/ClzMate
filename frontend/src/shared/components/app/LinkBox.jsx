@@ -1,5 +1,5 @@
 // frontend/src/features/classroom/ui/LinkBox.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 
 /**
  * Shows a preview of the selectedItem.link via an iframe and provides Open in new tab.

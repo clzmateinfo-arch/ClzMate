@@ -1,4 +1,3 @@
-import React from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import adImg from "@/shared/assets/images/porfolio/advertisment.png";
 

@@ -1,7 +1,7 @@
 // frontend/src/features/settings/ui/EditProfile.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { updateProfile, fetchUserDetailsApi } from "@/entities/settings/model/SettingsAPI";
 import { setUser } from "@/entities/user/model/userSlice";
 import Button from "@/shared/components/ui/Button";
@@ -14,7 +14,6 @@ const genders = ["Male", "Female", "Non-Binary", "Prefer not to say", "Other"];
 
 export default function EditProfile() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const location = useLocation();
 
   const { user } = useSelector((s) => s.user || {});

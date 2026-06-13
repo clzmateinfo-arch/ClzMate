@@ -1,7 +1,6 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { MdOutlineVerified } from "react-icons/md";
-import { Link } from "react-router-dom";
+
 import Img from "@/shared/components/ui/Img";
 
 export default function CourseAuthorCard({
@@ -15,10 +14,7 @@ export default function CourseAuthorCard({
         title,
         additionalDetails = {},
         isVerified = false,
-        socials = {},
     } = instructor || {};
-
-    const profileUrl = socials.linkedin ?? socials.website ?? "#";
 
     return (
         <aside

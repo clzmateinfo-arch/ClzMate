@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Box from "../../shared/components/app/Box";
@@ -100,7 +100,7 @@ export default function ViewClassroom() {
                     } else {
                         window.open(sub.link, "_blank", "noopener");
                     }
-                } catch (err) {
+                } catch {
                     try {
                         window.open(sub.link, "_blank", "noopener");
                     } catch (e) {
@@ -115,7 +115,7 @@ export default function ViewClassroom() {
                 const url = `/view-course/${sub.refCourseId}/section/${sub.refSectionId}/sub-section/${sub.refId}`;
                 try {
                     navigate(url, { state: { fromClassroom: true, classroomId } });
-                } catch (e) {
+                } catch {
                     window.open(url, "_blank", "noopener");
                 }
                 return;

@@ -87,7 +87,7 @@ export default function ChipInput({ label, name, placeholder, register, errors, 
         {chips?.map((chip, index) => (
           <div
             key={index}
-            className="m-1 flex items-center rounded-full bg-yellow-400 px-2 py-1 text-sm text-black"
+            className="m-1 flex items-center rounded-full bg-purple-100 px-2 py-1 text-sm text-purple-900"
           >
             {chip}
             <button type="button" className="ml-2 focus:outline-none" onClick={() => handleDeleteChip(index)}>

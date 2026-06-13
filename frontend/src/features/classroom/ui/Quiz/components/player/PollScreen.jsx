@@ -1,4 +1,3 @@
-import React from "react";
 
 /**
  * PollScreen - modern light theme

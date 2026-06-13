@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaCog, FaExpand, FaCompress } from "react-icons/fa";
 
 function parseYouTubeId(url) {
@@ -8,7 +8,7 @@ function parseYouTubeId(url) {
         const host = u.hostname.toLowerCase();
         if (host.includes("youtube.com")) return u.searchParams.get("v");
         if (host === "youtu.be") return u.pathname.replace("/", "");
-    } catch (e) {
+    } catch {
         return null;
     }
     return null;
@@ -30,7 +30,7 @@ export default function ExternalVideo({ url }) {
     const playerRef = useRef(null);
     const rafRef = useRef(null);
 
-    const [ready, setReady] = useState(false);
+    const [, setReady] = useState(false);
     const [duration, setDuration] = useState(0);
     const [current, setCurrent] = useState(0);
     const [playing, setPlaying] = useState(false);
@@ -74,7 +74,7 @@ export default function ExternalVideo({ url }) {
                 if (!mounted) return;
 
                 if (playerRef.current && typeof playerRef.current.destroy === "function") {
-                    try { playerRef.current.destroy(); } catch (e) { }
+                    try { playerRef.current.destroy(); } catch { /* noop */ }
                     playerRef.current = null;
                 }
 
@@ -113,7 +113,7 @@ export default function ExternalVideo({ url }) {
                                         setQualityLevels([]);
                                         setQualitySelected("auto");
                                     }
-                                } catch (err) {
+                                } catch {
                                     setQualityLevels([]);
                                     setQualitySelected("auto");
                                 }
@@ -141,7 +141,7 @@ export default function ExternalVideo({ url }) {
                                     const p = playerRef.current;
                                     const d = p && p.getDuration ? p.getDuration() : duration;
                                     if (d && Number.isFinite(d) && d !== duration) setDuration(d);
-                                } catch (err) { }
+                                } catch { /* noop */ }
                             }
                         },
                     },
@@ -155,7 +155,7 @@ export default function ExternalVideo({ url }) {
             mounted = false;
             stopRaf();
             if (playerRef.current && typeof playerRef.current.destroy === "function") {
-                try { playerRef.current.destroy(); } catch (e) { }
+                try { playerRef.current.destroy(); } catch { /* noop */ }
                 playerRef.current = null;
             }
         };
@@ -171,7 +171,7 @@ export default function ExternalVideo({ url }) {
                     const d = p.getDuration ? p.getDuration() : duration;
                     if (d && Number.isFinite(d) && d !== duration) setDuration(d);
                 }
-            } catch (e) { }
+            } catch { /* noop */ }
             rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);
@@ -227,7 +227,7 @@ export default function ExternalVideo({ url }) {
             } else {
                 setQualityLevels([]);
             }
-        } catch (err) {
+        } catch {
             setQualityLevels([]);
         } finally {
             setQualityMenuOpen(true);
@@ -239,7 +239,7 @@ export default function ExternalVideo({ url }) {
             const p = playerRef.current;
             if (!p) return;
             if (q === "auto") {
-                try { p.setPlaybackQuality && p.setPlaybackQuality("default"); } catch (e) { try { p.setPlaybackQuality && p.setPlaybackQuality("auto"); } catch (e2) { } }
+                try { p.setPlaybackQuality && p.setPlaybackQuality("default"); } catch { try { p.setPlaybackQuality && p.setPlaybackQuality("auto"); } catch { /* noop */ } }
             } else {
                 p.setPlaybackQuality && p.setPlaybackQuality(q);
             }
@@ -332,7 +332,7 @@ export default function ExternalVideo({ url }) {
                         <button
                             onClick={() => {
                                 setShowPoster(false);
-                                try { playerRef.current && playerRef.current.playVideo(); } catch (e) { }
+                                try { playerRef.current && playerRef.current.playVideo(); } catch { /* noop */ }
                             }}
                             className="relative z-90 p-4 rounded-full bg-white/10 hover:bg-white/20"
                             aria-label="Play"

@@ -1,5 +1,4 @@
 // src/layouts/MainLayout.jsx
-import React from "react";
 import { Outlet } from "react-router-dom";
 import MainNavbar from "@/widgets/Navbar/MainNavbar";
 import ScrollToTop from "@/shared/components/navigation/ScrollToTop";

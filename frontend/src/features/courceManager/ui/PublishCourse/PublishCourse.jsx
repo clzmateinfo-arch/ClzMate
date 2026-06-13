@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { editCourseDetails } from "@/entities/course/model/courseDetailsAPI";
@@ -19,8 +19,6 @@ export default function PublishCourse() {
   });
 
   const sandboxEnabled = watch("sandboxEnabled");
-  const notesEnabled = watch("notesEnabled");
-  const requiresApproval = watch("requiresApproval");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();

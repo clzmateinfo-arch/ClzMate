@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getUserEnrolledCourses } from "@/entities/user/model/userAPI";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
@@ -13,7 +13,6 @@ export default function EnrolledCourseSlider({
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [total, setTotal] = useState(null);
 
     const observerRef = useRef(null);
     const sentinelRef = useRef(null);
@@ -22,7 +21,6 @@ export default function EnrolledCourseSlider({
         setCourses([]);
         setPage(1);
         setHasMore(true);
-        setTotal(null);
     }, [searchTerm]);
 
     useEffect(() => {
@@ -46,7 +44,6 @@ export default function EnrolledCourseSlider({
                 if (page === 1) setCourses(received);
                 else setCourses((prev) => [...prev, ...received]);
 
-                setTotal(totalCount);
 
                 if (typeof totalCount === "number") {
                     setHasMore(page * pageSize < totalCount);

@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { RxCross2 } from "react-icons/rx";
 
 export default function CourseTipsDialog({ open, onClose }) {

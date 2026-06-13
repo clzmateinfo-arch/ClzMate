@@ -1,5 +1,4 @@
 // frontend/src/features/classroom/ui/AnnouncementList.jsx
-import React from "react";
 import AnnouncementCard from "./AnnouncementCard";
 import { FiPlus } from "react-icons/fi";
 

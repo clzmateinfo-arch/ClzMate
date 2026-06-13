@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiConnector } from "@/shared/services/api/apiConnector";
 import { toast } from "react-hot-toast";
 import { commanEndpoints } from "@/app/config/apis";

@@ -500,7 +500,7 @@ export const getSignedAssetUrl = async ({ publicId, resourceType = "auto", type 
     });
     if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to get asset url");
     return response.data.url;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
@@ -16,7 +16,6 @@ export default function CourseSlider({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(null);
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
 
@@ -24,14 +23,12 @@ export default function CourseSlider({
     setCourses(initialFeatured ?? []);
     setPage(1);
     setHasMore(true);
-    setTotal(null);
   }, [categoryId, initialFeatured]);
 
   useEffect(() => {
     setCourses([]);
     setPage(1);
     setHasMore(true);
-    setTotal(null);
   }, [searchTerm, filters, categoryId]);
 
   useEffect(() => {
@@ -72,7 +69,6 @@ export default function CourseSlider({
         if (page === 1) setCourses(received);
         else setCourses((prev) => [...prev, ...received]);
 
-        setTotal(typeof totalCount === "number" ? totalCount : null);
 
         if (typeof totalCount === "number") {
           setHasMore(page * pageSize < totalCount);

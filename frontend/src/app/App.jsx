@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import AppRoutes from "@/app/routes/router";
 import Loading from "@/shared/components/navigation/Loading";
 import ErrorBoundary from "@/shared/components/feedback/ErrorBoundary";

@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import copy from "copy-to-clipboard";
 import { toast } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";

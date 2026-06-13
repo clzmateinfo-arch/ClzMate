@@ -1,5 +1,5 @@
 // frontend/src/features/classroom/ui/LinkCourse/LinkCourseCoursePicker.jsx
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLinkCourse, setStep } from "@/entities/classroom/model/classroomSlice";
 import { fetchInstructorCourses } from "@/entities/course/model/courseDetailsAPI";
@@ -15,14 +15,13 @@ export default function LinkCourseCoursePicker() {
     const { token } = useSelector((s) => s.auth || {});
     const { linkCourse = {} } = useSelector((s) => s.classroom || {});
     const [search, setSearch] = useState("");
-    const [page, setPage] = useState(1);
+
     const [limit] = useState(6);
     const [loading, setLoading] = useState(false);
     const [courses, setCourses] = useState({ data: [], total: 0, page: 1, totalPages: 1 });
 
     useEffect(() => {
         loadCourses({ page: 1, search: "" });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadCourses = useCallback(
@@ -49,7 +48,6 @@ export default function LinkCourseCoursePicker() {
     );
 
     const handleSearch = () => {
-        setPage(1);
         loadCourses({ page: 1, search });
     };
 
@@ -183,7 +181,7 @@ export default function LinkCourseCoursePicker() {
                     <div className="flex items-center gap-2">
                         <button
                             disabled={courses.page <= 1}
-                            onClick={() => { const p = Math.max(1, (courses.page || 1) - 1); loadCourses({ page: p, search }); setPage(p); }}
+                            onClick={() => { const p = Math.max(1, (courses.page || 1) - 1); loadCourses({ page: p, search }); }}
                             className="px-3 py-1 rounded border disabled:opacity-40"
                             aria-label="Previous page"
                         >
@@ -194,7 +192,7 @@ export default function LinkCourseCoursePicker() {
 
                         <button
                             disabled={courses.page >= (courses.totalPages || 1)}
-                            onClick={() => { const p = Math.min((courses.totalPages || 1), (courses.page || 1) + 1); loadCourses({ page: p, search }); setPage(p); }}
+                            onClick={() => { const p = Math.min((courses.totalPages || 1), (courses.page || 1) + 1); loadCourses({ page: p, search }); }}
                             className="px-3 py-1 rounded border disabled:opacity-40"
                             aria-label="Next page"
                         >

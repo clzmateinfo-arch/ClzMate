@@ -64,7 +64,7 @@ export default function NotePanel({ courseId, sectionId, subSectionId, userId })
     };
 
     return (
-        <div className="bg-slate-800/40 rounded-xl p-4">
+        <div className="h-full overflow-y-auto sidebar-scroll bg-slate-800/40 rounded-xl p-4">
             <div className="flex items-center justify-between">
                 <h4 className="font-medium">Personal Notes</h4>
                 <div className="text-xs text-slate-400">

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import useKeyboardShortcuts from "@/shared/hooks/useKeyboardShortcuts";
@@ -16,14 +16,12 @@ export default function PlayerPanel({
 }) {
     const playerRef = useRef(null);
     const [signedUrl, setSignedUrl] = useState(null);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         let mounted = true;
         (async () => {
             setSignedUrl(null);
             if (!sub) return;
-            setLoading(true);
 
             const isPdf = (s) => {
                 const mt = (s.mimeType || "").toLowerCase();
@@ -60,7 +58,6 @@ export default function PlayerPanel({
                 }
 
                 if (!candidate) {
-                    setLoading(false);
                     return;
                 }
 
@@ -81,7 +78,7 @@ export default function PlayerPanel({
                 const fallback = (sub.supportMaterials && sub.supportMaterials[0] && sub.supportMaterials[0].url) || null;
                 if (mounted) setSignedUrl(fallback);
             } finally {
-                if (mounted) setLoading(false);
+                // loading complete
             }
         })();
         return () => { mounted = false; };
@@ -97,11 +94,17 @@ export default function PlayerPanel({
         onSeek: (delta) => {
             try {
                 playerRef.current.currentTime = Math.max(0, playerRef.current.currentTime + delta);
-            } catch (e) { }
+            } catch { /* noop */ }
         },
         onNext,
         onPrev,
     });
+
+    useEffect(() => {
+        if (presentMode && playerRef.current && playerRef.current.tagName === "VIDEO") {
+            playerRef.current.play().catch(() => { });
+        }
+    }, [presentMode]);
 
     if (!sub) {
         return <div className="rounded-xl bg-slate-800/40 p-8 text-center">Select a lecture to start</div>;
@@ -120,12 +123,6 @@ export default function PlayerPanel({
     })();
 
     const isPdfPrimary = primary && ((primary.mimeType || "").toLowerCase() === "application/pdf" || (primary.originalName || "").toLowerCase().endsWith(".pdf") || primary.isMainPdf);
-
-    useEffect(() => {
-        if (presentMode && playerRef.current && playerRef.current.tagName === "VIDEO") {
-            playerRef.current.play().catch(() => { });
-        }
-    }, [presentMode]);
 
     const renderPdf = () => {
         const url = signedUrl || primary?.url;

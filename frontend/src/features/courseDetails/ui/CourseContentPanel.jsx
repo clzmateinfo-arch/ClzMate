@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { HiOutlineChevronDown } from "react-icons/hi";
 import CourseAccordionBar from "@/features/courseDetails/ui/CourseAccordionBar";
 import CourseTags from "./CourseTags";
@@ -32,10 +32,6 @@ export default function CourseContentPanel({
         onCollapseAll?.();
         if (!Array.isArray(isActive)) setLocalActive([]);
     }, [isActive, onCollapseAll]);
-
-    const summary = useMemo(() => {
-        return `${sectionCount} section${sectionCount === 1 ? "" : "s"} • ${totalLectures ?? 0} lecture${totalLectures === 1 ? "" : "s"}`;
-    }, [sectionCount, totalLectures]);
 
     return (
         <section

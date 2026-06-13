@@ -1,7 +1,7 @@
 import { FiClock } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
-export default function QuizCard({ quiz = {}, onStart = () => {}, onTogglePublish = () => {} }) {
+export default function QuizCard({ quiz = {}, _onStart = () => {}, _onTogglePublish = () => {} }) {
     const title = quiz.title || "Quiz";
     const description = quiz.description || "";
     const published = !!quiz.publish;

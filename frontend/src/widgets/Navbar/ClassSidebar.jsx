@@ -1,10 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import { HiMenuAlt1 } from "react-icons/hi";
-import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { IoMdClose } from "react-icons/io";
 
 import { sidebarLinks } from "@/app/config/class-links";
@@ -14,7 +13,6 @@ import Loading from "@/shared/components/navigation/Loading";
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice";
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2";
 import { MdOutlineExitToApp } from "react-icons/md";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 export default function ClassSidebar() {
   const dispatch = useDispatch();
@@ -27,8 +25,6 @@ export default function ClassSidebar() {
   const { loading: authLoading } = useSelector((s) => s.auth || {});
   const { openSideMenu } = useSelector((s) => s.sidebar || {});
   const classroomState = useSelector((s) => s.classroom || {});
-  const { drawMode } = useSelector((s) => s.course || {});
-
   const [confirmationModal, setConfirmationModal] = useState(null);
 
   useEffect(() => {
@@ -42,7 +38,7 @@ export default function ClassSidebar() {
     try {
       const m = pathname.match(/\/classroom\/([^/]+)/);
       return m ? m[1] : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   };

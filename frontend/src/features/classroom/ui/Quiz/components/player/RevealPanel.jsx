@@ -1,4 +1,3 @@
-import React from "react";
 
 /**
  * RevealPanel - stylish reveal with points and optional details

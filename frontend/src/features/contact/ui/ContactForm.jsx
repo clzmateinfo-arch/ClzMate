@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import React, { useState } from "react";
+ 
+import { useState } from "react";
 import Button from "@/shared/components/ui/Button";
 import Input from "@/shared/components/ui/Input";
 import PhoneInput from "@/shared/components/ui/PhoneInput";

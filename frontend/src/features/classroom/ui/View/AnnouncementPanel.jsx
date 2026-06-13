@@ -1,4 +1,3 @@
-import React from "react";
 import AssignmentCard from "./AssignmentCard";
 
 export default function AssignmentPanel({

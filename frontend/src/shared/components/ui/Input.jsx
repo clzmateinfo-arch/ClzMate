@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useId } from "react";
+import { forwardRef, useState, useId } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Input = forwardRef(
@@ -122,5 +122,7 @@ const Input = forwardRef(
         );
     }
 );
+
+Input.displayName = "Input";
 
 export default Input;

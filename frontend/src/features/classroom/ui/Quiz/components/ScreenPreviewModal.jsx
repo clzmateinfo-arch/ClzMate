@@ -1,4 +1,3 @@
-import React from "react";
 // simple fallback modal:
 function SimpleModal({ open, onClose, children, title }) {
     if (!open) return null;

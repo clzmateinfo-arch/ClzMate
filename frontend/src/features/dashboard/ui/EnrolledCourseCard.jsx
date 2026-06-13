@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { useNavigate } from "react-router-dom";
 import ProgressBar from "@ramonak/react-progress-bar";
 import Img from "@/shared/components/ui/Img";
@@ -22,7 +21,7 @@ export default function EnrolledCourseCard({
             ? `/view-course/${courseBase}/section/${sectionId}/sub-section/${subSectionId}`
             : `/view-course/${courseBase}`;
 
-    const open = (e) => {
+    const open = (_e) => {
         if (onOpenCourse) return onOpenCourse(toPath);
         return navigate(toPath);
     };

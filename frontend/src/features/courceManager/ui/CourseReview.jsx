@@ -1,11 +1,11 @@
-/* eslint-disable react/prop-types */
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { RxCross2 } from "react-icons/rx";
 import ReactStars from "react-rating-stars-component";
 import { useSelector } from "react-redux";
 import { createRating } from "@/entities/course/model/courseDetailsAPI";
-import IconBtn from "@/shared/components/ui/IconBtn";
+import Button from "@/shared/components/ui/Button";
 import Img from "@/shared/components/ui/Img";
 
 export default function CourseReview({ setReviewModal }) {
@@ -42,12 +42,12 @@ export default function CourseReview({ setReviewModal }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] !mt-0 grid h-screen w-screen place-items-center overflow-auto bg-white bg-opacity-10 backdrop-blur-sm">
-      <div className="my-10 w-11/12 max-w-[700px] rounded-lg border border-black ">
-        <div className="flex items-center justify-between rounded-t-lg  p-5">
+    <div className="fixed inset-0 z-[1000] !mt-0 grid h-screen w-screen place-items-center overflow-auto bg-black/30 backdrop-blur-sm">
+      <div className="my-10 w-11/12 max-w-[700px] rounded-2xl bg-white shadow-sm">
+        <div className="flex items-center justify-between rounded-t-2xl p-5 border-b border-black/8">
           <p className="text-xl font-semibold text-black">Add Review</p>
           <button onClick={() => setReviewModal(false)}>
-            <RxCross2 className="text-2xl text-black" />
+            <RxCross2 className="text-2xl text-black/60 hover:text-black" />
           </button>
         </div>
 
@@ -62,7 +62,7 @@ export default function CourseReview({ setReviewModal }) {
               <p className="font-semibold text-black capitalize">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-sm text-black">Posting Publicly</p>
+              <p className="text-sm text-black/60">Posting Publicly</p>
             </div>
           </div>
 
@@ -79,10 +79,10 @@ export default function CourseReview({ setReviewModal }) {
 
             <div className="flex w-11/12 flex-col space-y-2">
               <label
-                className="text-sm text-black"
+                className="text-sm text-black/70"
                 htmlFor="courseExperience"
               >
-                Add Your Experience <sup className="text-pink-200">*</sup>
+                Add Your Experience <sup className="text-red-500">*</sup>
               </label>
               <textarea
                 id="courseExperience"
@@ -91,21 +91,17 @@ export default function CourseReview({ setReviewModal }) {
                 className="form-style resize-x-none min-h-[130px] w-full"
               />
               {errors.courseExperience && (
-                <span className="ml-2 text-xs tracking-wide text-pink-200">
+                <span className="ml-2 text-xs tracking-wide text-red-500">
                   Please Add Your Experience
                 </span>
               )}
             </div>
 
             <div className="mt-6 flex w-11/12 justify-end gap-x-2">
-              <button
-                onClick={() => setReviewModal(false)}
-                className={`flex cursor-pointer items-center gap-x-2 rounded-md  py-[8px] px-[20px] font-semibold
-                           text-black hover: hover:text-black duration-300`}
-              >
+              <Button variant="light" onClick={() => setReviewModal(false)}>
                 Cancel
-              </button>
-              <IconBtn text="Save" customClasses="bg-violet-600"/>
+              </Button>
+              <Button type="submit">Save</Button>
             </div>
           </form>
         </div>

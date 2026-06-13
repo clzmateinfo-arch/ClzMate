@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import React, { useRef, useState } from "react";
+ 
+import { useRef, useState } from "react";
 import Button from "@/shared/components/ui/Button";
 
 export default function SearchInput({

@@ -1,8 +1,6 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import { formatTimeAgo } from "@/shared/utils/formatDate";
-import { HiOutlineGlobeAlt } from "react-icons/hi";
 
 export default function CourseCard({ course, onAddToCart = () => { } }) {
   const {
@@ -11,7 +9,6 @@ export default function CourseCard({ course, onAddToCart = () => { } }) {
     thumbnail,
     price = 0,
     duration,
-    tag = [],
     studentsEnrolled = [],
     category,
     __v = 0,

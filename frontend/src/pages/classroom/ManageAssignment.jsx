@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useLocation } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
@@ -11,8 +11,6 @@ import { setAssignment, setEditAssignment, setStep } from "@/entities/classroom/
 export default function ManageAssignment() {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    const classroomState = useSelector((s) => s.classroom || {});
-    const { assignment, step } = classroomState || {};
     const { classroomId, topicId, assignmentId } = useParams();
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
@@ -42,7 +40,7 @@ export default function ManageAssignment() {
                     } else {
                         throw new Error("Empty assignment returned");
                     }
-                } catch (err) {
+                } catch {
                     try {
                         const fallbackList = fetchedOverview?.upcomingAssignments || [];
                         const found = fallbackList.find((x) => String(x._id) === String(assignmentId) || String(x.id) === String(assignmentId));
@@ -56,7 +54,7 @@ export default function ManageAssignment() {
                             dispatch(setEditAssignment(false));
                             dispatch(setStep(1));
                         }
-                    } catch (e2) {
+                    } catch {
                         dispatch(setAssignment(null));
                         dispatch(setEditAssignment(false));
                         dispatch(setStep(1));

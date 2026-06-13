@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import React, { useMemo, useState } from "react";
+ 
+import { useMemo, useState } from "react";
 import { HiOutlineTag } from "react-icons/hi";
 
 export default function CourseTags({

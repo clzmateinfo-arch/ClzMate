@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import ClassSidebar from "../../widgets/Navbar/ClassSidebar";
 import ScrollToTop from "@/shared/components/navigation/ScrollToTop";

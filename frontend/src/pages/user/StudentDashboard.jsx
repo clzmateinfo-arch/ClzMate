@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
@@ -90,13 +90,13 @@ export default function StudentDashboard() {
                             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 shadow-sm">
                                 <p className="text-xs text-black/70">Enrolled</p>
                                 <p className="text-2xl font-semibold text-black">{totalEnrolled}</p>
-                                <p className="text-xs text-black/60 mt-2">Active courses you're learning</p>
+                                <p className="text-xs text-black/60 mt-2">Active courses you&apos;re learning</p>
                             </div>
 
                             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 shadow-sm">
                                 <p className="text-xs text-black/70">Completed</p>
                                 <p className="text-2xl font-semibold text-black">{completedCount}</p>
-                                <p className="text-xs text-black/60 mt-2">Courses you've finished</p>
+                                <p className="text-xs text-black/60 mt-2">Courses you&apos;ve finished</p>
                             </div>
 
                             <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 shadow-sm">
@@ -123,7 +123,7 @@ export default function StudentDashboard() {
 
                                 {courses.length === 0 ? (
                                     <div className="py-12 text-center">
-                                        <p className="text-sm text-black/70">You aren't enrolled in any courses yet.</p>
+                                        <p className="text-sm text-black/70">You aren&apos;t enrolled in any courses yet.</p>
                                         <Link to="/courses">
                                             <Button className="mt-4">Browse courses</Button>
                                         </Link>

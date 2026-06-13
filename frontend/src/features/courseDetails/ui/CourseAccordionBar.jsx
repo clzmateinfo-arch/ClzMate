@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useRef, useState } from "react";
 import CourseSubSectionAccordion from "./CourseSubSectionAccordion";
 import { IoMdArrowDropdown } from "react-icons/io";

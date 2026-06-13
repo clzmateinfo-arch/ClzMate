@@ -12,8 +12,6 @@ export default function UpdatePasswordForm() {
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({ confirmPassword: "", password: "" });
 
     const resetErrors = () => setErrors({ confirmPassword: "", password: "" });

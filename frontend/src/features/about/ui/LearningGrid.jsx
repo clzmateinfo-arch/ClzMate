@@ -1,7 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
-import HighlightText from "@/shared/components/ui/HighlightText";
 
 const LearningGridArray = [
   {

@@ -1,28 +1,24 @@
-/* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useState } from "react"
+ 
+import { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
-import { VscSignOut } from "react-icons/vsc"
 import { HiMenuAlt1 } from "react-icons/hi"
 import { IoMdClose } from "react-icons/io"
-import { MdOutlineSettings } from "react-icons/md"
 
 import { sidebarLinks } from "@/app/config/dashboard-links"
 import { logout } from "@/entities/auth/model/authAPI"
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
-import ProfileMenu from "./components/ProfileMenu"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 
 export default function UserSidebar() {
-  const location = useLocation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
   const { loading: authLoading } = useSelector((s) => s.auth)
-  const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
+  const { openSideMenu } = useSelector((s) => s.sidebar)
   const [confirmationModal, setConfirmationModal] = useState(null)
 
   useEffect(() => {

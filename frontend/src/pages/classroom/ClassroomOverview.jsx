@@ -1,5 +1,5 @@
 // frontend/src/pages/classroom/ClassroomOverview.jsx
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
@@ -84,7 +84,7 @@ export default function ClassroomOverview() {
                 } else {
                     setClassroom(null);
                 }
-            } catch (e) {
+            } catch {
                 setClassroom(null);
             }
         } finally {

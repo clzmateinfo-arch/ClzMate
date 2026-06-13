@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { Link } from "react-router-dom";
 import * as IconBi from "react-icons/bi";
 import * as IconIo from "react-icons/io5";

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useLocation } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
@@ -11,7 +11,6 @@ import { setQuiz, setEditQuiz, setStepQuiz } from "@/entities/classroom/model/cl
 export default function ManageQuiz() {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    const { quiz } = useSelector((s) => s.classroom || {});
     const { classroomId, topicId, quizId } = useParams();
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
@@ -41,7 +40,7 @@ export default function ManageQuiz() {
                     } else {
                         throw new Error("empty quiz");
                     }
-                } catch (err) {
+                } catch {
                     try {
                         const fallbackList = fetchedOverview?.upcomingAssignments || fetchedOverview?.upcomingQuizzes || [];
                         const found = fallbackList.find((x) => String(x._id) === String(quizId) || String(x.id) === String(quizId));
@@ -55,7 +54,7 @@ export default function ManageQuiz() {
                             dispatch(setEditQuiz(false));
                             dispatch(setStepQuiz(1));
                         }
-                    } catch (e2) {
+                    } catch {
                         dispatch(setQuiz(null));
                         dispatch(setEditQuiz(false));
                         dispatch(setStepQuiz(1));

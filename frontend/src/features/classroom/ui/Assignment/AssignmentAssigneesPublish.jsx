@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setStep, setAssignment } from "@/entities/classroom/model/classroomSlice";
@@ -19,7 +19,7 @@ export default function AssignmentAssigneesPublish({ classroomId, overview }) {
     const [saving, setSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const members = overview?.classroom?.members || [];
-    const [loading, setLoading] = useState(false);
+    const [loading] = useState(false);
     const [publishChecked, setPublishChecked] = useState(Boolean(assignment?.publish));
 
     useEffect(() => {

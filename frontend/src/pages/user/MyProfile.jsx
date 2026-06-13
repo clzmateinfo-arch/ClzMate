@@ -1,7 +1,6 @@
-/* eslint-disable react/no-unescaped-entities */
+ 
 import { useEffect } from "react";
 import { RiEditBoxLine } from "react-icons/ri";
-import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formattedDate } from "@/utils/dateFormatter";
@@ -9,7 +8,6 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import Img from "@/shared/components/ui/Img";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
-import Button from "@/shared/components/ui/Button";
 
 export default function MyProfile() {
   const { user } = useSelector((state) => state.profile);

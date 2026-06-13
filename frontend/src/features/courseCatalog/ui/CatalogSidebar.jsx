@@ -1,10 +1,9 @@
-import React from "react";
 
 export default function CatalogSidebar({
     categories = [],
     selectedCategoryId,
     onChange = () => { },
-    visible = false,
+    _visible = false,
     onClose = () => { },
 }) {
     return (
