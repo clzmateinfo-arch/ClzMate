@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setQuiz, setStepQuiz } from "@/entities/classroom/model/classroomSlice";
 import {
@@ -22,7 +22,7 @@ const TEMPLATES = [
     { value: "poll", label: "Poll" },
 ];
 
-export default function QuizBuilder({ topicId, overview }) {
+export default function QuizBuilder({ _topicId, _overview }) {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
     const { quiz } = useSelector((s) => s.classroom || {});

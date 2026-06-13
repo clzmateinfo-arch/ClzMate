@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/entities/auth/model/authAPI";
 import { NavbarLinks } from "@/app/config/navbar-links";
-import { Logo } from "@/shared/components/ui/Logo";
 import DesktopCenterNav from "./components/DesktopCenterNav";
 import MobileNav from "./components/MobileNav";
 import ProfileMenu from "./components/ProfileMenu";
@@ -29,7 +28,7 @@ const MainNavbar = () => {
 
   const handleSignOut = useCallback(() => {
     dispatch(logout(navigate));
-  }, [dispatch, navigate, useLocation().pathname]);
+  }, [dispatch, navigate]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[500] w-full bg-transparent">

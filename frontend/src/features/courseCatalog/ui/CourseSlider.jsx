@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
-import { useLocation } from "react-router-dom";
 
 export default function CourseSlider({
   categoryId,
@@ -17,7 +16,6 @@ export default function CourseSlider({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(null);
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
 
@@ -25,15 +23,13 @@ export default function CourseSlider({
     setCourses(initialFeatured ?? []);
     setPage(1);
     setHasMore(true);
-    setTotal(null);
-  }, [categoryId, initialFeatured, useLocation().pathname]);
+  }, [categoryId, initialFeatured]);
 
   useEffect(() => {
     setCourses([]);
     setPage(1);
     setHasMore(true);
-    setTotal(null);
-  }, [searchTerm, filters, categoryId, useLocation().pathname]);
+  }, [searchTerm, filters, categoryId]);
 
   useEffect(() => {
     let mounted = true;
@@ -73,7 +69,6 @@ export default function CourseSlider({
         if (page === 1) setCourses(received);
         else setCourses((prev) => [...prev, ...received]);
 
-        setTotal(typeof totalCount === "number" ? totalCount : null);
 
         if (typeof totalCount === "number") {
           setHasMore(page * pageSize < totalCount);
@@ -92,7 +87,7 @@ export default function CourseSlider({
     return () => {
       mounted = false;
     };
-  }, [page, categoryId, searchTerm, filters, pageSize, useLocation().pathname]);
+  }, [page, categoryId, searchTerm, filters, pageSize]);
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -111,7 +106,7 @@ export default function CourseSlider({
     if (current) observerRef.current.observe(current);
 
     return () => observerRef.current?.disconnect();
-  }, [hasMore, loading, useLocation().pathname]);
+  }, [hasMore, loading]);
 
   return (
     <section className="mb-8">

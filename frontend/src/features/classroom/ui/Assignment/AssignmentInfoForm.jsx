@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { setAssignment, setStep, setEditAssignment } from "@/entities/classroom/
 import Input from "@/shared/components/ui/Input";
 import Textarea from "@/shared/components/ui/Textarea";
 import Button from "@/shared/components/ui/Button";
-import DateInput from "@/shared/components/ui/DateInput";
+import Dateinput from "@/shared/components/ui/Dateinput";
 import { toast } from "react-hot-toast";
 
 export default function AssignmentInfoForm({ classroomId, topicId }) {
@@ -98,7 +98,7 @@ export default function AssignmentInfoForm({ classroomId, topicId }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                    <DateInput
+                    <Dateinput
                         label="Due Date"
                         name="dueDate"
                         value={dueDate}

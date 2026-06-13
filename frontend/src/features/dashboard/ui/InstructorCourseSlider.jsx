@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchInstructorCourses, toggleCoursePublish } from "@/entities/course/model/courseDetailsAPI";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
@@ -14,7 +14,6 @@ export default function InstructorCourseSlider({ searchTerm = "", pageSize = 10 
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [total, setTotal] = useState(null);
 
     const observerRef = useRef(null);
     const sentinelRef = useRef(null);
@@ -23,7 +22,6 @@ export default function InstructorCourseSlider({ searchTerm = "", pageSize = 10 
         setCourses([]);
         setPage(1);
         setHasMore(true);
-        setTotal(null);
     }, [searchTerm]);
 
     useEffect(() => {
@@ -47,7 +45,6 @@ export default function InstructorCourseSlider({ searchTerm = "", pageSize = 10 
                 if (page === 1) setCourses(received);
                 else setCourses((prev) => [...prev, ...received]);
 
-                setTotal(totalCount);
                 if (typeof totalCount === "number") setHasMore(page * pageSize < totalCount);
                 else setHasMore(received.length === pageSize);
             } catch (err) {

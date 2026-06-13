@@ -1,11 +1,10 @@
-import React from "react";
 import { useSelector } from "react-redux";
 import StepCard from "@/shared/components/navigation/StepCard";
 import AssignmentInfoForm from "./AssignmentInfoForm";
 import AssignmentMaterialsForm from "./AssignmentMaterialsForm";
 import AssignmentAssigneesPublish from "./AssignmentAssigneesPublish";
 
-export default function RenderStepsAssignment({ classroomId, topicId, assignmentId, overview }) {
+export default function RenderStepsAssignment({ classroomId, topicId, _assignmentId, overview }) {
     const classroomState = useSelector((s) => s.classroom || {});
     const { step = 1 } = classroomState;
 

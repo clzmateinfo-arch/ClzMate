@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { HiOutlineVideoCamera } from "react-icons/hi";
@@ -19,10 +19,12 @@ function EditableSubSection({ subSec, onView, onEdit, onDelete }) {
 
   const hasMainPdf = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainPdf);
   const hasMainVideo = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainVideo);
+  const hasMainHtml = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainHtml);
 
-  const showDoc = hasMainPdf && !hasMainVideo;
-  const showPreview = hasMainVideo && !hasMainPdf;
-  const showLocked = !showDoc && !showPreview;
+  const showPreview = hasMainVideo;
+  const showHtml = hasMainHtml && !hasMainVideo && !hasMainPdf;
+  const showDoc = hasMainPdf && !hasMainVideo && !hasMainHtml;
+  const showLocked = !showPreview && !showHtml && !showDoc;
 
   return (
     <div
@@ -47,6 +49,11 @@ function EditableSubSection({ subSec, onView, onEdit, onDelete }) {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
             <FaVideo className="w-3.5 h-3.5" />
             <span className="whitespace-nowrap">Prev</span>
+          </div>
+        ) : showHtml ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <IoIosDocument className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">HTML</span>
           </div>
         ) : showLocked ? (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { HiArrowNarrowUp } from "react-icons/hi";
-import { useLocation } from "react-router-dom";
 
 export default function BackToTop() {
     const [show, setShow] = useState(false);
@@ -10,7 +9,7 @@ export default function BackToTop() {
         const onScroll = () => setShow(window.scrollY > 500);
         window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
-    }, [useLocation().pathname]);
+    }, []);
 
     const prefersReducedMotion =
         typeof window !== "undefined" && window.matchMedia

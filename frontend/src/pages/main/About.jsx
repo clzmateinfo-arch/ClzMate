@@ -1,9 +1,7 @@
-/* eslint-disable react/no-unescaped-entities */
-import React from "react";
+ 
 import PageHeader from "@/shared/components/ui/PageHeader";
 import Footer from "@/widgets/Footer/Footer";
 import Img from "@/shared/components/ui/Img";
-import NimanthaImg from "../../shared/assets/images/about/nimantha.jpg";
 import SachiniImg from "../../shared/assets/images/about/sachini.jpg";
 import { FaLinkedinIn, FaGithub, FaFacebookF, FaTwitter } from "react-icons/fa";
 import LearningGrid from "@/features/about/ui/LearningGrid";

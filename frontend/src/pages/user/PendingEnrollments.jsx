@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
 import { fetchMyEnrollmentRequests } from "@/entities/course/model/courseDetailsAPI";
 import Button from "@/shared/components/ui/Button";
 import Img from "@/shared/components/ui/Img";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 

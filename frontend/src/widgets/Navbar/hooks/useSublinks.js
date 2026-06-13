@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/shared/components/feedback/CustomToast";
-import { useLocation } from "react-router-dom";
 
 export default function useSublinks(source) {
     const cacheRef = useRef(new Map());
@@ -48,7 +47,7 @@ export default function useSublinks(source) {
         return () => {
             mounted = false;
         };
-    }, [source, useLocation().pathname]);
+    }, [source]);
 
     return { items, loading, error };
 }

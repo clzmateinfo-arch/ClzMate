@@ -1,7 +1,6 @@
 import Footer from "@/widgets/Footer/Footer";
 import ContactDetails from "@/features/contact/ui/ContactDetails";
 import ContactForm from "@/features/contact/ui/ContactForm";
-import ReviewSlider from "@/shared/components/feedback/ReviewSlider";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import PageHeader from "@/shared/components/ui/PageHeader";
 

@@ -1,4 +1,3 @@
-import React from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import cloudCity from "@/shared/assets/images/porfolio/cloud-city.avif";
 

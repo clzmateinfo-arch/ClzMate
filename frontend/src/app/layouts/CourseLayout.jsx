@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import CourseSidebar from "../../widgets/Navbar/CourseSidebar";
 import ScrollToTop from "@/shared/components/navigation/ScrollToTop";

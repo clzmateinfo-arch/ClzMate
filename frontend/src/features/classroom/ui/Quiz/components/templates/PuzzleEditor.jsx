@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function PuzzleEditor({ screen, onChange }) {
     const local = screen || {};

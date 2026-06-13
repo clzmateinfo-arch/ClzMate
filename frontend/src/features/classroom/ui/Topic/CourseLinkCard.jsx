@@ -1,5 +1,4 @@
-import React from "react";
-import { FiLink, FiTrash2, FiEdit, FiCopy, FiCheck, FiX, FiUpload } from "react-icons/fi";
+import { FiLink, FiTrash2, FiEdit, FiCopy, FiUpload } from "react-icons/fi";
 
 export default function CourseLinkCard({
     item = {},

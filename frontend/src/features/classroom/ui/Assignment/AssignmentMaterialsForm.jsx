@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
 import MultiUpload from "@/shared/components/ui/MultiUpload";
@@ -8,7 +8,7 @@ import { updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
 import { setAssignment, setStep } from "@/entities/classroom/model/classroomSlice";
 import { toast } from "react-hot-toast";
 
-export default function AssignmentMaterialsForm({ topicId }) {
+export default function AssignmentMaterialsForm({ _topicId }) {
     const dispatch = useDispatch();
     const classroomState = useSelector((s) => s.classroom || {});
     const { assignment } = classroomState || {};

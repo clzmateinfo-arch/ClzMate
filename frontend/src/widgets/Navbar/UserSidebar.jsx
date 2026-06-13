@@ -1,19 +1,16 @@
-/* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useState } from "react"
+ 
+import { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
-import { VscSignOut } from "react-icons/vsc"
 import { HiMenuAlt1 } from "react-icons/hi"
 import { IoMdClose } from "react-icons/io"
-import { MdOutlineSettings } from "react-icons/md"
 
 import { sidebarLinks } from "@/app/config/dashboard-links"
 import { logout } from "@/entities/auth/model/authAPI"
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal"
 import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
-import ProfileMenu from "./components/ProfileMenu"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 
 export default function UserSidebar() {
@@ -21,7 +18,7 @@ export default function UserSidebar() {
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
   const { loading: authLoading } = useSelector((s) => s.auth)
-  const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
+  const { openSideMenu } = useSelector((s) => s.sidebar)
   const [confirmationModal, setConfirmationModal] = useState(null)
 
   useEffect(() => {
@@ -29,7 +26,11 @@ export default function UserSidebar() {
     window.addEventListener("resize", handleResize)
     handleResize()
     return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch, useLocation().pathname])
+  }, [dispatch])
+
+  const handleSignOut = useCallback(() => {
+    dispatch(logout(navigate));
+  }, [dispatch, navigate]);
 
   if (profileLoading || authLoading) {
     return (
@@ -45,10 +46,6 @@ export default function UserSidebar() {
       navigate(path)
     }
   }
-
-  const handleSignOut = useCallback(() => {
-    dispatch(logout(navigate));
-  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <>
@@ -128,7 +125,14 @@ export default function UserSidebar() {
         )}
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleSignOut()}
+          onClick={() => setConfirmationModal({
+            text1: "Sign Out",
+            text2: "Are you sure you want to sign out?",
+            btn1Text: "Sign Out",
+            btn2Text: "Cancel",
+            btn1Handler: () => { handleSignOut(); setConfirmationModal(null); },
+            btn2Handler: () => setConfirmationModal(null),
+          })}
           title="Signout"
           className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"
             } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}

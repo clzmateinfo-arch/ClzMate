@@ -1,5 +1,4 @@
-import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { forwardRef, useEffect, useId, useRef, useState } from "react";
 
 const normalizeOption = (opt) =>
     typeof opt === "string" ? { value: opt, label: opt, disabled: false } : { value: opt.value, label: opt.label, disabled: !!opt.disabled };
@@ -40,12 +39,12 @@ const Select = forwardRef(
         const [internalValue, setInternalValue] = useState(controlledValue ?? "");
         useEffect(() => {
             if (controlledValue !== undefined) setInternalValue(controlledValue);
-        }, [controlledValue, useLocation().pathname]);
+        }, [controlledValue]);
 
         const [filter, setFilter] = useState("");
         useEffect(() => {
             if (!open) setFilter("");
-        }, [open, useLocation().pathname]);
+        }, [open]);
 
         const filteredOptions = _options.filter((opt) =>
             opt.label.toLowerCase().includes(filter.trim().toLowerCase())
@@ -54,7 +53,7 @@ const Select = forwardRef(
         const [activeIndex, setActiveIndex] = useState(0);
         useEffect(() => {
             if (activeIndex >= filteredOptions.length) setActiveIndex(filteredOptions.length - 1);
-        }, [filteredOptions.length, activeIndex, useLocation().pathname]);
+        }, [filteredOptions.length, activeIndex]);
 
         useEffect(() => {
             const onDoc = (e) => {
@@ -65,7 +64,7 @@ const Select = forwardRef(
             };
             document.addEventListener("mousedown", onDoc);
             return () => document.removeEventListener("mousedown", onDoc);
-        }, [useLocation().pathname]);
+        }, []);
 
         useEffect(() => {
             if (!open) return;
@@ -265,5 +264,7 @@ const Select = forwardRef(
         );
     }
 );
+
+Select.displayName = "Select";
 
 export default Select;

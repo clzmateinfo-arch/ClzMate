@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FiFilePlus } from "react-icons/fi";
 import { IoAddCircleOutline, IoCloseCircleOutline } from "react-icons/io5";
@@ -23,7 +23,7 @@ export default function TopicList({ classroomId, onOpenTopic, search = "" }) {
     const dragState = useRef({ draggingId: null });
     const inputRef = useRef(null);
 
-    const { register, control, handleSubmit, setValue, reset, formState } = useForm({
+    const { control, handleSubmit, setValue, reset, formState } = useForm({
         defaultValues: { topicTitle: "" },
     });
     const { errors } = formState;

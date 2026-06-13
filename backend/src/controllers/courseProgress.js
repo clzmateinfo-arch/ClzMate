@@ -1,5 +1,5 @@
-const SubSection = require("../models/SubSection")
-const CourseProgress = require("../models/CourseProgress")
+const SubSection = require("../models/subSection")
+const CourseProgress = require("../models/courseProgress")
 
 exports.updateCourseProgress = async (req, res) => {
   const { courseId, subSectionId } = req.body
@@ -8,7 +8,7 @@ exports.updateCourseProgress = async (req, res) => {
   try {
     const subsection = await SubSection.findById(subSectionId)
     if (!subsection) {
-      return res.status(404).json({ error: "Invalid subsection" })
+      return res.status(404).json({ success: false, message: "Invalid subsection" })
     }
 
     let courseProgress = await CourseProgress.findOne({
@@ -23,7 +23,7 @@ exports.updateCourseProgress = async (req, res) => {
       })
     } else {
       if (courseProgress.completedVideos.includes(subSectionId)) {
-        return res.status(400).json({ error: "Subsection already completed" })
+        return res.status(400).json({ success: false, message: "Subsection already completed" })
       }
 
       courseProgress.completedVideos.push(subSectionId)
@@ -31,10 +31,10 @@ exports.updateCourseProgress = async (req, res) => {
 
     await courseProgress.save()
 
-    return res.status(200).json({ message: "Course progress updated" })
+    return res.status(200).json({ success: true, message: "Course progress updated" })
   }
   catch (error) {
     console.error(error)
-    return res.status(500).json({ error: "Internal server error" })
+    return res.status(500).json({ success: false, message: "Internal server error" })
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FiTrash2, FiEdit, FiMove, FiChevronDown, FiChevronRight } from "react-icons/fi";
 
 export default function ScreenSection({
@@ -13,7 +13,6 @@ export default function ScreenSection({
     onEdit,
 }) {
     const [open, setOpen] = useState(false);
-    const sid = screen._id || screen.id;
     return (
         <div
             draggable

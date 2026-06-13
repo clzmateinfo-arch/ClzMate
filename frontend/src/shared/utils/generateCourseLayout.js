@@ -23,6 +23,17 @@ export function generateCourseLayout({
         )
     );
 
+    const hasHtml = !!(
+        currentSub &&
+        Array.isArray(currentSub.supportMaterials) &&
+        currentSub.supportMaterials.find((s) =>
+            !!s.isMainHtml ||
+            (s.mimeType || "").toLowerCase().includes("html") ||
+            (s.originalName || "").toLowerCase().endsWith(".html") ||
+            (s.originalName || "").toLowerCase().endsWith(".htm")
+        )
+    );
+
     const hasExternal = !!(currentSub && (currentSub.externalVideoUrl || "").toString().trim());
 
     const panels = [];
@@ -30,6 +41,7 @@ export function generateCourseLayout({
     if (hasExternal) panels.push({ id: "external", type: "external" });
     if (hasVideo) panels.push({ id: "video", type: "video" });
     if (hasPdf) panels.push({ id: "pdf", type: "pdf" });
+    if (hasHtml) panels.push({ id: "html", type: "html" });
     if (features.notesEnabled) panels.push({ id: "notes", type: "notes" });
     panels.push({ id: "support", type: "support" });
     if (features.sandboxEnabled) panels.push({ id: "sandbox", type: "sandbox" });

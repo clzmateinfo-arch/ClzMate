@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
 import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
-import { useLocation } from "react-router-dom";
 
 export function NewCourses() {
     const [courses, setCourses] = useState([]);
@@ -59,7 +58,7 @@ export function NewCourses() {
 
     useEffect(() => {
         loadPopular();
-    }, [useLocation().pathname]);
+    }, []);
 
     function onAddToCart(course) {
         console.log("add", course);

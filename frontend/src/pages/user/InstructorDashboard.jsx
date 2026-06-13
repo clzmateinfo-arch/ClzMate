@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
@@ -18,9 +17,9 @@ export default function InstructorDashboard() {
   const [loading, setLoading] = useState(false);
   const [instructorData, setInstructorData] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pageSize, setPageSize] = useState(9999);
+  const [page] = useState(1);
+  const [searchTerm] = useState("");
+  const [pageSize] = useState(9999);
 
   useEffect(() => {
     let mounted = true;
@@ -28,18 +27,17 @@ export default function InstructorDashboard() {
       setLoading(true);
       try {
         const instructorApiData = await getInstructorData(token);
-        const instructorCoursesApiData = await await fetchInstructorCourses({
+        const instructorCoursesApiData = await fetchInstructorCourses({
           token: token,
           page,
           limit: pageSize,
           search: searchTerm,
         });
         if (!mounted) return;
-        console.log("instructorApiData: ", instructorApiData, "instructorCoursesApiData: ", instructorCoursesApiData);
+        //console.log("instructorApiData: ", instructorApiData, "instructorCoursesApiData: ", instructorCoursesApiData);
         setInstructorData(Array.isArray(instructorApiData) ? instructorApiData : []);
         setCourses(Array.isArray(instructorCoursesApiData?.data) ? instructorCoursesApiData?.data : []);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("Instructor load failed", err);
       } finally {
         if (mounted) setLoading(false);
@@ -166,7 +164,7 @@ export default function InstructorDashboard() {
           </div>
         ) : (
           <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 text-center">
-            <p className="text-2xl font-bold text-black mb-3">You haven't created any courses yet</p>
+            <p className="text-2xl font-bold text-black mb-3">You haven&apos;t created any courses yet</p>
             <Link to="/dashboard/add-course">
               <p className="text-lg font-semibold text-yellow-50 hover:underline">Create a course</p>
             </Link>

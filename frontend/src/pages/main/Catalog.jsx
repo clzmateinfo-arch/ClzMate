@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
 import CatalogSidebar from "@/features/courseCatalog/ui/CatalogSidebar";
 import Footer from "@/widgets/Footer/Footer";
@@ -30,7 +30,7 @@ export default function Catalog() {
         console.error("Could not fetch Categories.", error);
       }
     })();
-  }, [catalogId, useLocation().pathname]);
+  }, [catalogId]);
 
   useEffect(() => {
     if (!categoryId) return;
@@ -45,7 +45,7 @@ export default function Catalog() {
         setLoading(false);
       }
     })();
-  }, [categoryId, useLocation().pathname]);
+  }, [categoryId]);
 
   const handleToggleSidebar = useCallback(() => {
     setSidebarOpen((s) => !s);

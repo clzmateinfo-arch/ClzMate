@@ -15,7 +15,6 @@ import Button from "@/shared/components/ui/Button";
 import Loading from "@/shared/components/navigation/Loading";
 import { toast } from "react-hot-toast";
 import {
-    createItemAPI,
     deleteItemAPI,
     toggleItemStatusAPI,
     copyItemAPI,
@@ -58,7 +57,6 @@ export default function TopicItem({
 
     const navigate = useNavigate();
     const [materialModalOpen, setMaterialModalOpen] = useState(false);
-    const [linkCourseModalOpen, setLinkCourseModalOpen] = useState(false);
 
     // Keep items in sync when topic prop changes
     useEffect(() => {
@@ -140,10 +138,8 @@ export default function TopicItem({
         }
     };
 
-    const openCreateModalFor = (type) => {
-        if (type === "material") setMaterialModalOpen(true);
-        else if (type === "subsection") setLinkCourseModalOpen(true);
-        else setMaterialModalOpen(true);
+    const openCreateModalFor = (_type) => {
+        setMaterialModalOpen(true);
     };
 
     const onItemCreated = (created) => {

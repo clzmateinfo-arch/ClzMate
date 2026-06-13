@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { FiX } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { FiX, FiDownload } from "react-icons/fi";
+import { toast } from "react-hot-toast";
+import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import ResourceViewer from "@/shared/components/app/ResourceViewer";
 import PlayerPanel from "@/shared/components/app/PlayerPanel";
 import ExternalVideo from "@/shared/components/app/ExternalVideo";
+import HtmlViewer from "@/shared/components/app/HtmlViewer";
 
 export default function SupportFilesPanel({ supportMaterials = [], token = null }) {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewResource, setPreviewResource] = useState(null);
     const [previewSub, setPreviewSub] = useState(null); // stable object passed to PlayerPanel
+    const [downloadingId, setDownloadingId] = useState(null);
 
     useEffect(() => {
         if (previewOpen) {
@@ -53,6 +57,39 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
         setPreviewSub(null);
     };
 
+    const downloadHtmlFile = async (m) => {
+        const fileId = m._id || m.publicId || m.url;
+        setDownloadingId(fileId);
+        try {
+            let url = m.url;
+            if (m.publicId) {
+                const signed = await getSignedAssetUrl(
+                    { publicId: m.publicId, resourceType: m.resourceType || "raw", type: "authenticated" },
+                    token
+                );
+                url = typeof signed === "string" ? signed : signed?.url ?? m.url;
+            }
+            if (!url) throw new Error("No URL available for download");
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error(`Failed to fetch file (${resp.status})`);
+            const text = await resp.text();
+            const blob = new Blob([text], { type: "text/html" });
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = m.originalName || "download.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("HTML download error", err);
+            toast.error("Could not download file");
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
     const isYoutubeLike = (url) => {
         if (!url || typeof url !== "string") return false;
         const u = url.toLowerCase();
@@ -70,6 +107,12 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
     const isPdfResource = (r = {}) =>
         mt(r) === "application/pdf" || (name(r) || "").endsWith(".pdf") || ((r.resourceType || "").startsWith("raw") && (name(r) || "").endsWith(".pdf"));
 
+    const isHtmlResource = (r = {}) =>
+        !!r.isMainHtml ||
+        mt(r).includes("html") ||
+        (name(r) || "").endsWith(".html") ||
+        (name(r) || "").endsWith(".htm");
+
     if (!Array.isArray(supportMaterials) || supportMaterials.length === 0) {
         return (
             <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -81,7 +124,7 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
     return (
         <>
             <div className="w-full h-full flex flex-col gap-3">
-                <div className="flex flex-col gap-2 overflow-auto m-5">
+                <div className="flex-1 min-h-0 overflow-y-auto sidebar-scroll m-5 flex flex-col gap-2">
                     {supportMaterials.map((m) => (
                         <div
                             key={m._id || m.publicId || m.url}
@@ -104,7 +147,18 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
                                 >
                                     View
                                 </button>
-                                {/* Download intentionally removed (view-only) */}
+                                {isHtmlResource(m) && (
+                                    <button
+                                        onClick={() => downloadHtmlFile(m)}
+                                        disabled={downloadingId === (m._id || m.publicId || m.url)}
+                                        className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 text-white text-sm disabled:opacity-50 transition-colors"
+                                        title="Download HTML file"
+                                        type="button"
+                                    >
+                                        <FiDownload className="w-3.5 h-3.5" />
+                                        {downloadingId === (m._id || m.publicId || m.url) ? "..." : "Download"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -138,6 +192,8 @@ export default function SupportFilesPanel({ supportMaterials = [], token = null 
                         <div className="w-full h-[calc(100%-48px)] bg-black">
                             {isYoutubeLike(previewResource.url || previewResource.link) ? (
                                 <ExternalVideo url={previewResource.url || previewResource.link} />
+                            ) : isHtmlResource(previewResource) ? (
+                                <HtmlViewer resource={previewResource} token={token} />
                             ) : (previewSub && (isVideoResource(previewResource) || isPdfResource(previewResource))) ? (
                                 <PlayerPanel
                                     sub={previewSub}

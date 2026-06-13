@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const Course = require("../models/Course");
-const User = require("../models/User");
-const Category = require("../models/Category");
-const Section = require("../models/Section");
-const SubSection = require("../models/SubSection");
-const CourseProgress = require("../models/CourseProgress");
-const Note = require("../models/Note");
+const Course = require("../models/course");
+const User = require("../models/user");
+const Category = require("../models/category");
+const Section = require("../models/section");
+const SubSection = require("../models/subSection");
+const CourseProgress = require("../models/courseProgress");
+const Note = require("../models/note");
 const {
     uploadFileToCloudinary,
     deleteResourceFromCloudinary,
@@ -452,6 +452,10 @@ exports.editCourse = async (req, res) => {
             return res.status(404).json({ error: "Course not found" });
         }
 
+        if (String(course.instructor) !== String(req.user.id)) {
+            return res.status(403).json({ success: false, message: "Forbidden: you do not own this course" });
+        }
+
         let thumbnailFile = null;
         if (req.file) {
             thumbnailFile = req.file;
@@ -664,6 +668,10 @@ exports.deleteCourse = async (req, res) => {
         const course = await Course.findById(courseId);
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
+        }
+
+        if (String(course.instructor) !== String(req.user.id)) {
+            return res.status(403).json({ success: false, message: "Forbidden: you do not own this course" });
         }
 
         const studentsEnrolled = course.studentsEnrolled;

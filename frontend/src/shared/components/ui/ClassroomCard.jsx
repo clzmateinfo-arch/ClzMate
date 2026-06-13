@@ -9,7 +9,6 @@ export default function ClassroomCard({ classroom = {}, onOpen = () => { }, onMe
         description,
         inviteCode,
         members = [],
-        CoInstructors = [],
         owner = {},
         meta = {},
     } = classroom || {};

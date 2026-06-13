@@ -1,11 +1,10 @@
-/* eslint-disable react/prop-types */
+ 
 import {
   TiStarFullOutline,
   TiStarHalfOutline,
   TiStarOutline,
 } from "react-icons/ti";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
 function RatingStars({ Review_Count, Star_Size }) {
   const [starCount, SetStarCount] = useState({
@@ -21,7 +20,7 @@ function RatingStars({ Review_Count, Star_Size }) {
       half: Number.isInteger(Review_Count) ? 0 : 1,
       empty: Number.isInteger(Review_Count) ? 5 - wholeStars : 4 - wholeStars,
     });
-  }, [Review_Count, useLocation().pathname]);
+  }, [Review_Count]);
 
   return (
     <div className="flex gap-1 text-yellow-100">

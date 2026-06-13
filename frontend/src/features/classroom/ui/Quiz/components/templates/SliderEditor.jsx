@@ -1,8 +1,6 @@
-import React from "react";
 import Textarea from "@/shared/components/ui/Textarea";
 import Input from "@/shared/components/ui/Input";
 import Select from "@/shared/components/ui/Select";
-import Button from "@/shared/components/ui/Button";
 
 export default function SliderEditor({ screen = {}, onChange = () => { } }) {
     const local = screen;

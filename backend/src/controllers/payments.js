@@ -1,17 +1,20 @@
 const Rajorpay = require("razorpay");
-const instance = require("../config/rajorpay");
+const { default: mongoose } = require("mongoose");
 const crypto = require("crypto");
+const instance = require("../config/rajorpay");
+const User = require("../models/user");
+const Course = require("../models/course");
+const CourseProgress = require("../models/courseProgress");
 const mailSender = require("../utils/mailSender");
 const {
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail");
+const {
+  paymentSuccessEmail,
+} = require("../mail/templates/paymentSuccessEmail");
 require("dotenv-flow").config();
 
-const User = require("../models/User");
-const Course = require("../models/Course");
-const CourseProgress = require("../models/CourseProgress");
 
-const { default: mongoose } = require("mongoose");
 
 exports.capturePayment = async (req, res) => {
   const { coursesId } = req.body;
@@ -66,7 +69,7 @@ exports.capturePayment = async (req, res) => {
     console.log(error);
     return res
       .status(500)
-      .json({ success: false, mesage: "Could not Initiate Order" });
+      .json({ success: false, message: "Could not Initiate Order" });
   }
 };
 
@@ -215,7 +218,7 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
 
   const userId = req.user.id;
 
-  if (!orderId || !paymentId || !amount || !userId) {
+  if (!orderId || !paymentId || amount == null || !userId) {
     return res
       .status(400)
       .json({ success: false, message: "Please provide all the fields" });
@@ -223,9 +226,12 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
 
   try {
     const enrolledStudent = await User.findById(userId);
+    if (!enrolledStudent) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
     await mailSender(
       enrolledStudent.email,
-      `Payment Recieved`,
+      `Payment Received`,
       paymentSuccessEmail(
         `${enrolledStudent.firstName}`,
         amount / 100,
@@ -233,6 +239,7 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
         paymentId
       )
     );
+    return res.status(200).json({ success: true, message: "Email sent" });
   } catch (error) {
     console.log("error in sending mail", error);
     return res

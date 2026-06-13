@@ -105,178 +105,187 @@ export default function SectionSidebar({
         <aside
             className={
                 forceVisible
-                    ? "w-full h-full bg-gradient-to-b from-slate-900/95 to-slate-900/95 p-4 overflow-auto"
-                    : "w-full max-w-sm bg-gradient-to-b from-slate-900/80 to-slate-900/70 border-r border-slate-800 h-screen p-4 hidden lg:block"
+                    ? "w-full h-full bg-gradient-to-b from-slate-900/95 to-slate-900/95 flex flex-col overflow-hidden"
+                    : "w-full max-w-sm bg-gradient-to-b from-slate-900/80 to-slate-900/70 border-r border-slate-800 h-full flex flex-col overflow-hidden hidden lg:flex"
             }
             aria-label="Course sections"
         >
-            <div className="flex items-start justify-between mb-3">
-                <div className="min-w-0">
-                    <h4 className="font-semibold text-lg text-white leading-tight truncate">{course?.courseName}</h4>
-                    <p className="text-xs text-slate-400 mt-1 truncate">
-                        {course?.instructor?.firstName} {course?.instructor?.lastName}
-                    </p>
+            {/* Fixed header — always visible */}
+            <div className="flex-none px-4 pt-4 pb-3 border-b border-slate-800/60">
+                <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                        <h4 className="font-semibold text-lg text-white leading-tight truncate">{course?.courseName}</h4>
+                        <p className="text-xs text-slate-400 mt-1 truncate">
+                            {course?.instructor?.firstName} {course?.instructor?.lastName}
+                        </p>
+                    </div>
+
+                    {showBackToClassroom && (
+                        <div className="ml-3 shrink-0">
+                            <button
+                                onClick={() => {
+                                    if (classroomId) navigate(`/classroom/${classroomId}/view`);
+                                    else navigate(-1);
+                                }}
+                                className="px-3 py-1 rounded bg-white/10 text-xs text-white hover:bg-white/5"
+                            >
+                                Back to Classroom
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Scrollable sections list — grows to fill remaining space */}
+            <div className="flex-1 min-h-0 overflow-y-auto sidebar-scroll px-4">
+                <div className="space-y-3 py-3">
+                    {sections.map((s) => {
+                        const isOpen = openSection === s._id;
+                        return (
+                            <div key={s._id} className="group my-2">
+                                <button
+                                    aria-expanded={!!isOpen}
+                                    onClick={() => setOpenSection(isOpen ? null : s._id)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded transition-colors duration-200
+                                    ${isOpen ? "bg-indigo-700/40 text-white" : "bg-slate-800/20 text-slate-200 hover:bg-slate-800/30"}`}
+                                >
+                                    <div className="flex items-center gap-3 truncate min-w-0">
+                                        <div className="w-9 h-9 flex items-center justify-center rounded-md bg-white/5 text-sm font-semibold">
+                                            {s.sectionName ? s.sectionName.charAt(0).toUpperCase() : "S"}
+                                        </div>
+
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-medium truncate">{s.sectionName}</div>
+                                            <div className="text-xs text-slate-400 mt-0.5">{(s.subSection || []).length} lessons</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            className={`text-xs font-medium px-2 py-0.5 rounded-full uppercase tracking-wider transition-all duration-200
+                                            ${isOpen ? "bg-white/10 text-white" : "bg-white/5 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white"}`}
+                                        >
+                                            {isOpen ? "Open" : "View"}
+                                        </div>
+                                        <BsChevronDown className={`${isOpen ? "rotate-0" : "rotate-180"} transition-transform duration-200`} />
+                                    </div>
+                                </button>
+
+                                {isOpen && (
+                                    <div className="mt-2 ml-2 space-y-2">
+                                        {(s.subSection || []).map((ss, idx) => {
+                                            const active = currentSubId === ss._id;
+                                            const completed = completedSet.has(ss._id);
+                                            return (
+                                                <div
+                                                    key={ss._id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => handleGoto(s._id, ss._id)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") {
+                                                            e.preventDefault();
+                                                            handleGoto(s._id, ss._id);
+                                                        }
+                                                    }}
+                                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition transform duration-150
+                                                    ${active ? "bg-gradient-to-r from-[#490f7c] via-[#361375] to-[#1a1364] text-white scale-[1.01]" : "hover:translate-x-1 hover:bg-slate-800/40 text-slate-200"}`}
+                                                >
+                                                    <div
+                                                        className={`flex items-center justify-center w-8 h-8 rounded-md text-sm font-semibold
+                                                        ${active ? "bg-white/10 text-white" : completed ? "bg-emerald-500 text-white" : "bg-white/5 text-slate-200"}`}
+                                                    >
+                                                        {idx + 1}
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="truncate text-sm font-medium">{ss.title}</div>
+                                                        <div className="text-xs text-slate-400 truncate mt-0.5">{ss.description ? ss.description.slice(0, 80) : ""}</div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 ml-2">
+                                                        {completed ? (
+                                                            <div className="text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white">Completed</div>
+                                                        ) : (
+                                                            <div className="text-xs px-2 py-0.5 rounded-full bg-white/6 text-slate-200">Pending</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
 
-                {showBackToClassroom && (
-                    <div className="ml-3">
-                        <button
-                            onClick={() => {
-                                if (classroomId) navigate(`/classroom/${classroomId}/view`);
-                                else navigate(-1);
-                            }}
-                            className="px-3 py-1 rounded bg-white/10 text-xs text-white hover:bg-white/5"
-                        >
-                            Back to Classroom
-                        </button>
-                    </div>
-                )}
+                <div className="text-xs text-slate-400 py-3 border-t border-slate-800/50">
+                    <p>{(sections || []).length} sections • {(course?.studentsEnrolled || []).length} students</p>
+                </div>
             </div>
 
-            <div className="mt-4 space-y-3">
-                {sections.map((s) => {
-                    const isOpen = openSection === s._id;
-                    return (
-                        <div key={s._id} className="group my-2">
-                            <button
-                                aria-expanded={!!isOpen}
-                                onClick={() => setOpenSection(isOpen ? null : s._id)}
-                                className={`w-full flex items-center justify-between px-3 py-2 rounded transition-colors duration-200
-                                ${isOpen ? "bg-indigo-700/40 text-white" : "bg-slate-800/20 text-slate-200 hover:bg-slate-800/30"}`}
-                            >
-                                <div className="flex items-center gap-3 truncate min-w-0">
-                                    <div className="w-9 h-9 flex items-center justify-center rounded-md bg-white/5 text-sm font-semibold">
-                                        {s.sectionName ? s.sectionName.charAt(0).toUpperCase() : "S"}
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <div className="text-sm font-medium truncate">{s.sectionName}</div>
-                                        <div className="text-xs text-slate-400 mt-0.5">{(s.subSection || []).length} lessons</div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <div
-                                        className={`text-xs font-medium px-2 py-0.5 rounded-full uppercase tracking-wider transition-all duration-200
-                                        ${isOpen ? "bg-white/10 text-white" : "bg-white/5 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white"}`}
-                                    >
-                                        {isOpen ? "Open" : "View"}
-                                    </div>
-                                    <BsChevronDown className={`${isOpen ? "rotate-0" : "rotate-180"} transition-transform duration-200`} />
-                                </div>
-                            </button>
-
-                            {isOpen && (
-                                <div className="mt-2 ml-2 space-y-2">
-                                    {(s.subSection || []).map((ss, idx) => {
-                                        const active = currentSubId === ss._id;
-                                        const completed = completedSet.has(ss._id);
-                                        return (
-                                            <div
-                                                key={ss._id}
-                                                role="button"
-                                                tabIndex={0}
-                                                onClick={() => handleGoto(s._id, ss._id)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter" || e.key === " ") {
-                                                        e.preventDefault();
-                                                        handleGoto(s._id, ss._id);
-                                                    }
-                                                }}
-                                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition transform duration-150
-                                                ${active ? "bg-gradient-to-r from-[#490f7c] via-[#361375] to-[#1a1364] text-white scale-[1.01]" : "hover:translate-x-1 hover:bg-slate-800/40 text-slate-200"}`}
-                                            >
-                                                <div
-                                                    className={`flex items-center justify-center w-8 h-8 rounded-md text-sm font-semibold
-                                                    ${active ? "bg-white/10 text-white" : completed ? "bg-emerald-500 text-white" : "bg-white/5 text-slate-200"}`}
-                                                >
-                                                    {idx + 1}
-                                                </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="truncate text-sm font-medium">{ss.title}</div>
-                                                    <div className="text-xs text-slate-400 truncate mt-0.5">{ss.description ? ss.description.slice(0, 80) : ""}</div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2 ml-2">
-                                                    {completed ? (
-                                                        <div className="text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white">Completed</div>
-                                                    ) : (
-                                                        <div className="text-xs px-2 py-0.5 rounded-full bg-white/6 text-slate-200">Pending</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-
+            {/* Fixed current lecture panel — always visible at bottom */}
             {currentLecture && (
-                <div className="mt-4 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
-                    <div>
-                        <div className="text-sm font-semibold text-white truncate">{currentLecture.title}</div>
-                        <div className="text-xs text-slate-400 mt-1">
-                            {currentLecture.timeDuration ? `${Math.round(currentLecture.timeDuration / 60)} min` : ""}
-                        </div>
-                    </div>
-
-                    <div className="mt-3 text-sm text-slate-200">
-                        <div className={`prose prose-invert max-w-none text-sm ${descExpanded ? "max-h-[48vh] overflow-auto" : "max-h-[6rem] overflow-hidden"} transition-all`}>
-                            {currentLecture.description || <span className="text-slate-500 italic">No description provided.</span>}
+                <div className="flex-none border-t border-slate-800/60 px-4 py-3">
+                    <div className="bg-slate-900/60 rounded-lg border border-slate-800 overflow-hidden">
+                        <div className="p-3">
+                            <div className="text-sm font-semibold text-white truncate">{currentLecture.title}</div>
+                            <div className="text-xs text-slate-400 mt-1">
+                                {currentLecture.timeDuration ? `${Math.round(currentLecture.timeDuration / 60)} min` : ""}
+                            </div>
                         </div>
 
-                        <div className="mt-2 flex items-center justify-between gap-2">
+                        <div className="px-3 pb-1 text-sm text-slate-200">
+                            <div className={`prose prose-invert max-w-none text-sm sidebar-scroll ${descExpanded ? "max-h-[30vh] overflow-y-auto" : "max-h-[5rem] overflow-hidden"} transition-all`}>
+                                {currentLecture.description || <span className="text-slate-500 italic">No description provided.</span>}
+                            </div>
+
+                            <div className="mt-2 flex items-center gap-2">
+                                <button
+                                    onClick={() => setDescExpanded((s) => !s)}
+                                    className="px-3 h-8 rounded bg-white/6 text-sm text-white hover:bg-white/10"
+                                    aria-expanded={descExpanded}
+                                >
+                                    {descExpanded ? "Collapse" : "Read more"}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="px-3 pt-2 pb-2">
                             <button
-                                onClick={() => setDescExpanded((s) => !s)}
-                                className="px-3 h-9 rounded bg-white/6 text-sm text-white hover:bg-white/10"
-                                aria-expanded={descExpanded}
+                                onClick={() => toggleComplete(currentLecture._id, !completedSet.has(currentLecture._id))}
+                                disabled={busyToggle}
+                                className={`w-full h-10 flex items-center justify-center gap-2 rounded ${completedSet.has(currentLecture._id) ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"} text-white`}
+                                title={completedSet.has(currentLecture._id) ? "Mark uncompleted" : "Mark completed"}
                             >
-                                {descExpanded ? "Collapse" : "Read more"}
+                                <HiOutlineCheck />
+                                <span className="text-sm">{completedSet.has(currentLecture._id) ? "Unmark as completed" : "Mark as completed"}</span>
                             </button>
                         </div>
-                    </div>
 
-                    <div className="mt-3">
-                        <button
-                            onClick={() => toggleComplete(currentLecture._id, !completedSet.has(currentLecture._id))}
-                            disabled={busyToggle}
-                            className={`w-full h-11 flex items-center justify-center gap-2 rounded ${completedSet.has(currentLecture._id) ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"} text-white`}
-                            title={completedSet.has(currentLecture._id) ? "Mark uncompleted" : "Mark completed"}
-                        >
-                            <HiOutlineCheck />
-                            <span className="text-sm">{completedSet.has(currentLecture._id) ? "Unmark as completed" : "Mark as completed"}</span>
-                        </button>
-                    </div>
+                        <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+                            <button
+                                onClick={() => hasPrev && handleGoto(prevItem.sectionId, prevItem.subId)}
+                                disabled={!hasPrev}
+                                className={`h-9 w-full flex items-center justify-center gap-2 rounded ${hasPrev ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
+                            >
+                                <HiOutlineChevronLeft />
+                                <span className="text-sm">Previous</span>
+                            </button>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                        <button
-                            onClick={() => hasPrev && handleGoto(prevItem.sectionId, prevItem.subId)}
-                            disabled={!hasPrev}
-                            className={`h-10 w-full flex items-center justify-center gap-2 rounded ${hasPrev ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
-                        >
-                            <HiOutlineChevronLeft />
-                            <span className="text-sm">Previous</span>
-                        </button>
-
-                        <button
-                            onClick={() => hasNext && handleGoto(nextItem.sectionId, nextItem.subId)}
-                            disabled={!hasNext}
-                            className={`h-10 w-full flex items-center justify-center gap-2 rounded ${hasNext ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
-                        >
-                            <span className="text-sm">Next</span>
-                            <HiOutlineChevronRight />
-                        </button>
+                            <button
+                                onClick={() => hasNext && handleGoto(nextItem.sectionId, nextItem.subId)}
+                                disabled={!hasNext}
+                                className={`h-9 w-full flex items-center justify-center gap-2 rounded ${hasNext ? "bg-white/6 hover:bg-white/10" : "opacity-40 cursor-not-allowed"} text-white`}
+                            >
+                                <span className="text-sm">Next</span>
+                                <HiOutlineChevronRight />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
-
-            <div className="mt-auto text-xs text-slate-400 pt-4">
-                <p>{(sections || []).length} sections • {(course?.studentsEnrolled || []).length} students</p>
-            </div>
         </aside>
     );
 }

@@ -1,7 +1,7 @@
-const Classroom = require("../models/Classroom");
-const User = require("../models/User");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
+const Classroom = require("../models/classroom");
+const User = require("../models/user");
 
 function makeInviteCode() {
     return crypto.randomBytes(4).toString("hex");

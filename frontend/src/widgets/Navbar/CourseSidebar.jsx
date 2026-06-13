@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 import { HiMenuAlt1 } from "react-icons/hi"
-import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { IoMdClose } from "react-icons/io"
 
 import { sidebarLinks } from "@/app/config/course-links"
@@ -13,23 +12,24 @@ import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 import { MdOutlineExitToApp } from "react-icons/md";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 export default function CourseSidebar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
   const { loading: authLoading } = useSelector((s) => s.auth)
-  const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
+  const { openSideMenu } = useSelector((s) => s.sidebar)
   const [confirmationModal, setConfirmationModal] = useState(null)
-  const { drawMode } = useSelector((s) => s.course || {});
-
   useEffect(() => {
     const handleResize = () => dispatch(setScreenSize(window.innerWidth))
     window.addEventListener("resize", handleResize)
     handleResize()
     return () => window.removeEventListener("resize", handleResize)
-  }, [dispatch, useLocation().pathname])
+  }, [dispatch])
+
+  const handleSignOut = useCallback(() => {
+    dispatch(logout(navigate));
+  }, [dispatch, navigate]);
 
   if (profileLoading || authLoading) {
     return (
@@ -45,10 +45,6 @@ export default function CourseSidebar() {
       navigate(path)
     }
   }
-
-  const handleSignOut = useCallback(() => {
-    dispatch(logout(navigate));
-  }, [dispatch, navigate, useLocation().pathname]);
 
   return (
     <>
@@ -74,8 +70,7 @@ export default function CourseSidebar() {
           aria-controls="full-sidebar"
           onClick={() => handleNavigate(-1)}
           title="Exit"
-          className={`group relative mt-3
-            } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <MdOutlineExitToApp size={18} />
           <span
@@ -157,7 +152,14 @@ export default function CourseSidebar() {
         )}
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleSignOut()}
+          onClick={() => setConfirmationModal({
+            text1: "Sign Out",
+            text2: "Are you sure you want to sign out?",
+            btn1Text: "Sign Out",
+            btn2Text: "Cancel",
+            btn1Handler: () => { handleSignOut(); setConfirmationModal(null); },
+            btn2Handler: () => setConfirmationModal(null),
+          })}
           title="Signout"
           className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"
             } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}

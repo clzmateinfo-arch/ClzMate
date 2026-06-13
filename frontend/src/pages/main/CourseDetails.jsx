@@ -1,25 +1,20 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
 import Footer from "@/widgets/Footer/Footer";
 import CourseDetailsCard from "@/features/courseDetails/ui/CourseDetailsCard";
-import { formatDate } from "@/shared/utils/formatDate";
+
 import { fetchCourseDetails } from "@/entities/course/model/courseDetailsAPI";
 import { buyCourse } from "@/entities/student/model/studentFeaturesAPI";
-import GetAvgRating from "@/utils/avgRating";
-import { ACCOUNT_TYPE } from "@/utils/constants";
-import { setCart } from "@/entities/cart/model/cartSlice";
 
 import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHeader";
 import CourseContentPanel from "../../features/courseDetails/ui/CourseContentPanel";
 import CourseAuthorCard from "../../features/courseDetails/ui/CourseAuthorCard";
 import { BiArrowBack } from "react-icons/bi";
 import NewCourses from "../../features/portfolio/ui/NewCourses";
-import bgImage from "@/shared/assets/images/background.png";
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile);
@@ -29,6 +24,7 @@ function CourseDetails() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const location = useLocation();
 
   const [response, setResponse] = useState(null);
   const [confirmationModal, setConfirmationModal] = useState(null);
@@ -38,23 +34,12 @@ function CourseDetails() {
       try {
         const res = await fetchCourseDetails(courseId);
         setResponse(res);
-      } catch (error) {
+      } catch {
         console.log("Could not fetch Course Details");
       }
     };
     fectchCourseDetailsData();
-  }, [courseId, useLocation().pathname]);
-
-  const [avgReviewCount, setAvgReviewCount] = useState(0);
-  useEffect(() => {
-    const count = GetAvgRating(response?.data?.courseDetails.ratingAndReviews);
-    setAvgReviewCount(count);
-  }, [response, useLocation().pathname]);
-
-  const [isActive, setIsActive] = useState([]);
-  const handleActive = (id) => {
-    setIsActive(!isActive.includes(id) ? isActive.concat([id]) : isActive.filter((e) => e !== id));
-  };
+  }, [courseId]);
 
   const [totalNoOfLectures, setTotalNoOfLectures] = useState(0);
   useEffect(() => {
@@ -63,11 +48,11 @@ function CourseDetails() {
       lectures += sec.subSection?.length || 0;
     });
     setTotalNoOfLectures(lectures);
-  }, [response, useLocation().pathname]);
+  }, [response]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [useLocation().pathname]);
+  }, [location.pathname]);
 
   if (paymentLoading || loading || !response) {
     return (
@@ -169,13 +154,9 @@ function CourseDetails() {
   const {
     courseName,
     courseDescription,
-    thumbnail,
-    price,
     whatYouWillLearn,
     courseContent,
-    ratingAndReviews,
     instructor,
-    studentsEnrolled,
     createdAt,
     tag,
     requiresApproval,
@@ -190,26 +171,6 @@ function CourseDetails() {
     setConfirmationModal({
       text1: "You are not logged in!",
       text2: "Please login to Purchase Course.",
-      btn1Text: "Login",
-      btn2Text: "Cancel",
-      btn1Handler: () => navigate("/login"),
-      btn2Handler: () => setConfirmationModal(null),
-    });
-  };
-
-  const handleAddToCart = () => {
-    if (user && user?.accountType === ACCOUNT_TYPE.INSTRUCTOR) {
-      toast.error("You are an Instructor. You can't buy a course.");
-      return;
-    }
-    if (token) {
-      dispatch(setCart(response?.data.courseDetails));
-      toast.success("Added to cart");
-      return;
-    }
-    setConfirmationModal({
-      text1: "You are not logged in!",
-      text2: "Please login to add To Cart",
       btn1Text: "Login",
       btn2Text: "Cancel",
       btn1Handler: () => navigate("/login"),

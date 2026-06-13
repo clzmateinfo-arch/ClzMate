@@ -1,5 +1,4 @@
-import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { forwardRef, useEffect, useId, useRef, useState } from "react";
 
 const Textarea = forwardRef(
     (
@@ -31,7 +30,7 @@ const Textarea = forwardRef(
 
         useEffect(() => {
             if (value !== undefined) setLocalValue(value ?? "");
-        }, [value, useLocation().pathname]);
+        }, [value]);
 
         const adjustHeight = () => {
             const el = innerRef.current;
@@ -45,7 +44,7 @@ const Textarea = forwardRef(
             const ro = new ResizeObserver(() => adjustHeight());
             if (innerRef.current) ro.observe(innerRef.current);
             return () => ro.disconnect();
-        }, [localValue, autosize, useLocation().pathname]);
+        }, [localValue, autosize]);
 
         const baseTextarea =
             "block w-full rounded-xl border bg-white/95 text-[#0b1220] placeholder:text-gray-400 transition duration-200 shadow-sm";
@@ -138,5 +137,7 @@ const Textarea = forwardRef(
         );
     }
 );
+
+Textarea.displayName = "Textarea";
 
 export default Textarea;

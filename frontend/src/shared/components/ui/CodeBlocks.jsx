@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import CTAButton from "./Button";
 import { TypeAnimation } from "react-type-animation";
 import { FaArrowRight } from "react-icons/fa";

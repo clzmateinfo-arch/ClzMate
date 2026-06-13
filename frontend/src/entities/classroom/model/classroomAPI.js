@@ -529,3 +529,35 @@ export async function getQuizLeaderboardAPI(quizId, token) {
     throw err;
   }
 }
+
+export async function listAnnouncementsAPI(classroomId, token) {
+  try {
+    const headers = safeHeaders(token);
+    const response = await apiConnector("GET", `${GET_CLASS_OVERVIEW_API}/${classroomId}/announcements`, null, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to load announcements");
+    return response.data.data || [];
+  } catch (err) {
+    console.error("listAnnouncementsAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to load announcements");
+    throw err;
+  }
+}
+
+export async function createAnnouncementAPI(classroomId, payload = {}, token) {
+  try {
+    const headers = safeHeaders(token);
+    const body = {
+      title: payload.title,
+      body: payload.body,
+      pinned: !!payload.pinned,
+    };
+    const response = await apiConnector("POST", `${GET_CLASS_OVERVIEW_API}/${classroomId}/announcements`, body, headers);
+    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed to create announcement");
+    toast.success(response?.data?.message || "Announcement created");
+    return response.data.data;
+  } catch (err) {
+    console.error("createAnnouncementAPI error", err);
+    toast.error(err?.response?.data?.message || err?.message || "Failed to create announcement");
+    throw err;
+  }
+}

@@ -1,10 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import { HiMenuAlt1 } from "react-icons/hi";
-import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { IoMdClose } from "react-icons/io";
 
 import { sidebarLinks } from "@/app/config/class-links";
@@ -14,7 +13,6 @@ import Loading from "@/shared/components/navigation/Loading";
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice";
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2";
 import { MdOutlineExitToApp } from "react-icons/md";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 export default function ClassSidebar() {
   const dispatch = useDispatch();
@@ -27,8 +25,6 @@ export default function ClassSidebar() {
   const { loading: authLoading } = useSelector((s) => s.auth || {});
   const { openSideMenu } = useSelector((s) => s.sidebar || {});
   const classroomState = useSelector((s) => s.classroom || {});
-  const { drawMode } = useSelector((s) => s.course || {});
-
   const [confirmationModal, setConfirmationModal] = useState(null);
 
   useEffect(() => {
@@ -42,7 +38,7 @@ export default function ClassSidebar() {
     try {
       const m = pathname.match(/\/classroom\/([^/]+)/);
       return m ? m[1] : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   };
@@ -132,7 +128,7 @@ export default function ClassSidebar() {
           aria-controls="full-sidebar"
           onClick={() => safeNavigate("/dashboard")}
           title="Exit"
-          className={`group relative mt-3 } flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
+          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#59585a] to-[#0f0f0f] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >
           <MdOutlineExitToApp size={18} />
           <span className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" aria-hidden>
@@ -218,7 +214,14 @@ export default function ClassSidebar() {
 
         <button
           aria-controls="full-sidebar"
-          onClick={() => handleSignOut()}
+          onClick={() => setConfirmationModal({
+            text1: "Sign Out",
+            text2: "Are you sure you want to sign out?",
+            btn1Text: "Sign Out",
+            btn2Text: "Cancel",
+            btn1Handler: () => { handleSignOut(); setConfirmationModal(null); },
+            btn2Handler: () => setConfirmationModal(null),
+          })}
           title="Signout"
           className={`group relative mb-3 ${openSideMenu ? "mt-10" : "mt-0"} flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#6300b9] to-[#996bec] text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
         >

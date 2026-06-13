@@ -10,6 +10,7 @@ import SectionSidebar from "../../shared/components/app/SectionSidebar";
 import ExternalVideo from "../../shared/components/app/ExternalVideo";
 import Whiteboard from "../../shared/components/app/Whiteboard";
 import ResourceViewer from "../../shared/components/app/ResourceViewer";
+import HtmlViewer from "../../shared/components/app/HtmlViewer";
 import { generateCourseLayout } from "../../shared/utils/generateCourseLayout";
 import { getFullDetailsOfCourse } from "../../entities/course/model/courseDetailsAPI";
 import {
@@ -30,13 +31,10 @@ export default function ViewCourse() {
   const courseSlice = useSelector((s) => s.course || {});
   const courseSectionData = courseSlice.courseSectionData || [];
   const courseEntireData = courseSlice.courseEntireData || {};
-  const [loading, setLoading] = useState(false);
-
   const [boxes, setBoxes] = useState([]);
   const [currentSub, setCurrentSub] = useState(null);
 
   const { drawMode } = useSelector((s) => s.course || {});
-  const [wbStatus, setWbStatus] = useState("idle");
   const wbRef = useRef(null);
 
   const location = useLocation();
@@ -47,7 +45,6 @@ export default function ViewCourse() {
     let mounted = true;
     (async () => {
       try {
-        setLoading(true);
         const data = await getFullDetailsOfCourse(courseId, token);
         if (!mounted) return;
         if (data) {
@@ -62,8 +59,6 @@ export default function ViewCourse() {
         }
       } catch (e) {
         console.error("Course view-course load failed", e);
-      } finally {
-        if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
@@ -135,6 +130,22 @@ export default function ViewCourse() {
         };
       }
 
+      if (tile.id === "html") {
+        const mats = currentSub?.supportMaterials || [];
+        const mainHtml = mats.find((m) => !!m.isMainHtml) || mats.find((m) =>
+          (m.mimeType || "").toLowerCase().includes("html") ||
+          (m.originalName || "").toLowerCase().endsWith(".html") ||
+          (m.originalName || "").toLowerCase().endsWith(".htm")
+        );
+        return {
+          ...tile,
+          visible: true,
+          z: 195,
+          component: HtmlViewer,
+          componentProps: { resource: mainHtml, token },
+        };
+      }
+
       if (tile.id === "notes") {
         return {
           ...tile,
@@ -151,7 +162,7 @@ export default function ViewCourse() {
           visible: true,
           z: 170,
           component: SupportFilesPanel,
-          componentProps: { supportMaterials: (currentSub && currentSub.supportMaterials) || [] },
+          componentProps: { supportMaterials: (currentSub?.supportMaterials || []).filter((m) => !m.isMainVideo && !m.isMainPdf && !m.isMainHtml) },
         };
       }
 
@@ -332,7 +343,7 @@ export default function ViewCourse() {
               try {
                 const parsed = JSON.parse(e.target.result);
                 localStorage.setItem(`whiteboard:${courseId}`, JSON.stringify(parsed));
-              } catch (err) {
+              } catch {
                 console.warn("json parse error in whiteboard");
               }
             };
@@ -388,9 +399,6 @@ export default function ViewCourse() {
             <Whiteboard
               ref={wbRef}
               courseId={courseId}
-              onStatusChange={(s) => {
-                setWbStatus(s);
-              }}
             />
           </div>
         </div>

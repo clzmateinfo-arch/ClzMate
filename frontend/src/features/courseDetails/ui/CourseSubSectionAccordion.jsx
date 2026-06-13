@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { HiOutlineVideoCamera } from "react-icons/hi";
 import { FaFileVideo, FaVideo } from "react-icons/fa6";
 import { IoIosDocument } from "react-icons/io";
@@ -8,10 +8,12 @@ export default function CourseSubSectionAccordion({ subSec = {} }) {
 
   const hasMainPdf = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainPdf);
   const hasMainVideo = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainVideo);
+  const hasMainHtml = Array.isArray(supportMaterials) && supportMaterials.some((m) => !!m.isMainHtml);
 
-  const showDoc = hasMainPdf && !hasMainVideo;
-  const showPreview = hasMainVideo && !hasMainPdf;
-  const showLocked = !showDoc && !showPreview;
+  const showPreview = hasMainVideo;
+  const showHtml = hasMainHtml && !hasMainVideo && !hasMainPdf;
+  const showDoc = hasMainPdf && !hasMainVideo && !hasMainHtml;
+  const showLocked = !showPreview && !showHtml && !showDoc;
 
   return (
     <div
@@ -35,6 +37,11 @@ export default function CourseSubSectionAccordion({ subSec = {} }) {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
             <FaVideo className="w-3.5 h-3.5" />
             <span className="whitespace-nowrap">Prev</span>
+          </div>
+        ) : showHtml ? (
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">
+            <IoIosDocument className="w-3.5 h-3.5" />
+            <span className="whitespace-nowrap">HTML</span>
           </div>
         ) : showLocked ? (
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#ba7bf0]/15 to-[#996bec]/10 text-[#4c1d95] text-xs font-semibold">

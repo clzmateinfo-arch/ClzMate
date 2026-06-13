@@ -1,4 +1,3 @@
-import React from "react";
 import CourseCard from "@/shared/components/ui/CourseCard";
 
 export default function CourseGrid({ cards = [], onAddToCart = () => { } }) {

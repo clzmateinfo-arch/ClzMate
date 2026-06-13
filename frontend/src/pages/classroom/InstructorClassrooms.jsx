@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -7,16 +7,13 @@ import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import Loading from "@/shared/components/navigation/Loading";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import Button from "@/shared/components/ui/Button";
-import Input from "@/shared/components/ui/Input";
-import Textarea from "@/shared/components/ui/Textarea";
+
 import ClassroomGrid from "@/shared/components/ui/ClassroomGrid";
 
 import { FiPlus, FiLogIn } from "react-icons/fi";
 
 import {
-    createClassroomAPI,
     fetchMyClassroomsAPI,
-    joinClassroomByCodeAPI,
 } from "@/entities/classroom/model/classroomAPI";
 
 import CreateModal from "../../features/classroom/ui/CreateModal";
@@ -28,7 +25,6 @@ const PAGE_SIZE = 6;
 
 export default function InstructorClassrooms() {
     const { token } = useSelector((s) => s.auth || {});
-    const { user } = useSelector((s) => s.profile || {});
     const navigate = useNavigate();
 
     const [ownedList, setOwnedList] = useState([]);
@@ -200,7 +196,7 @@ export default function InstructorClassrooms() {
                         <Loading />
                     ) : ownedList.length === 0 ? (
                         <div className="py-12 text-center text-sm text-gray-500">
-                            No classrooms found. Create one using "Add Class".
+                            No classrooms found. Create one using &ldquo;Add Class&rdquo;.
                         </div>
                     ) : (
                         <>
@@ -232,7 +228,7 @@ export default function InstructorClassrooms() {
                 <section className="mb-10">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="text-xl font-semibold">Classrooms You've Joined</h3>
+                            <h3 className="text-xl font-semibold">Classrooms You&apos;ve Joined</h3>
                             <p className="text-sm text-slate-500 mt-1">
                                 Classrooms where you are a co-instructor or guest
                             </p>
@@ -248,7 +244,7 @@ export default function InstructorClassrooms() {
                         <Loading />
                     ) : joinedList.length === 0 ? (
                         <div className="py-12 text-center text-sm text-gray-500">
-                            You haven't joined any classrooms yet.
+                            You haven&apos;t joined any classrooms yet.
                         </div>
                     ) : (
                         <>

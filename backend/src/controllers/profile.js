@@ -1,7 +1,7 @@
-const Profile = require("../models/Profile");
-const User = require("../models/User");
-const CourseProgress = require("../models/CourseProgress");
-const Course = require("../models/Course");
+const Profile = require("../models/profile");
+const User = require("../models/user");
+const CourseProgress = require("../models/courseProgress");
+const Course = require("../models/course");
 const {
     uploadFileToCloudinary,
     deleteResourceFromCloudinary,
@@ -159,7 +159,6 @@ exports.deleteAccount = async (req, res) => {
         await deleteResourceFromCloudinary(userDetails.image);
 
         const userEnrolledCoursesId = userDetails.courses;
-        console.log("userEnrolledCourses ids = ", userEnrolledCoursesId);
 
         for (const courseId of userEnrolledCoursesId) {
             await Course.findByIdAndUpdate(courseId, {
@@ -189,7 +188,6 @@ exports.deleteAccount = async (req, res) => {
 exports.getUserDetails = async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log("id - ", userId);
 
         const userDetails = await User.findById(userId)
             .populate("additionalDetails")

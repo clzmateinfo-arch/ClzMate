@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -19,46 +19,15 @@ const PAGE_SIZE = 6;
 
 export default function StudentClassrooms() {
     const { token } = useSelector((s) => s.auth || {});
-    const { user } = useSelector((s) => s.profile || {});
     const navigate = useNavigate();
 
-    const [ownedList, setOwnedList] = useState([]);
     const [joinedList, setJoinedList] = useState([]);
-    const [ownedPage, setOwnedPage] = useState(1);
     const [joinedPage, setJoinedPage] = useState(1);
-    const [ownedHasMore, setOwnedHasMore] = useState(false);
     const [joinedHasMore, setJoinedHasMore] = useState(false);
-    const [loadingOwned, setLoadingOwned] = useState(false);
     const [loadingJoined, setLoadingJoined] = useState(false);
 
     const [joinOpen, setJoinOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-
-    const loadOwned = useCallback(
-        async (page = 1, append = false) => {
-            setLoadingOwned(true);
-            try {
-                const res = await fetchMyClassroomsAPI(token, {
-                    type: "owned",
-                    page,
-                    limit: PAGE_SIZE,
-                    search: searchTerm,
-                });
-                const items = Array.isArray(res?.data) ? res.data : res?.data ?? [];
-                const total = Number(res?.total ?? res?.count ?? items.length);
-                if (append) setOwnedList((p) => [...p, ...items]);
-                else setOwnedList(items);
-                setOwnedHasMore(page * PAGE_SIZE < total);
-                setOwnedPage(page);
-            } catch (err) {
-                console.error("Failed to load owned classrooms", err);
-                toast.error(err?.message || "Failed to load classrooms");
-            } finally {
-                setLoadingOwned(false);
-            }
-        },
-        [token, searchTerm]
-    );
 
     const loadJoined = useCallback(
         async (page = 1, append = false) => {
@@ -87,17 +56,15 @@ export default function StudentClassrooms() {
     );
 
     useEffect(() => {
-        loadOwned(1, false);
         loadJoined(1, false);
-    }, [loadOwned, loadJoined]);
+    }, [loadJoined]);
 
     useEffect(() => {
         const t = setTimeout(() => {
-            loadOwned(1, false);
             loadJoined(1, false);
         }, 250);
         return () => clearTimeout(t);
-    }, [searchTerm, loadOwned, loadJoined]);
+    }, [searchTerm, loadJoined]);
 
     const handleOpen = (classroom) => {
         navigate(`/classroom/${classroom._id}/overview`);

@@ -1,7 +1,6 @@
-import React from "react";
 import QuizCard from "./QuizCard";
 
-export default function QuizPanel({ topicId, quizzes = [], onStart = () => { }, onTogglePublish = () => { } }) {
+export default function QuizPanel({ _topicId, quizzes = [], onStart = () => { }, onTogglePublish = () => { } }) {
     const published = (quizzes || []).filter(q => q && q.publish === true);
     const count = published.length;
 

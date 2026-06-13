@@ -1,4 +1,4 @@
-import React, { lazy } from "react";
+import { lazy, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -58,25 +58,29 @@ const ViewClassroom = lazy(() => import("@/pages/classroom/ViewClassroom"));
 const AssignmentSubmissions = lazy(() => import("@/pages/classroom/AssignmentSubmissions"));
 const QuizPlayer = lazy(() => import("@/features/classroom/ui/Quiz/QuizPlayer"));
 
+// Defined at module scope so React never treats it as a new component type on re-renders.
+// A 5-second timeout redirects to "/" if user/loading state never resolves, preventing
+// permanent spinner when the Redux store is in an inconsistent state after tab resume.
+function RedirectToRole() {
+    const { user, loading: profileLoading } = useSelector((s) => s.profile);
+    const [timedOut, setTimedOut] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setTimedOut(true), 5000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (timedOut) return <Navigate to="/" replace />;
+    if (profileLoading || !user) return <Loading />;
+
+    if (user.accountType === ACCOUNT_TYPE.ADMIN)
+        return <Navigate to="/dashboard/admin-controls/users" replace />;
+    if (user.accountType === ACCOUNT_TYPE.INSTRUCTOR)
+        return <Navigate to="/dashboard/instructor" replace />;
+    return <Navigate to="/dashboard/student" replace />;
+}
 
 export default function AppRoutes() {
-    const { user, loading: profileLoading } = useSelector((state) => state.profile);
-
-    const RedirectToRole = () => {
-        if (profileLoading || !user) return <Loading />;
-
-        if (user.accountType === ACCOUNT_TYPE.ADMIN) {
-            return <Navigate to="/dashboard/admin-controls/users" replace />;
-        }
-        if (user.accountType === ACCOUNT_TYPE.STUDENT) {
-            return <Navigate to="/dashboard/student" replace />;
-        }
-        if (user.accountType === ACCOUNT_TYPE.INSTRUCTOR) {
-            return <Navigate to="/dashboard/instructor" replace />;
-        }
-        return <Navigate to="/dashboard/student" replace />;
-    };
-
     return (
         <Routes>
             {/* Auth */}
@@ -99,7 +103,7 @@ export default function AppRoutes() {
                 <Route path="/profile/public/:id" element={<PublicProfile />} />
             </Route>
 
-            {/* UserLayout */}
+            {/* UserLayout — all dashboard routes always registered so they survive user=null state */}
             <Route element={<UserLayout />}>
                 <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
                     <Route index element={<RedirectToRole />} />
@@ -107,32 +111,23 @@ export default function AppRoutes() {
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
 
-                    {user?.accountType === ACCOUNT_TYPE.ADMIN && (
-                        <>
-                            <Route path="admin-controls/users" element={<ManageUsers />} />
-                            <Route path="admin-controls/categories" element={<ManageCategories />} />
-                        </>
-                    )}
+                    {/* Admin */}
+                    <Route path="admin-controls/users" element={<ManageUsers />} />
+                    <Route path="admin-controls/categories" element={<ManageCategories />} />
 
-                    {user?.accountType === ACCOUNT_TYPE.STUDENT && (
-                        <>
-                            <Route path="student" element={<StudentDashboard />} />
-                            <Route path="enrolled-courses" element={<EnrolledCourses />} />
-                            <Route path="enrollments/pending" element={<PendingEnrollments />} />
-                            <Route path="my-classrooms" element={<StudentClassrooms />} />
-                        </>
-                    )}
+                    {/* Student */}
+                    <Route path="student" element={<StudentDashboard />} />
+                    <Route path="enrolled-courses" element={<EnrolledCourses />} />
+                    <Route path="enrollments/pending" element={<PendingEnrollments />} />
+                    <Route path="my-classrooms" element={<StudentClassrooms />} />
 
-                    {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
-                        <>
-                            <Route path="instructor" element={<InstructorDashboard />} />
-                            <Route path="add-course" element={<AddCourse />} />
-                            <Route path="my-courses" element={<InstructorCourses />} />
-                            <Route path="edit-course/:courseId" element={<EditCourse />} />
-                            <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
-                            <Route path="classrooms" element={<InstructorClassrooms />} />
-                        </>
-                    )}
+                    {/* Instructor */}
+                    <Route path="instructor" element={<InstructorDashboard />} />
+                    <Route path="add-course" element={<AddCourse />} />
+                    <Route path="my-courses" element={<InstructorCourses />} />
+                    <Route path="edit-course/:courseId" element={<EditCourse />} />
+                    <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
+                    <Route path="classrooms" element={<InstructorClassrooms />} />
                 </Route>
             </Route>
 
@@ -147,17 +142,14 @@ export default function AppRoutes() {
                 <Route path=":classroomId/classwork" element={<ClassroomClasswork />} />
                 <Route path=":classroomId/classwork/manage-assignment/:topicId" element={<ManageAssignment />} />
                 <Route path=":classroomId/classwork/assignment/:assignmentId/edit" element={<ManageAssignment />} />
-                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} /> 
+                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
                 <Route path=":classroomId/classwork/manage-quiz/:topicId" element={<ManageQuiz />} />
                 <Route path=":classroomId/classwork/quiz/:quizId/edit" element={<ManageQuiz />} />
                 <Route path=":classroomId/classwork/manage-link-course/:topicId" element={<ManageLinkCourse />} />
                 <Route path=":classroomId/classwork/link-course/:linkId/edit" element={<ManageLinkCourse />} />
                 <Route path=":classroomId/view" element={<ViewClassroom />} />
+                <Route path=":classroomId/quizz/:quizId/play" element={<QuizPlayer />} />
             </Route>
-
-            
-                <Route path="quizz/:quizId/play" element={<QuizPlayer/>} />
-
 
             {/* Errors */}
             <Route path="*" element={<PageNotFound />} />

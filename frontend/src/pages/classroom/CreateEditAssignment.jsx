@@ -1,7 +1,7 @@
 // frontend/src/pages/classroom/CreateEditAssignment.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import Loading from "@/shared/components/navigation/Loading";
@@ -25,7 +25,7 @@ export default function CreateEditAssignment() {
             // load classroom overview (members list) in background so steps can use it
             try {
                 await fetchClassOverviewAPI(classroomId, token);
-            } catch (err) {
+            } catch {
                 // ignore here; individual components will re-fetch if necessary
             }
 
@@ -45,8 +45,7 @@ export default function CreateEditAssignment() {
         };
 
         init();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [useLocation().pathname, assignmentId, classroomId, topicId]);
+    }, [assignmentId, classroomId, topicId]);
 
     if (loading) return <Loading />;
 

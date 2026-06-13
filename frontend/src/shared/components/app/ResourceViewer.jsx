@@ -1,7 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";
 import { FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaCog, FaExpand, FaCompress } from "react-icons/fa";
+
+const DEFAULT_CLOUDINARY_QUALITIES = [
+  { label: "Auto", param: null },
+  { label: "1080p", param: "w_1920,h_1080,q_auto" },
+  { label: "720p", param: "w_1280,h_720,q_auto" },
+  { label: "480p", param: "w_854,h_480,q_auto" },
+];
 
 function formatTime(sec = 0) {
   const s = Math.max(0, Math.floor(sec || 0));
@@ -15,7 +22,6 @@ export default function ResourceViewer({
   course,
   token,
   presentMode = false,
-  onExitPresent = () => { },
 }) {
   const [signedUrl, setSignedUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,18 +31,10 @@ export default function ResourceViewer({
     (resource?.url && String(resource.url).includes("res.cloudinary.com"))
   );
 
-  const defaultCloudinaryQualities = [
-    { label: "Auto", param: null },
-    { label: "1080p", param: "w_1920,h_1080,q_auto" },
-    { label: "720p", param: "w_1280,h_720,q_auto" },
-    { label: "480p", param: "w_854,h_480,q_auto" },
-  ];
-
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const rafRef = useRef(null);
 
-  const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -47,6 +45,7 @@ export default function ResourceViewer({
   const [qualities, setQualities] = useState([]);
   const [srcUrl, setSrcUrl] = useState(null);
 
+  // Resolve signed URL for any resource type
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -72,7 +71,7 @@ export default function ResourceViewer({
           if (mounted) {
             setSignedUrl(final);
             setSrcUrl(final);
-            setQualities(defaultCloudinaryQualities);
+            setQualities(DEFAULT_CLOUDINARY_QUALITIES);
             setQualitySelected("Auto");
           }
         } else {
@@ -90,11 +89,11 @@ export default function ResourceViewer({
               setQualities([]);
               setQualitySelected("Auto");
             }
-          } catch (err) {
+          } catch {
             if (mounted) {
               setSignedUrl(resource.url);
               setSrcUrl(resource.url);
-              setQualities(isCloudinary ? defaultCloudinaryQualities : []);
+              setQualities(isCloudinary ? DEFAULT_CLOUDINARY_QUALITIES : []);
               setQualitySelected("Auto");
             }
           }
@@ -104,7 +103,7 @@ export default function ResourceViewer({
         if (mounted) {
           setSignedUrl(resource.url);
           setSrcUrl(resource.url);
-          setQualities(isCloudinary ? defaultCloudinaryQualities : []);
+          setQualities(isCloudinary ? DEFAULT_CLOUDINARY_QUALITIES : []);
           setQualitySelected("Auto");
         }
       } finally {
@@ -113,6 +112,104 @@ export default function ResourceViewer({
     })();
     return () => { mounted = false; };
   }, [resource?.publicId, resource?.url, resource?.resourceType, token, isCloudinary]);
+
+  // RAF helpers for video progress tracking
+  const startRaf = () => {
+    stopRaf();
+    const loop = () => {
+      try {
+        const v = videoRef.current;
+        if (v && !v.paused && !v.ended) {
+          setCurrent(v.currentTime || 0);
+        }
+      } catch { /* noop */ }
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+  };
+  const stopRaf = () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+  };
+
+  // Video element event listeners
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    const onLoadedMeta = () => {
+      setDuration(v.duration || 0);
+      setCurrent(v.currentTime || 0);
+      setMuted(v.muted);
+    };
+    const onPlay = () => {
+      setPlaying(true);
+      startRaf();
+    };
+    const onPause = () => {
+      setPlaying(false);
+      stopRaf();
+    };
+    const onEnded = () => {
+      setPlaying(false);
+      stopRaf();
+    };
+
+    v.addEventListener("loadedmetadata", onLoadedMeta);
+    v.addEventListener("play", onPlay);
+    v.addEventListener("pause", onPause);
+    v.addEventListener("ended", onEnded);
+
+    return () => {
+      stopRaf();
+      try {
+        v.removeEventListener("loadedmetadata", onLoadedMeta);
+        v.removeEventListener("play", onPlay);
+        v.removeEventListener("pause", onPause);
+        v.removeEventListener("ended", onEnded);
+      } catch { /* noop */ }
+    };
+  }, [videoRef.current, srcUrl]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  // Quality variants from resource
+  useEffect(() => {
+    if (!resource) return;
+    if (Array.isArray(resource.variants) && resource.variants.length) {
+      const q = resource.variants.map((v) => ({ label: v.label || "variant", url: v.url, param: v.param || null }));
+      setQualities(q);
+      const def = resource.variants.find((v) => v.default) ?? resource.variants[0];
+      setQualitySelected(def?.label || "Auto");
+      if (def?.url) setSrcUrl(def.url);
+    } else {
+      if (!isCloudinary) setQualities([]);
+    }
+  }, [resource?.variants, isCloudinary]);
+
+  // Close quality menu on outside click
+  useEffect(() => {
+    const onDoc = (ev) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(ev.target)) setQualityMenuOpen(false);
+    };
+    if (qualityMenuOpen) document.addEventListener("pointerdown", onDoc);
+    return () => document.removeEventListener("pointerdown", onDoc);
+  }, [qualityMenuOpen]);
+
+  // Prevent context menu on container
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onContext = (e) => e.preventDefault();
+    el.addEventListener("contextmenu", onContext);
+    return () => el.removeEventListener("contextmenu", onContext);
+  }, []);
 
   const mt = (resource?.mimeType || "").toLowerCase();
   const name = (resource?.originalName || "").toLowerCase();
@@ -132,7 +229,119 @@ export default function ResourceViewer({
     /\.(mp4|webm|mov)$/i.test(name) ||
     (srcUrl && /\.(mp4|webm|mov)$/i.test(String(srcUrl)));
 
-  // PDF handling (unchanged)
+  const togglePlay = async () => {
+    const v = videoRef.current;
+    if (!v) return;
+    try {
+      if (!v.paused) await v.pause();
+      else {
+        const p = v.play();
+        if (p && p.then) await p;
+      }
+    } catch (e) {
+      console.warn("Play/pause failed", e);
+    }
+  };
+
+  const toggleMute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+
+  const handleSeek = (val) => {
+    const v = videoRef.current;
+    if (!v) return;
+    const at = Number(val) || 0;
+    try {
+      v.currentTime = at;
+      setCurrent(at);
+    } catch { /* noop */ }
+  };
+
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return;
+    try {
+      if (!document.fullscreenElement) await containerRef.current.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch (err) {
+      console.warn("Fullscreen error", err);
+    }
+  };
+
+  const switchQuality = async (option) => {
+    setQualityMenuOpen(false);
+    if (!option) return;
+    const v = videoRef.current;
+    if (!v) return;
+    const wasPlaying = !v.paused && !v.ended;
+    const time = v.currentTime || 0;
+
+    try {
+      if (isCloudinary) {
+        const payload = {};
+        if (resource.publicId) payload.publicId = resource.publicId;
+        else if (resource.url) payload.url = resource.url;
+        const transformParam = option.param ?? null;
+        const signed = await getSignedAssetUrl(
+          {
+            ...payload,
+            resourceType: resource.resourceType || "auto",
+            type: "authenticated",
+            format: transformParam ?? null,
+          },
+          token
+        );
+
+        const newSrc = typeof signed === "string" ? signed : signed?.url ?? srcUrl;
+        v.pause();
+        v.src = newSrc;
+        v.load();
+
+        const onLoaded = () => {
+          try {
+            v.currentTime = Math.min(time, v.duration || time);
+          } catch { /* noop */ }
+          if (wasPlaying) {
+            const p = v.play();
+            if (p && p.then) p.catch(() => { });
+          }
+          v.removeEventListener("loadedmetadata", onLoaded);
+        };
+        v.addEventListener("loadedmetadata", onLoaded);
+
+        setSrcUrl(newSrc);
+        setQualitySelected(option.label);
+      } else {
+        if (option.url) {
+          const newSrc = option.url;
+          v.pause();
+          v.src = newSrc;
+          v.load();
+          const onLoaded = () => {
+            try {
+              v.currentTime = Math.min(time, v.duration || time);
+            } catch { /* noop */ }
+            if (wasPlaying) {
+              const p = v.play();
+              if (p && p.then) p.catch(() => { });
+            }
+            v.removeEventListener("loadedmetadata", onLoaded);
+          };
+          v.addEventListener("loadedmetadata", onLoaded);
+          setSrcUrl(newSrc);
+          setQualitySelected(option.label);
+        } else {
+          setQualitySelected(option.label || "Auto");
+        }
+      }
+    } catch (err) {
+      console.warn("Switch quality error:", err);
+    }
+  };
+
+  // PDF rendering
   if (isPdf) {
     if (presentMode) {
       return (
@@ -163,9 +372,8 @@ export default function ResourceViewer({
     );
   }
 
-  // IMAGE handling (new)
+  // Image rendering
   if (isImage) {
-    // present mode: full screen-like, black background
     if (presentMode) {
       return (
         <div className="w-full h-full bg-black flex items-center justify-center">
@@ -202,214 +410,8 @@ export default function ResourceViewer({
     );
   }
 
-  // Video handling (unchanged)
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    const onLoadedMeta = () => {
-      setDuration(v.duration || 0);
-      setCurrent(v.currentTime || 0);
-      setMuted(v.muted);
-      setReady(true);
-    };
-    const onPlay = () => {
-      setPlaying(true);
-      startRaf();
-    };
-    const onPause = () => {
-      setPlaying(false);
-      stopRaf();
-    };
-    const onEnded = () => {
-      setPlaying(false);
-      stopRaf();
-    };
-
-    v.addEventListener("loadedmetadata", onLoadedMeta);
-    v.addEventListener("play", onPlay);
-    v.addEventListener("pause", onPause);
-    v.addEventListener("ended", onEnded);
-
-    return () => {
-      stopRaf();
-      try {
-        v.removeEventListener("loadedmetadata", onLoadedMeta);
-        v.removeEventListener("play", onPlay);
-        v.removeEventListener("pause", onPause);
-        v.removeEventListener("ended", onEnded);
-      } catch (e) { }
-    };
-  }, [videoRef.current, srcUrl]);
-
-  const startRaf = () => {
-    stopRaf();
-    const loop = () => {
-      try {
-        const v = videoRef.current;
-        if (v && !v.paused && !v.ended) {
-          setCurrent(v.currentTime || 0);
-        }
-      } catch (e) { }
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-  };
-  const stopRaf = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-  };
-
-  const togglePlay = async () => {
-    const v = videoRef.current;
-    if (!v) return;
-    try {
-      if (!v.paused) await v.pause();
-      else {
-        const p = v.play();
-        if (p && p.then) await p;
-      }
-    } catch (e) {
-      console.warn("Play/pause failed", e);
-    }
-  };
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
-
-  const handleSeek = (val) => {
-    const v = videoRef.current;
-    if (!v) return;
-    const at = Number(val) || 0;
-    try {
-      v.currentTime = at;
-      setCurrent(at);
-    } catch (e) { }
-  };
-
-  const toggleFullscreen = async () => {
-    if (!containerRef.current) return;
-    try {
-      if (!document.fullscreenElement) await containerRef.current.requestFullscreen();
-      else await document.exitFullscreen();
-    } catch (err) {
-      console.warn("Fullscreen error", err);
-    }
-  };
-
-  useEffect(() => {
-    const onFs = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
-  }, []);
-
-  const switchQuality = async (option) => {
-    setQualityMenuOpen(false);
-    if (!option) return;
-    const v = videoRef.current;
-    if (!v) return;
-    const wasPlaying = !v.paused && !v.ended;
-    const time = v.currentTime || 0;
-
-    try {
-      if (isCloudinary) {
-        const payload = {};
-        if (resource.publicId) payload.publicId = resource.publicId;
-        else if (resource.url) payload.url = resource.url;
-        const transformParam = option.param ?? null;
-        const signed = await getSignedAssetUrl(
-          {
-            ...payload,
-            resourceType: resource.resourceType || "auto",
-            type: "authenticated",
-            format: transformParam ?? null,
-          },
-          token
-        );
-
-        const newSrc = typeof signed === "string" ? signed : signed?.url ?? srcUrl;
-        v.pause();
-        v.src = newSrc;
-        v.load();
-
-        const onLoaded = () => {
-          try {
-            v.currentTime = Math.min(time, v.duration || time);
-          } catch (e) { }
-          if (wasPlaying) {
-            const p = v.play();
-            if (p && p.then) p.catch(() => { });
-          }
-          v.removeEventListener("loadedmetadata", onLoaded);
-        };
-        v.addEventListener("loadedmetadata", onLoaded);
-
-        setSrcUrl(newSrc);
-        setQualitySelected(option.label);
-      } else {
-        if (option.url) {
-          const newSrc = option.url;
-          v.pause();
-          v.src = newSrc;
-          v.load();
-          const onLoaded = () => {
-            try {
-              v.currentTime = Math.min(time, v.duration || time);
-            } catch (e) { }
-            if (wasPlaying) {
-              const p = v.play();
-              if (p && p.then) p.catch(() => { });
-            }
-            v.removeEventListener("loadedmetadata", onLoaded);
-          };
-          v.addEventListener("loadedmetadata", onLoaded);
-          setSrcUrl(newSrc);
-          setQualitySelected(option.label);
-        } else {
-          setQualitySelected(option.label || "Auto");
-        }
-      }
-    } catch (err) {
-      console.warn("Switch quality error:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (!resource) return;
-    if (Array.isArray(resource.variants) && resource.variants.length) {
-      const q = resource.variants.map((v) => ({ label: v.label || "variant", url: v.url, param: v.param || null }));
-      setQualities(q);
-      const def = resource.variants.find((v) => v.default) ?? resource.variants[0];
-      setQualitySelected(def?.label || "Auto");
-      if (def?.url) setSrcUrl(def.url);
-    } else {
-      if (!isCloudinary) setQualities([]);
-    }
-  }, [resource?.variants, isCloudinary]);
-
-  useEffect(() => {
-    const onDoc = (ev) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(ev.target)) setQualityMenuOpen(false);
-    };
-    if (qualityMenuOpen) document.addEventListener("pointerdown", onDoc);
-    return () => document.removeEventListener("pointerdown", onDoc);
-  }, [qualityMenuOpen]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onContext = (e) => e.preventDefault();
-    el.addEventListener("contextmenu", onContext);
-    return () => el.removeEventListener("contextmenu", onContext);
-  }, []);
-
+  // Non-video fallback
   if (!isVideo || !srcUrl) {
-    // If it's not a video (and we already handled PDF & Image above), show a fallback text
     return (
       <div className="w-full h-full flex items-center justify-center text-slate-400">
         {loading ? "Loading preview..." : "No video preview available"}
@@ -417,6 +419,7 @@ export default function ResourceViewer({
     );
   }
 
+  // Video player
   return (
     <div ref={containerRef} className="w-full h-full bg-black relative flex flex-col">
       <div className="relative flex-1 min-h-0">

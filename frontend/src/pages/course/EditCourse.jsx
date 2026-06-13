@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getFullDetailsOfCourse } from "@/entities/course/model/courseDetailsAPI";
 import { setCourse, setEditCourse } from "@/entities/course/model/courseSlice";
 import RenderSteps from "@/features/courceManager/ui/RenderSteps";
@@ -14,7 +14,6 @@ export default function EditCourse() {
   const dispatch = useDispatch();
   const { courseId } = useParams();
   const { token } = useSelector((state) => state.auth);
-  const { course } = useSelector((state) => state.course);
   const [loading, setLoading] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
 
@@ -30,7 +29,7 @@ export default function EditCourse() {
     };
 
     fetchFullCourseDetails();
-  }, [useLocation().pathname]);
+  }, [courseId, token]);
 
   if (loading) {
     return <Loading />;

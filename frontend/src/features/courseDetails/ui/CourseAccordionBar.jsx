@@ -1,8 +1,7 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useRef, useState } from "react";
 import CourseSubSectionAccordion from "./CourseSubSectionAccordion";
 import { IoMdArrowDropdown } from "react-icons/io";
-import { useLocation } from "react-router-dom";
 
 export default function CourseAccordionBar({ course, isActive = [], handleActive }) {
   const contentEl = useRef(null);
@@ -13,7 +12,7 @@ export default function CourseAccordionBar({ course, isActive = [], handleActive
     if (!contentEl.current) return;
     const target = active ? contentEl.current.scrollHeight : 0;
     requestAnimationFrame(() => setSectionHeight(target));
-  }, [active, course, useLocation().pathname]);
+  }, [active, course]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[#efe7ff] bg-white shadow-sm transition">

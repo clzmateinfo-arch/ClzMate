@@ -1,4 +1,3 @@
-import React from "react";
 import { FiLink, FiEdit, FiCopy, FiTrash2 } from "react-icons/fi";
 
 export default function LinkCard({

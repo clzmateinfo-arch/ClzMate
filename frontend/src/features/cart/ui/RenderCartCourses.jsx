@@ -1,5 +1,4 @@
 // frontend/src/features/cart/ui/RenderCartCourses.jsx
-import React from "react";
 import { FaStar } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import ReactStars from "react-rating-stars-component";
@@ -19,7 +18,7 @@ export default function RenderCartCourses() {
       {cart.map((course, indx) => (
         <div
           key={course._id}
-          className={`flex w-full flex-wrap items-start justify-between gap-6 ${indx !== cart.length - 1 ? "border-b border-b-black pb-6" : ""
+          className={`flex w-full flex-wrap items-start justify-between gap-6 ${indx !== cart.length - 1 ? "border-b border-b-black/10 pb-6" : ""
             } ${indx !== 0 ? "mt-6" : ""}`}
         >
           <div className="flex flex-1 flex-col gap-4 xl:flex-row">
@@ -35,7 +34,7 @@ export default function RenderCartCourses() {
               </Link>
               <p className="text-sm text-black">{course?.category?.name}</p>
               <div className="flex items-center gap-2">
-                <span className="text-yellow-5">4.5</span>
+                <span className="text-black/60">4.5</span>
                 <ReactStars
                   count={5}
                   value={
@@ -63,12 +62,12 @@ export default function RenderCartCourses() {
                   dispatch(removeFromCartLocal(course._id));
                 }
               }}
-              className="flex items-center gap-x-1 rounded-md border border-black py-3 px-[12px] text-pink-200"
+              className="flex items-center gap-x-1 rounded-lg border border-black/15 py-2 px-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <RiDeleteBin6Line />
               <span>Remove</span>
             </button>
-            <p className="mb-6 text-3xl font-medium text-yellow-100">
+            <p className="mb-6 text-3xl font-medium text-black">
               ₹ {Number(course?.price ?? 0).toLocaleString()}
             </p>
           </div>

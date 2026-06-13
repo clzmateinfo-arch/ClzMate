@@ -1,4 +1,3 @@
-import React from "react";
 import MultipleEditor from "./templates/MultipleEditor";
 import TrueFalseEditor from "./templates/TrueFalseEditor";
 import ShortAnswerEditor from "./templates/ShortAnswerEditor";

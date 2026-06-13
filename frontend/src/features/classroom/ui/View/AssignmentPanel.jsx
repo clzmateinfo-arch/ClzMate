@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { listPublishedAssignmentsByTopicAPI, updateAssignmentAPI } from "@/entities/classroom/model/classroomAPI";
 import AssignmentCard from "./AssignmentCard";
 import { useSelector } from "react-redux";
