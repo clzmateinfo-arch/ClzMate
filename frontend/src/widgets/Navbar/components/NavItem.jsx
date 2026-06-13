@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import React, { useMemo } from "react";
 import { Link, matchPath } from "react-router-dom";
 import Dropdown from "./Dropdown";
@@ -54,5 +54,7 @@ const NavItem = React.memo(({ link, pathname, openDropdown, closeDropdown, cente
         </div>
     );
 });
+
+NavItem.displayName = "NavItem";
 
 export default NavItem;

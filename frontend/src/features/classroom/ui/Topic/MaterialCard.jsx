@@ -1,5 +1,5 @@
 // frontend/src/features/classroom/ui/Topic/MaterialCard.jsx
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     FiCopy,
     FiTrash2,
@@ -243,15 +243,6 @@ export default function MaterialCard({
         } finally {
             setSaving(false);
         }
-    };
-
-    const handleCancel = () => {
-        setEditing(false);
-        selectedFilesPreview.forEach((s) => s.previewUrl?.startsWith("blob:") && URL.revokeObjectURL(s.previewUrl));
-        setSelectedFiles([]);
-        setSelectedFilesPreview([]);
-        setToRemove([]);
-        setExisting(item.attachments?.slice() || []);
     };
 
     const scrollBy = (dir = "right") => {

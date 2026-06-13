@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 export default function LeaderboardPanel({
     board = [],
@@ -15,12 +15,6 @@ export default function LeaderboardPanel({
         if (rank === 3) return <div className="px-2 py-1 rounded-md text-xs font-semibold bg-rose-50 text-rose-700">3rd</div>;
         return <div className="px-2 py-1 rounded-md text-xs text-slate-500">#{rank}</div>;
     };
-
-    const screensById = useMemo(() => {
-        const m = {};
-        (screens || []).forEach((s) => { if (s && s._id) m[String(s._id)] = s; });
-        return m;
-    }, [screens]);
 
     const orderedAnswers = useMemo(() => {
         const byId = (answers || []).reduce((acc, a) => { acc[String(a.screenId)] = a; return acc; }, {});

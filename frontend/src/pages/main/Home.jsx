@@ -1,9 +1,7 @@
-import React from "react";
 import { Hero } from "@/features/portfolio/ui/Hero";
 import Features from "@/features/portfolio/ui/Features";
 import SpotlightCard from "@/features/portfolio/ui/SpotlightCard";
 import { Platforms } from "@/features/portfolio/ui/Platforms";
-import { LogosQueue } from "@/features/portfolio/ui/LogosQueue";
 import { AdvertisementLayout } from "@/features/portfolio/ui/AdvertisementLayout";
 import { PopularCourses } from "@/features/portfolio/ui/PopularCourses";
 import Footer from "@/widgets/Footer/Footer";

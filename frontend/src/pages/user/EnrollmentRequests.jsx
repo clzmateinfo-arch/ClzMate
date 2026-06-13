@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Loading from "@/shared/components/navigation/Loading";
@@ -17,7 +17,7 @@ export default function EnrollmentRequests() {
     const { token } = useSelector((s) => s.auth || {});
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [processing, setProcessing] = useState(null);
+    const [, setProcessing] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {

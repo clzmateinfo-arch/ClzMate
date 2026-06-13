@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { fetchUsers, updateUser, deleteUser } from "@/entities/admin/model/adminAPI";
 
-import Button from "@/shared/components/ui/Button";
 import Select from "@/shared/components/ui/Select";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import { FiTrash2 } from "react-icons/fi";

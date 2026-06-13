@@ -1,31 +1,32 @@
-/* eslint-disable react/prop-types */
-import IconBtn from "@/shared/components/ui/IconBtn";
+import Button from "@/shared/components/ui/Button";
 
 export default function ConfirmationModal({ modalData }) {
+  if (!modalData) return null;
+
   return (
-    <div className="fixed inset-0 z-[1000] !mt-0 grid place-items-center overflow-auto bg-white bg-opacity-10 backdrop-blur-sm">
-      <div className="w-10/12 max-w-[350px] rounded-lg border border-black  p-6">
-        <p className="text-2xl font-semibold text-black">
+    <div
+      className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm"
+      onClick={modalData?.btn2Handler}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sm"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-lg font-semibold text-black">
           {modalData?.text1}
         </p>
 
-        <p className="mt-3 mb-5 leading-6 text-black">
+        <p className="mt-2 text-sm text-black/70 leading-relaxed">
           {modalData?.text2}
         </p>
 
-        <div className="flex items-center gap-x-4">
-          <IconBtn
-            onclick={modalData?.btn1Handler}
-            text={modalData?.btn1Text}
-            customClasses="bg-violet-600"
-          />
-          <button
-            className="cursor-pointer rounded-md  text-black hover: hover:text-black
-                                   py-[8px] px-[20px] font-semibold duration-300"
-            onClick={modalData?.btn2Handler}
-          >
+        <div className="flex justify-end items-center gap-3 mt-6">
+          <Button variant="light" onClick={modalData?.btn2Handler}>
             {modalData?.btn2Text}
-          </button>
+          </Button>
+          <Button onClick={modalData?.btn1Handler}>
+            {modalData?.btn1Text}
+          </Button>
         </div>
       </div>
     </div>

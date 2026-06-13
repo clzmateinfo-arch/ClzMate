@@ -2,7 +2,7 @@
 import { apiConnector } from "@/shared/services/api/apiConnector";
 import { cartEndpoints } from "@/app/config/apis";
 import { toast } from "react-hot-toast";
-import { setCart, resetCart as resetCartLocal } from "./cartSlice";
+import { setCart } from "./cartSlice";
 
 const { CART_API } = cartEndpoints;
 

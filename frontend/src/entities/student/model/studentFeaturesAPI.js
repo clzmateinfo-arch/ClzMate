@@ -15,7 +15,7 @@ export async function buyCourse(
   token,
   coursesId,
   requiresApproval = false,
-  userDetails = null,
+  _userDetails = null,
   navigate,
   dispatch
 ) {

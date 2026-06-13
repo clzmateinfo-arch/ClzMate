@@ -1,6 +1,5 @@
 import { ACCOUNT_TYPE } from '../../utils/constants'
 import {
-  VscDashboard,
   VscVm,
   VscMortarBoard,
 } from "react-icons/vsc"

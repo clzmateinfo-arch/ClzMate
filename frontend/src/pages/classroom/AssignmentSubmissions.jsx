@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
@@ -20,7 +20,7 @@ import {
 } from "@/entities/classroom/model/classroomAPI";
 
 export default function AssignmentSubmissions() {
-    const { classroomId, assignmentId } = useParams();
+    const { assignmentId } = useParams();
     const { token } = useSelector((s) => s.auth || {});
     const navigate = useNavigate();
 
@@ -228,7 +228,6 @@ export default function AssignmentSubmissions() {
 }
 
 function SubmissionCard({ submission, onViewFile, onSaveGrade, saving = false, assignmentPoints = null }) {
-    const [open, setOpen] = useState(false);
     const name = `${submission.student?.firstName || ""} ${submission.student?.lastName || ""}`.trim();
 
     return (
@@ -286,7 +285,7 @@ function SubmissionCard({ submission, onViewFile, onSaveGrade, saving = false, a
     );
 }
 
-function GradeForm({ submission, onSave = () => { }, saving = false, compact = false }) {
+function GradeForm({ submission, onSave = () => { }, saving = false, _compact = false }) {
     const [grade, setGrade] = useState(submission?.grade ?? "");
     const [feedback, setFeedback] = useState(submission?.feedback ?? "");
 

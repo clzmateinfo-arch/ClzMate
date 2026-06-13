@@ -1,17 +1,13 @@
 // UpdatePassword.jsx
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useSelector } from "react-redux";
 
 import Button from "@/shared/components/ui/Button";
-import IconBtn from "@/shared/components/ui/IconBtn";
 import Input from "@/shared/components/ui/Input";
 
 import { changePassword } from "@/entities/settings/model/SettingsAPI";
 
 export default function UpdatePassword() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { token } = useSelector((s) => s.auth);
 
   const [form, setForm] = useState({

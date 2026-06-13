@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { Link, matchPath } from "react-router-dom";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import MobileSubmenu from "./MobileSubmenu";
@@ -17,7 +16,7 @@ export default function MobileNav({
     centerDropdownOpen = null,
     setCenterDropdownOpen = () => { },
     token = null,
-    user = null,
+    user: _user = null,
     onSignOut = () => { },
 }) {
     const overlayClasses = open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none";
@@ -37,7 +36,7 @@ export default function MobileNav({
                 style={{ width: "50%", maxWidth: "20rem", minWidth: "15rem" }}
             >
                 <div className="mt-12 ml-5 relative z-[60] flex-none flex items-center">
-                    <LogoWithoutImage onClick={() => setMobileOpen(false)} className="" />
+                    <LogoWithoutImage onClick={onClose} className="" />
                 </div>
                 <div className="mt-3 pt-5 pb-10 px-5">
                     <div className="max-h-[60vh] overflow-y-auto ml-2 scrollbar-thin scrollbar-thumb-gray-200" id="mob-nav-items">

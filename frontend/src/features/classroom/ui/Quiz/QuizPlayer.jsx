@@ -1,8 +1,8 @@
 // frontend/src/features/classroom/ui/Quiz/QuizPlayer.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiClock } from "react-icons/fi";
+
 import { getQuizAPI, submitQuizAttemptAPI, getQuizLeaderboardAPI } from "@/entities/classroom/model/classroomAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import { toast } from "react-hot-toast";
@@ -49,7 +49,6 @@ export default function QuizPlayer({ token = null }) {
 
     // Leaderboard state (from server)
     const [leaderboard, setLeaderboard] = useState([]); // array of { id, name, score, rank }
-    const [meRow, setMeRow] = useState(null);
 
     useEffect(() => {
         let mounted = true;
@@ -138,7 +137,6 @@ export default function QuizPlayer({ token = null }) {
         setTotalPoints(0);
         // reset leaderboard when starting a new run (optional)
         setLeaderboard([]);
-        setMeRow(null);
         setTimeout(() => startScreen(0), 200);
     };
 
@@ -180,8 +178,7 @@ export default function QuizPlayer({ token = null }) {
         const newArr = [...copy, entry];
         setAnswers(newArr);
         // update local total points (note: server will be authoritative if available)
-        setTotalPoints(prev => {
-            // recompute totalPoints from newArr to avoid double accumulation
+        setTotalPoints(_prev => {
             const recomputed = newArr.reduce((s, a) => s + (a.points || 0), 0);
             return recomputed;
         });
@@ -233,7 +230,6 @@ export default function QuizPlayer({ token = null }) {
                     const res = await getQuizLeaderboardAPI(quizId, token);
                     if (res && res.board) {
                         setLeaderboard(res.board || []);
-                        setMeRow(res.me || null);
                     }
                 } catch (lbErr) {
                     console.warn("Failed to fetch leaderboard after submit:", lbErr);
@@ -244,21 +240,6 @@ export default function QuizPlayer({ token = null }) {
             console.warn("syncAttemptToServer failed", err);
             return null;
         }
-    }
-
-    // Used by submit flow: record locally then sync (recordAnswerAndReturn already syncs)
-    function recordAnswerLocal({ screenId, provided, correct, pointsEarned, base, timeTaken, timeBonus }) {
-        // Similar to recordAnswerAndReturn but doesn't return
-        const entry = { screenId, answer: provided, correct, points: pointsEarned, basePoints: base, timeTaken, timeBonus };
-        setAnswers(prev => {
-            const copy = [...prev.filter(p => String(p.screenId) !== String(screenId))];
-            const newArr = [...copy, entry];
-            // update totalPoints from newArr
-            setTotalPoints(newArr.reduce((s, a) => s + (a.points || 0), 0));
-            // sync to server
-            syncAttemptToServer(newArr, false);
-            return newArr;
-        });
     }
 
     const submitAnswer = async (provided) => {
@@ -384,7 +365,7 @@ export default function QuizPlayer({ token = null }) {
 
                         <div className="mt-6 flex justify-end gap-2">
                             <IconBtn text="Close" onClick={() => navigate(-1)} textClass={"text-slate-500"} className="bg-white" />
-                            <IconBtn text="Retake" onClick={() => { setStage("landing"); setIndex(0); setAnswers([]); setTotalPoints(0); setLeaderboard([]); setMeRow(null); }} className="bg-indigo-600 text-white" />
+                            <IconBtn text="Retake" onClick={() => { setStage("landing"); setIndex(0); setAnswers([]); setTotalPoints(0); setLeaderboard([]); }} className="bg-indigo-600 text-white" />
                         </div>
                     </motion.div>
                 </div>

@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { Link } from "react-router-dom";
 import useSublinks from "../hooks/useSublinks";
 import Loading from "@/shared/components/navigation/Loading";

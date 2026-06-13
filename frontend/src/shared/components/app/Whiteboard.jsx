@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 
 
@@ -34,7 +34,7 @@ const Whiteboard = forwardRef(function Whiteboard({ courseId = "global", onStatu
             setStatus("idle");
             onStatusChange("idle");
           }, 900);
-        } catch (e) {
+        } catch {
           setStatus("idle");
           onStatusChange("idle");
         }

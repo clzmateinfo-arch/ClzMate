@@ -5,8 +5,6 @@ export default function AsidePanel({
     overlay = true,
     className = "",
 }) {
-    const overlayStyles = overlay ? "before:content-[''] before:absolute before:inset-0 before:bg-white before:opacity-20" : "";
-
     return (
         <aside
             className={`relative hidden lg:block h-full p-16 bg-center bg-cover ${className}`}

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
+import { forwardRef, useEffect, useId, useRef, useState } from "react";
 
 const Textarea = forwardRef(
     (
@@ -137,5 +137,7 @@ const Textarea = forwardRef(
         );
     }
 );
+
+Textarea.displayName = "Textarea";
 
 export default Textarea;

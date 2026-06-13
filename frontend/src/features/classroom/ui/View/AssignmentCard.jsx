@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { FiClock, FiPaperclip, FiX } from "react-icons/fi";
 import ResourceViewer from "@/shared/components/app/ResourceViewer";
 import PlayerPanel from "@/shared/components/app/PlayerPanel";
@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 
 export default function AssignmentCard({
     assignment = {},
-    onTogglePublish = () => { },
+    _onTogglePublish = () => { },
     onSubmit = null,
     token = null,
 }) {
@@ -33,7 +33,6 @@ export default function AssignmentCard({
     const { register, setValue, getValues, formState: { errors }, reset } = useForm();
 
     const [note, setNote] = useState("");
-    const inputRef = useRef(null);
 
     useEffect(() => {
         if (previewOpen || submitOpen) {
@@ -298,7 +297,7 @@ export default function AssignmentCard({
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer text-slate-600 dark:text-slate-300"
-                                                onClick={(e) => openPreview(att)}
+                                                onClick={(_e) => openPreview(att)}
                                             >
                                                 <MdOutlinePreview />
                                             </span>

@@ -1,9 +1,8 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { FaCheck } from "react-icons/fa";
 
 
-export default function StepCard({ id, title, short, desc, icon, state = "future", compact = false }) {
+export default function StepCard({ id, title, short: _short, desc, icon: _icon, state = "future", compact: _compact = false }) {
     const isDone = state === "done";
     const isActive = state === "active";
 

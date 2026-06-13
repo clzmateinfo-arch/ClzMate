@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useId, useRef, useState } from "react";
+import { forwardRef, useEffect, useId, useRef, useState } from "react";
 
 const normalizeOption = (opt) =>
     typeof opt === "string" ? { value: opt, label: opt, disabled: false } : { value: opt.value, label: opt.label, disabled: !!opt.disabled };
@@ -264,5 +264,7 @@ const Select = forwardRef(
         );
     }
 );
+
+Select.displayName = "Select";
 
 export default Select;

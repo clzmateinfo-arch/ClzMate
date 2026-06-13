@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import defaultBg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import SearchInput from "@/shared/components/ui/SearchInput";
 

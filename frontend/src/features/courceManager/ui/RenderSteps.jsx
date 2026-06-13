@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { useSelector } from "react-redux";
 import CourseBuilderForm from "@/features/courceManager/ui/CourseBuilder/CourseBuilderForm";
 import CourseInformationForm from "@/features/courceManager/ui/CourseInformation/CourseInformationForm";
@@ -8,7 +7,6 @@ import StepCard from "../../../shared/components/navigation/StepCard";
 
 export default function RenderSteps() {
   const { step } = useSelector((state) => state.course);
-  const { editCourse } = useSelector((state) => state.course);
 
   const steps = [
     {

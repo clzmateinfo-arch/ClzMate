@@ -1,8 +1,8 @@
 // frontend/src/features/portfolio/ui/Platforms.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
-import Img from "@/shared/components/ui/Img";
+
 import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
 
 // fallback image used when category has no image

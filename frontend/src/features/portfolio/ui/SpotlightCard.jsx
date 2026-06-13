@@ -1,4 +1,3 @@
-import React from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import spotlightImg from "@/shared/assets/images/porfolio/fireball.png";
 

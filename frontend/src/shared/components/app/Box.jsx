@@ -82,7 +82,7 @@ export default function Box({
         }
         try {
             e.currentTarget.setPointerCapture?.(e.pointerId);
-        } catch (err) { }
+        } catch { /* noop */ }
         onBringToFront && onBringToFront(box.id);
         if (onPointerDownDrag) onPointerDownDrag(e, box.id);
     };
@@ -114,7 +114,7 @@ export default function Box({
             const parsed = JSON.parse(raw);
             if (parsed && typeof parsed.x === "number" && typeof parsed.y === "number") return parsed;
             return null;
-        } catch (e) {
+        } catch {
             return null;
         }
     };
@@ -144,7 +144,7 @@ export default function Box({
         e.stopPropagation();
         try {
             e.currentTarget.setPointerCapture?.(e.pointerId);
-        } catch (err) { }
+        } catch { /* noop */ }
         onBringToFront && onBringToFront(box.id);
 
         const clientX = e.clientX ?? (e.touches && e.touches[0] && e.touches[0].clientX);
@@ -194,7 +194,6 @@ export default function Box({
         const yPerc = (collapsedPos.y / vh) * 100;
         localStorage.setItem(collapsedKey, JSON.stringify({ x: collapsedPos.x, y: collapsedPos.y, xp: xPerc, yp: yPerc }));
 
-        const savedRef = { ...dragRef.current };
         setTimeout(() => {
             dragRef.current = null;
         }, 30);
@@ -274,7 +273,7 @@ export default function Box({
                     onPointerUp={(e) => {
                         try {
                             e.currentTarget.releasePointerCapture?.(e.pointerId);
-                        } catch (err) { }
+                        } catch { /* noop */ }
                     }}
                     className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-[#4b2b7a] via-[#7b3ed9] to-[#4629a6] text-white cursor-move select-none"
                     style={{ userSelect: "none" }}
@@ -293,7 +292,7 @@ export default function Box({
                                         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                                             document.documentElement.requestFullscreen().catch(() => { });
                                         }
-                                    } catch (err) { }
+                                    } catch { /* noop */ }
                                     setPresent(true);
                                 }}
                                 className="px-2 py-1 rounded bg-white/5 text-sm hover:bg-white/8"
@@ -346,14 +345,14 @@ export default function Box({
                         onPointerDown={(e) => {
                             try {
                                 e.currentTarget.setPointerCapture?.(e.pointerId);
-                            } catch (err) { }
+                            } catch { /* noop */ }
                             onBringToFront && onBringToFront(box.id);
                             if (onPointerDownResize) onPointerDownResize(e, box.id);
                         }}
                         onPointerUp={(e) => {
                             try {
                                 e.currentTarget.releasePointerCapture?.(e.pointerId);
-                            } catch (err) { }
+                            } catch { /* noop */ }
                         }}
                         className="absolute right-0 bottom-0 w-6 h-6 cursor-se-resize"
                         aria-hidden
@@ -397,7 +396,7 @@ export default function Box({
                                 onClick={() => {
                                     try {
                                         if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
-                                    } catch (e) { }
+                                    } catch { /* noop */ }
                                     setPresent(false);
                                 }}
                                 className="px-3 py-1 rounded bg-white/6 text-sm"
@@ -438,7 +437,7 @@ export default function Box({
                                     onExitPresent={() => {
                                         try {
                                             if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
-                                        } catch (e) { }
+                                        } catch { /* noop */ }
                                         setPresent(false);
                                     }}
                                 />

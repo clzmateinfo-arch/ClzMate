@@ -17,4 +17,6 @@ const DesktopCenterNav = React.memo(({ links = [], pathname, openDropdown, close
         </div>
     );
 });
+DesktopCenterNav.displayName = "DesktopCenterNav";
+
 export default DesktopCenterNav;

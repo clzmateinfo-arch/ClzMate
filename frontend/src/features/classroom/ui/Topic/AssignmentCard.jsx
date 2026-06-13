@@ -1,4 +1,3 @@
-import React from "react";
 import { FiEdit, FiCopy, FiTrash2, FiUpload, FiUsers } from "react-icons/fi";
 
 export default function AssignmentCard({

@@ -31,13 +31,10 @@ export default function ViewCourse() {
   const courseSlice = useSelector((s) => s.course || {});
   const courseSectionData = courseSlice.courseSectionData || [];
   const courseEntireData = courseSlice.courseEntireData || {};
-  const [loading, setLoading] = useState(false);
-
   const [boxes, setBoxes] = useState([]);
   const [currentSub, setCurrentSub] = useState(null);
 
   const { drawMode } = useSelector((s) => s.course || {});
-  const [wbStatus, setWbStatus] = useState("idle");
   const wbRef = useRef(null);
 
   const location = useLocation();
@@ -48,7 +45,6 @@ export default function ViewCourse() {
     let mounted = true;
     (async () => {
       try {
-        setLoading(true);
         const data = await getFullDetailsOfCourse(courseId, token);
         if (!mounted) return;
         if (data) {
@@ -63,8 +59,6 @@ export default function ViewCourse() {
         }
       } catch (e) {
         console.error("Course view-course load failed", e);
-      } finally {
-        if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
@@ -349,7 +343,7 @@ export default function ViewCourse() {
               try {
                 const parsed = JSON.parse(e.target.result);
                 localStorage.setItem(`whiteboard:${courseId}`, JSON.stringify(parsed));
-              } catch (err) {
+              } catch {
                 console.warn("json parse error in whiteboard");
               }
             };
@@ -405,9 +399,6 @@ export default function ViewCourse() {
             <Whiteboard
               ref={wbRef}
               courseId={courseId}
-              onStatusChange={(s) => {
-                setWbStatus(s);
-              }}
             />
           </div>
         </div>

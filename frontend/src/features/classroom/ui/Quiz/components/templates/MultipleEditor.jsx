@@ -1,4 +1,3 @@
-import React from "react";
 import { FiTrash2 } from "react-icons/fi";
 import Textarea from "@/shared/components/ui/Textarea";
 import Input from "@/shared/components/ui/Input";

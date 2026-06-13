@@ -1,11 +1,10 @@
-import React from "react";
 import { useSelector } from "react-redux";
 import StepCard from "@/shared/components/navigation/StepCard";
 import QuizInfoForm from "./QuizInfoForm";
 import QuizBuilder from "./QuizBuilder";
 import QuizPublish from "./QuizPublish";
 
-export default function RenderStepsQuiz({ classroomId, topicId, quizId, overview }) {
+export default function RenderStepsQuiz({ classroomId, topicId, _quizId, overview }) {
   const { step = 1 } = useSelector((s) => s.classroom || {});
 
   const steps = [

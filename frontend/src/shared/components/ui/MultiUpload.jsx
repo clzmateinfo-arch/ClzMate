@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";
+import { showToast } from "@/shared/components/feedback/CustomToast";
 
 export default function MultiUpload({
     name,
@@ -91,7 +92,7 @@ export default function MultiUpload({
         const allowed = added.filter(isAllowed);
         const rejected = added.length - allowed.length;
         if (rejected > 0) {
-            window.alert("Some files were rejected — only images, videos, PDF, ZIP and HTML files are allowed.");
+            showToast("Some files were rejected — only images, videos, PDF, ZIP and HTML files are allowed.", "error");
         }
 
         if (!allowed.length) return;

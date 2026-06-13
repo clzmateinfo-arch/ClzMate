@@ -1,4 +1,3 @@
-import React from "react";
 import MaterialCard from "./MaterialCard";
 
 export default function MaterialPanel({ topic = null, token, onDownload = () => { }, onTogglePublish = () => { } }) {

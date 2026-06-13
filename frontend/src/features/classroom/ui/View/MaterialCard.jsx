@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FiPaperclip, FiX } from "react-icons/fi";
 import ResourceViewer from "@/shared/components/app/ResourceViewer";
 import PlayerPanel from "@/shared/components/app/PlayerPanel";
 import ExternalVideo from "@/shared/components/app/ExternalVideo";
 import { MdOutlinePreview } from "react-icons/md";
 
-export default function MaterialCard({ item = {}, topicId, token, onTogglePublish = () => { } }) {
+export default function MaterialCard({ item = {}, _topicId, token, _onTogglePublish = () => { } }) {
     const title = item.title || item.name || "Material";
     const content = item.content || "";
     const files = item.attachments || [];
@@ -122,7 +122,7 @@ export default function MaterialCard({ item = {}, topicId, token, onTogglePublis
                                             <div className="flex items-center gap-2">
                                                 <span
                                                     className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer text-slate-600 dark:text-slate-300"
-                                                    onClick={(e) => openPreview(f)}
+                                                    onClick={(_e) => openPreview(f)}
                                                 >
                                                     <MdOutlinePreview />
                                                 </span>

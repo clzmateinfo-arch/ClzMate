@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FiX, FiDownload } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { getSignedAssetUrl } from "@/entities/course/model/courseDetailsAPI";

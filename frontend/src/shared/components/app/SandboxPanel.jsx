@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FiExternalLink, FiPlay, FiChevronDown } from "react-icons/fi";
 
 export default function SandboxPanel({
-    embedUrl = "",
-    allowNew = true,
+    embedUrl: _embedUrl = "",
+    allowNew: _allowNew = true,
     className = "",
 }) {
     const [open, setOpen] = useState(true);

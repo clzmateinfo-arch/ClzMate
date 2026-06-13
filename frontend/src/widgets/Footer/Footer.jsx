@@ -1,9 +1,7 @@
-/* eslint-disable react/prop-types */
-import React from "react";
+ 
 import { Link } from "react-router-dom";
 import { ImGithub, ImLinkedin2 } from "react-icons/im";
 import { FaTwitter } from "react-icons/fa";
-import { Logo } from "@/shared/components/ui/Logo";
 
 /**
  * Fly-like Footer

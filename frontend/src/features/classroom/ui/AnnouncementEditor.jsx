@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import { FiX } from "react-icons/fi";

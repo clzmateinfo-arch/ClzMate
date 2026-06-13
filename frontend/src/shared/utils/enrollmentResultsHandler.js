@@ -21,10 +21,6 @@ export const handleEnrollmentResults = (results = [], navigate, options = {}) =>
     }
 
     if (pending.length > 0) {
-        const msg = pending.length === 1
-            ? "Enrollment pending approval. Instructor will review your request."
-            : `${pending.length} enrollment requests pending approval.`;
-
         if (options.showToast !== false) toast("Enrollment pending approval", { icon: "⏳" });
         // navigate to pending page
         navigate("/dashboard/enrollments/pending");

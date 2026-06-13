@@ -17,9 +17,9 @@ export default function InstructorDashboard() {
   const [loading, setLoading] = useState(false);
   const [instructorData, setInstructorData] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pageSize, setPageSize] = useState(9999);
+  const [page] = useState(1);
+  const [searchTerm] = useState("");
+  const [pageSize] = useState(9999);
 
   useEffect(() => {
     let mounted = true;
@@ -164,7 +164,7 @@ export default function InstructorDashboard() {
           </div>
         ) : (
           <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 text-center">
-            <p className="text-2xl font-bold text-black mb-3">You haven't created any courses yet</p>
+            <p className="text-2xl font-bold text-black mb-3">You haven&apos;t created any courses yet</p>
             <Link to="/dashboard/add-course">
               <p className="text-lg font-semibold text-yellow-50 hover:underline">Create a course</p>
             </Link>

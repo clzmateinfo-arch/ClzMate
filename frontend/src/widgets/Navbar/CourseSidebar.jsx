@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 
 import { HiMenuAlt1 } from "react-icons/hi"
-import { LiaChalkboardTeacherSolid } from "react-icons/lia";
 import { IoMdClose } from "react-icons/io"
 
 import { sidebarLinks } from "@/app/config/course-links"
@@ -13,17 +12,14 @@ import Loading from "@/shared/components/navigation/Loading"
 import { setOpenSideMenu, setScreenSize } from "@/entities/ui/sidebarSlice"
 import { HiArrowLeftStartOnRectangle, HiHome } from "react-icons/hi2"
 import { MdOutlineExitToApp } from "react-icons/md";
-import { setDrawMode } from "@/entities/course/model/courseSlice";
 
 export default function CourseSidebar() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { user, loading: profileLoading } = useSelector((s) => s.profile)
   const { loading: authLoading } = useSelector((s) => s.auth)
-  const { openSideMenu, screenSize } = useSelector((s) => s.sidebar)
+  const { openSideMenu } = useSelector((s) => s.sidebar)
   const [confirmationModal, setConfirmationModal] = useState(null)
-  const { drawMode } = useSelector((s) => s.course || {});
-
   useEffect(() => {
     const handleResize = () => dispatch(setScreenSize(window.innerWidth))
     window.addEventListener("resize", handleResize)

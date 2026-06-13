@@ -1,9 +1,9 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { HiOutlineCurrencyRupee } from "react-icons/hi";
-import { MdNavigateNext } from "react-icons/md";
+
 import { useDispatch, useSelector } from "react-redux";
 import {
   addCourseDetails,
@@ -12,7 +12,7 @@ import {
 } from "@/entities/course/model/courseDetailsAPI";
 import { setCourse, setStep } from "@/entities/course/model/courseSlice";
 import { COURSE_STATUS } from "@/utils/constants";
-import IconBtn from "@/shared/components/ui/IconBtn";
+
 import Upload from "../../../../shared/components/ui/Upload";
 import ChipInput from "../../../../shared/components/ui/ChipInput";
 import RequirementsField from "./RequirementField";
@@ -262,7 +262,7 @@ export default function CourseInformationForm() {
           name="courseRequirements"
           control={control}
           rules={{ required: true }}
-          render={({ field }) => (
+          render={({ _field }) => (
             <RequirementsField
               name="courseRequirements"
               label="Requirements/Instructions"

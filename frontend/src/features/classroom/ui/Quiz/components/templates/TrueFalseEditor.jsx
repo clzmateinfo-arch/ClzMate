@@ -1,4 +1,3 @@
-import React from "react";
 import Textarea from "@/shared/components/ui/Textarea";
 import Input from "@/shared/components/ui/Input";
 import Button from "@/shared/components/ui/Button";

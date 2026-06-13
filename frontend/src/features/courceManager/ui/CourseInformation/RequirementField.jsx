@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -13,7 +13,6 @@ export default function RequirementsField({ name, label, register, setValue, err
   useEffect(() => {
     if (editCourse && course?.instructions) setRequirementsList(Array.isArray(course.instructions) ? course.instructions : []);
     register(name, { required: true, validate: (v) => Array.isArray(v) && v.length > 0 }, requirementsList);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => setValue(name, requirementsList), [requirementsList, name, setValue]);

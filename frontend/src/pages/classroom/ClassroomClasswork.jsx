@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import TopicList from "@/features/classroom/ui/Topic/TopicList";

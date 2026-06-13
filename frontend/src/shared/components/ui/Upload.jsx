@@ -1,8 +1,8 @@
-// Upload.jsx (replace file)
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FiUploadCloud } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { showToast } from "@/shared/components/feedback/CustomToast";
 
 export default function Upload({
   name,
@@ -65,7 +65,7 @@ export default function Upload({
     if (multiple && Array.isArray(file)) {
       const filtered = file.filter((f) => isFileAllowed(f, fileType));
       if (filtered.length !== file.length) {
-        window.alert("Some files were rejected   only images, videos, PDFs and ZIPs are allowed.");
+        showToast("Some files were rejected — only images, videos, PDFs and ZIPs are allowed.", "error");
       }
       const newFiles = [...selectedFiles, ...filtered];
       setSelectedFiles(newFiles);
@@ -76,14 +76,15 @@ export default function Upload({
 
     const f = file;
     if (!isFileAllowed(f, fileType)) {
-      window.alert(
+      showToast(
         fileType === "video"
           ? "Please upload a valid video file (MP4/WEBM/MOV)."
           : fileType === "pdf"
             ? "Please upload a valid PDF file."
             : fileType === "html"
               ? "Please upload a valid HTML file (.html, .htm)."
-              : "File type not allowed. Allowed: images, videos, PDF, ZIP."
+              : "File type not allowed. Allowed: images, videos, PDF, ZIP.",
+        "error"
       );
       return;
     }
@@ -111,7 +112,7 @@ export default function Upload({
     if (previewSource && previewSource.startsWith("blob:")) {
       try {
         URL.revokeObjectURL(previewSource);
-      } catch (e) { }
+      } catch { /* noop */ }
     }
     const url = URL.createObjectURL(file);
     setPreviewSource(url);
@@ -130,7 +131,7 @@ export default function Upload({
       if (previewSource && previewSource.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(previewSource);
-        } catch (e) { }
+        } catch { /* noop */ }
       }
     };
   }, [viewData, editData]);
@@ -155,7 +156,7 @@ export default function Upload({
     if (previewSource && previewSource.startsWith("blob:")) {
       try {
         URL.revokeObjectURL(previewSource);
-      } catch (e) { }
+      } catch { /* noop */ }
     }
     setPreviewSource("");
     setSelectedFiles([]);
@@ -163,7 +164,7 @@ export default function Upload({
     if (inputRef.current) {
       try {
         inputRef.current.value = "";
-      } catch (e) { }
+      } catch { /* noop */ }
     }
   };
 

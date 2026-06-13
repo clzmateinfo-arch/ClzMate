@@ -1,7 +1,7 @@
 // ManageLinkCourse.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import DashboardHeader from "@/shared/components/ui/DashboardHeader";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import RenderStepsLinkCourse from "@/features/classroom/ui/LinkCourse/RenderStepsLinkCourse";
@@ -12,13 +12,10 @@ import { setLinkCourse, setEditLinkCourse, setStep } from "@/entities/classroom/
 export default function ManageLinkCourse() {
     const dispatch = useDispatch();
     const { token } = useSelector((s) => s.auth || {});
-    const classroomState = useSelector((s) => s.classroom || {});
-    const { linkCourse, step } = classroomState || {};
     const { classroomId, topicId, linkId } = useParams();
     const [loading, setLoading] = useState(true);
     const [overview, setOverview] = useState(null);
     const location = useLocation();
-    const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
@@ -40,7 +37,7 @@ export default function ManageLinkCourse() {
 
             setLoading(false);
         })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [location.pathname, classroomId, linkId, token, dispatch]);
 
     if (loading) return <Loading />;

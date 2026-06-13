@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setStepQuiz, setQuiz } from "@/entities/classroom/model/classroomSlice";
@@ -6,7 +6,7 @@ import { updateQuizAPI } from "@/entities/classroom/model/classroomAPI";
 import Button from "@/shared/components/ui/Button";
 import { toast } from "react-hot-toast";
 
-export default function QuizPublish({ classroomId, overview }) {
+export default function QuizPublish({ _classroomId, overview }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { token } = useSelector((s) => s.auth || {});

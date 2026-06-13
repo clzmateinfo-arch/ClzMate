@@ -1,5 +1,5 @@
 // LinkCourseInfoForm.jsx
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import Textarea from "@/shared/components/ui/Textarea";
 import Button from "@/shared/components/ui/Button";
 import { toast } from "react-hot-toast";
 
-export default function LinkCourseInfoForm({ classroomId, topicId }) {
+export default function LinkCourseInfoForm({ classroomId, _topicId }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { linkCourse = {} } = useSelector((s) => s.classroom || {});

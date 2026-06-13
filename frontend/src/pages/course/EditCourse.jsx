@@ -14,7 +14,6 @@ export default function EditCourse() {
   const dispatch = useDispatch();
   const { courseId } = useParams();
   const { token } = useSelector((state) => state.auth);
-  const { course } = useSelector((state) => state.course);
   const [loading, setLoading] = useState(false);
   const [tipsOpen, setTipsOpen] = useState(false);
 
