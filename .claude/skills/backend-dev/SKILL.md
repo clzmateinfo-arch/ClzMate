@@ -81,7 +81,7 @@ exports.handler = async (req, res) => {
 
 ## Email (`utils/mailSender.js`)
 
-`mailSender(to, subject, html)` returns the nodemailer info or `null` on any failure (never throws). `MAIL_SERVICE=gmail` uses Gmail, else SMTP (`MAIL_HOST/PORT/SECURE`). Decide per caller whether `null` is fatal (`sendOTP` answers 502; enrollment mail is best-effort). Templates in `src/mail/templates/`.
+`mailSender(to, subject, html)` returns `{ messageId, transport }` or `null` on any failure (never throws). Transport: `gmail-api` (HTTPS, OAuth refresh token, used in production because Render free blocks SMTP ports 25/465/587) when `GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN` are set or `MAIL_TRANSPORT=gmail-api`; otherwise pooled SMTP with 10-15 s timeouts (`MAIL_SERVICE=gmail` or `MAIL_HOST/PORT/SECURE`). `invalid_grant` in the logs means the refresh token was revoked or expired: rerun `node scripts/get-gmail-refresh-token.js`. Tests: `test/mailSender.test.js` (mocked Google endpoints). Decide per caller whether `null` is fatal (`sendOTP` answers 502; enrollment mail is best-effort). Templates in `src/mail/templates/`.
 
 ## Public snapshot (`utils/snapshotPublisher.js`, `controllers/snapshot.js`)
 
