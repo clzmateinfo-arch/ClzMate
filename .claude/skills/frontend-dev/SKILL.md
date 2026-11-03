@@ -105,7 +105,7 @@ Public, unauthenticated reads must go through `usePublicResource(key)` (or `getP
 | :--- | :--- |
 | No Razorpay checkout: paid courses fail with 402 unless backend dev flag is set | `entities/student/model/studentFeaturesAPI.js` |
 | Cart dual source (Redux + localStorage) can diverge | `cartSlice` |
-| No frontend tests | repo |
+| Frontend tests cover only pure helpers (`npm test`, `frontend/tests`); no component or browser tests | repo |
 
 ## Done checklist
 

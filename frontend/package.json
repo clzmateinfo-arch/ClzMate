@@ -11,6 +11,7 @@
     "build:render": "npm run clean && npm run snapshot && vite build",
     "snapshot": "node scripts/build-snapshot.mjs",
     "lint": "eslint src --report-unused-disable-directives --max-warnings 0",
+    "test": "node --test \"tests/**/*.test.js\"",
     "preview": "vite preview"
   },
   "dependencies": {

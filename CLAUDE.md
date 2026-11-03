@@ -27,7 +27,7 @@ Run inside each project directory.
 | frontend | `npm install --legacy-peer-deps` | Required (deploy.sh uses it). |
 | backup | `npm start`, `npm run once`, `npm run get-token` | Scheduler + REST (needs `BACKUP_API_KEY`) / single run / OAuth helper. |
 
-Frontend has no tests. "Works" means: backend `npm test` green, frontend `npm run lint` + `npm run build` green, and the behavior driven against a running backend. `package-lock.json` is gitignored.
+Frontend tests are limited to pure helpers (`npm test` in `frontend/`, `node:test`, no UI tests). "Works" means: backend `npm test` green, frontend `npm test` + `npm run lint` + `npm run build` green, and the behavior driven against a running backend. `package-lock.json` is gitignored.
 
 ## Environment
 
@@ -72,6 +72,7 @@ The free API sleeps after 15 min idle and Render holds requests while it boots (
 - All HTTP goes through `shared/services/api/apiConnector.js` (axios, `withCredentials`); token-related 401 clears storage and redirects to `/login`; 403 does not log out. Endpoint URLs: `app/config/apis.js`; classroom URLs are built inline in `entities/classroom/classroomAPI.js`.
 - `app/routes/router.jsx`: pages lazy-loaded. Guards in `features/auth/ui`: `ProtectedRoute`, `OpenRoute`, `RoleRoute` (per-route allowed roles; wrong role -> `/dashboard` -> `RedirectToRole`). The backend remains the real enforcement.
 - Styling: Tailwind v4 via `@tailwindcss/vite` (CSS-first: `src/app/index.css`, `shared/styles/theme.css`). Toasts: `react-hot-toast` through the project's `showToast`. Icons: `react-icons`. Aliases: `@` -> `src`, `@shared`, `@features`.
+- Deploy skew: the static site replaces hashed chunks on every deploy, so an open tab or a CDN-cached `index.html` (5 min) can request a deleted chunk (`Failed to fetch dynamically imported module`). `shared/utils/staleDeploy.js` handles it: `vite:preloadError` and `ErrorBoundary` reload once to a cache-busting `?_r=` URL (guarded 60 s, so no loops; stripped again at boot). Keep lazy routes behind `ErrorBoundary`.
 - Folder typos kept for import stability: `entities/conatct`, `features/courceManager`.
 
 ## Known limits (verified 2026-10-11; do not assume these work)
@@ -80,7 +81,7 @@ The free API sleeps after 15 min idle and Render holds requests while it boots (
 - Not exercised against real services: Cloudinary, SMTP, Razorpay, Google Drive, Atlas. Tests stub mail and Cloudinary.
 - No logout/revocation for JWTs besides password change/deactivation; JWT is kept in `localStorage` (XSS-readable). Rate limit counters are in-memory per instance.
 - Pagination in `getInstructorCourses`, `getEnrolledCourses`, `getMyEnrollmentRequests` is in memory. `User.email` unique and several new unique indexes will fail to build on a dev DB that already holds duplicates.
-- No Parent role (frontend constants removed; backend enum `Admin|Instructor|Student`). No Socket.io (the `Message` model is unused). No frontend tests.
+- No Parent role (frontend constants removed; backend enum `Admin|Instructor|Student`). No Socket.io (the `Message` model is unused). No frontend UI tests.
 - Real secrets that were once committed (old README, `backup/*.json`) remain in git history and must be rotated.
 
 ## Conventions
