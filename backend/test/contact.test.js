@@ -21,6 +21,8 @@ describe("contact form endpoint", () => {
     assert.equal(mail.body.includes("<script>"), false);
     assert.ok(mail.body.includes("&lt;script&gt;"));
     assert.equal(/[\r\n]/.test(mail.subject), false);
+    assert.equal(mail.replyTo, "ann@example.com");
+    assert.ok(mail.text.includes("> line2"));
   });
 
   it("accepts the payload without optional fields", async () => {
