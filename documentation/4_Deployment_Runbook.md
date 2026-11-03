@@ -125,6 +125,16 @@ Schedule in `server.js` is `0 */12 * * *` (Asia/Colombo). The HTTP API refuses t
 3. From the frontend origin, `POST /api/v1/auth/login` succeeds (confirms CORS).
 4. Upload a thumbnail on course creation (confirms Cloudinary) and request an OTP (confirms SMTP).
 
+## 7.1 Data migrations
+
+`backend/scripts/migrate-verify-existing-users.js` marks accounts created before a cutoff as `verified: true`. Login requires `verified` since 2026-11-03, and accounts created before then had never been verified (the old login did not check it). Applied to production on 2026-11-03 (360 accounts). It is a dry run unless `--apply` is passed, saves the changed IDs, and `--revert=<file> --apply` undoes it:
+
+```bash
+cd backend
+node scripts/migrate-verify-existing-users.js --before=2026-11-03T12:00:00Z            # dry run
+node scripts/migrate-verify-existing-users.js --before=2026-11-03T12:00:00Z --apply    # writes an undo file
+```
+
 ## 8. Known Deployment Gaps
 
 - Razorpay order creation and the frontend checkout are not implemented. With `RAZORPAY_SECRET` unset (and `ALLOW_STUBBED_PAYMENT` off) paid enrollments return 402; free courses enroll normally. Do not market paid courses until a real order flow exists.
