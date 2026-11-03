@@ -142,7 +142,7 @@ export default function PlayerPanel({
                         className="w-full h-full"
                         allowFullScreen
                         allow="fullscreen"
-                        sandbox="allow-same-origin allow-scripts allow-forms allow-modals"
+                        sandbox="allow-scripts allow-forms allow-modals"
                     />
                     <div
                         aria-hidden

@@ -22,17 +22,7 @@ function verifyToken(token) {
     return jwt.verify(token, secret);
 }
 
-function decodeToken(token) {
-    try {
-        return jwt.decode(token, { complete: true });
-    } catch (e) {
-        return null;
-    }
-}
-
 module.exports = {
     signToken,
     verifyToken,
-    decodeToken,
-    DEFAULT_EXPIRES,
 };

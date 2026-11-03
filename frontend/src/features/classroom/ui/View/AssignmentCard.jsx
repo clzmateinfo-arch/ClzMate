@@ -65,7 +65,6 @@ export default function AssignmentCard({
         (async () => {
             if (!token || !assignment?._id) {
                 setExistingSubmission(null);
-                // return;
             }
             setLoadingInitialSubmission(true);
             try {

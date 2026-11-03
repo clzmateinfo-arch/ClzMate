@@ -1,325 +1,109 @@
 ---
 name: backend-dev
-description: "Activates the ClzMate backend developer role. Use when working on anything in the backend/ directory — new routes, controllers, Mongoose models, auth middleware, email, file uploads, or debugging API behavior. Loads full verified knowledge of the Express monolith, all 19 schemas, auth chain, controller patterns, and all variation paths."
+description: "Activates the ClzMate backend developer role. Use when working on anything in the backend/ directory — new routes, controllers, Mongoose models, auth middleware, email, file uploads, or debugging API behavior. Loads verified knowledge of the Express monolith, all 19 schemas, the hardened auth chain, controller patterns, classroom RBAC, and the test suite."
 disable-model-invocation: false
 ---
 
 # ClzMate Backend Developer
 
-You are operating as the backend developer for ClzMate — an e-learning platform. This skill loads your full verified context for the `backend/` codebase.
+Backend developer for ClzMate (e-learning platform). Verified context for `backend/`. Code is the source of truth; re-read before relying on this.
 
----
+## Stack
 
-## Stack (verified — do not assume alternatives)
+- Express 5.1, Mongoose 8, `jsonwebtoken`, `bcrypt`, `helmet`, `express-rate-limit`, `cors`, `cookie-parser`, `express-fileupload`, Cloudinary, Nodemailer. JavaScript only, no TypeScript, no Swagger.
+- Not installed: `razorpay` SDK, `node-schedule`. `config/rajorpay.js` is a commented-out leftover.
+- Tests: `cd backend && npm test` (see Testing).
 
-- **Express.js 5.1.0** — NOT NestJS, not microservices, single monolith
-- **MongoDB + Mongoose 8.18.3** — all persistence
-- **jsonwebtoken 9.0.2** + **bcrypt 6.0.0** — auth
-- **Cloudinary 2.7.0** + **express-fileupload 1.5.2** — file storage
-- **Nodemailer 7.0.5** — email
-- **Razorpay 2.9.6** — payment (INCOMPLETE — fully stubbed, do not use)
-- **node-schedule 2.1.1** — installed, never used
-- No NestJS, no TypeScript, no class-validator, no Swagger, no tests
+## Before writing code, state assumptions
 
----
+1. Route already exists? (`src/routes/`) Controller? (`src/controllers/`) Model? (`src/models/`, 19)
+2. Guard: `auth` plus which role guard, and which resource-level check (ownership, classroom role, enrollment)?
+3. Cloudinary upload? Email? Failure paths (missing fields, wrong role, invalid ObjectId, not found, not owner)?
+4. Existing helper to reuse? (`utils/validators.js`, `courseAccess.js`, `classroomAccess.js`, `enrollment.js`)
 
-## Before Writing Any Code — State These Assumptions
+## Startup and middleware
 
-1. Does a route already exist for this operation? Check `src/routes/`.
-2. Does a controller already exist? Check `src/controllers/`.
-3. Does a Mongoose model already exist? Check `src/models/` (19 models — likely it does).
-4. Is this behind `auth` middleware? Which role guard is needed?
-5. Does this require Cloudinary upload? What resource type?
-6. Does this send email? Which template?
-7. What are the failure paths? (missing fields, wrong role, invalid ObjectId, document not found)
+`server.js`: `assertSecurityConfig()` -> `await connectDB()` (exits 1 on failure) -> `cloudinaryConnect()` -> `createApp().listen()`; SIGTERM/SIGINT close the server. Production refuses `JWT_SECRET` < 32 chars or empty `CORS_ALLOWED_ORIGINS`.
 
----
+`src/app.js` `createApp()` (no I/O; tests import it): helmet -> cors + Origin allow-list (403 JSON) -> `globalLimiter` (600/15 min) -> `express.json({limit:"1mb"})` -> cookieParser -> fileUpload (`MAX_UPLOAD_MB`, default 200, `os.tmpdir()`) -> `uploadGuard` -> `sanitizeRequest` -> routes -> JSON 404 -> `errorHandler` (CastError/ValidationError/bad JSON -> 400, 5xx hidden as "Internal server error").
 
-## Server Bootstrap (`server.js`)
+Mounts under `/api/v1`: `auth`, `profile`, `payment`, `course`, `admin`, `cart`, `student`, `site`, `classroom`, `reach` (contact). A new route file must be required and mounted in `app.js`.
 
-Order of operations on startup:
-1. `connectDB()` — Mongoose connect to `DATABASE_URL`
-2. `cloudinaryConnect()` — configure Cloudinary from `CLOUD_NAME`, `API_KEY`, `API_SECRET`
-3. Apply global middleware: CORS → OPTIONS handler → origin validation → `express.json()` → `cookieParser()` → `fileUpload({ useTempFiles: true, tempFileDir: '/tmp' })`
-4. Mount 9 route modules at `/api/v1/{auth,profile,course,payment,admin,cart,student,classroom,site}`
+Limiters: `authLimiter` 20/15 min on signup, login, sendotp, verifyotp, reset-password-token, reset-password; contact route 5/15 min; all skipped when `NODE_ENV=test`.
 
----
+## Auth (`src/middleware/auth.js`)
 
-## Authentication Middleware (`src/middleware/auth.js`)
+- Token order: `Authorization` header first, then cookie `token`, then `req.body.token` (strips `Bearer ` and quotes). The header must win: a stale login cookie must never override an explicit header. `POST /auth/logout` clears the cookie.
+- `auth` verifies the JWT then **loads the user**: missing or `active:false` -> 401; token `iat` older than `passwordChangedAt` -> 401. Sets `req.user = { id, email, accountType, approved }` (from the DB, not the token).
+- `isStudent`, `isAdmin`, `isInstructor` return **403**. `isInstructor` also requires `approved` (403 "pending admin approval").
+- Signup allows only `Student|Instructor` (Instructor starts `approved:false`); admins are created in the DB. Password policy 8-72 (`utils/passwordPolicy.js`).
+- Login: verified + active required (403), identical 401 "Invalid credentials" for unknown email/wrong password (dummy bcrypt compare).
+- JWT: `utils/jwt.js` `signToken/verifyToken`, secret `JWT_SECRET`, expiry `JWT_EXPIRES` (24h).
+- OTP: `auth.sendOTP` mails a `crypto.randomInt` 6-digit code, then stores `otpHash` (HMAC with `JWT_SECRET`). 60 s resend cooldown (429), mail failure 502, 5 attempts then wipe, deleted after verify, TTL 5 min (fixed `default: Date.now`). No model hooks.
+- Reset: `User.token` (select:false) holds sha256 of the emailed token, 15 min, single use, generic response, link `FRONTEND_URL/update-password/<token>`. Password change/reset sets `passwordChangedAt`.
 
-**Token extraction order** (all three sources are valid — never assume only one):
-1. `req.body.token`
-2. `req.cookies.token`
-3. `Authorization` header (strips `Bearer ` prefix and surrounding quotes)
+## Controller pattern
 
-**Middleware chain**:
-- `auth` — verifies JWT, sets `req.user = { id, accountType, ...payload }`
-- `isStudent` — requires `req.user.accountType === "Student"` (applied after `auth`)
-- `isInstructor` — requires `req.user.accountType === "Instructor"`
-- `isAdmin` — requires `req.user.accountType === "Admin"`
-
-All return `401` on failure with `{ success: false, message: "..." }`.
-
-**JWT** (`src/utils/jwt.js`):
-- Sign: `signToken(payload, expiresIn)` — secret from `process.env.JWT_SECRET` (throws if missing)
-- Default expiry: `process.env.JWT_EXPIRES || "24h"`
-- Verify: `verifyToken(token)` — returns decoded payload or throws
-
----
-
-## Route → Controller Pattern
-
-Every route file in `src/routes/` requires its own controllers. Example:
 ```javascript
-// src/routes/course.js
-router.post('/createCourse', auth, isInstructor, course.createCourse);
-router.get('/getAllCourses', course.getAllCourses);  // no auth = public
-```
-
-Controllers follow this exact pattern:
-```javascript
-exports.handlerName = async (req, res) => {
+exports.handler = async (req, res) => {
   try {
-    // 1. Extract from req.body / req.params / req.query / req.user / req.files
-    // 2. Validate required fields
-    // 3. Validate ObjectIds with mongoose.isValidObjectId()
-    // 4. Business logic
-    // 5. Return { success: true, message: "...", data: ... }
+    if (!isObjectId(id)) return res.status(400).json({ success: false, message: "Invalid id" });
+    return res.status(200).json({ success: true, data });
   } catch (error) {
-    console.error("Context:", error);
-    return res.status(500).json({ success: false, message: "...", error: error.message });
+    return sendServerError(res, "label", error, "Client-safe message");
   }
 };
 ```
 
-**Response shape** (must be consistent): `{ success: Boolean, message: String, data?: Any, error?: String }`
+- Helpers: `isObjectId`, `isObjectIdArray`, `escapeHtml`, `buildSearchRegex`, `sendServerError` (`utils/validators.js`); `isNonEmptyString`, `escapeRegex` (`middleware/sanitize.js`).
+- Never return `error.message` for 5xx. Whitelist fields from `req.body` (no mass assignment). Escape user text placed in email HTML.
+- Classroom controllers use `HttpError` + `sendError` from `utils/classroomAccess.js` (maps 11000 -> 409, Validation/CastError -> 400).
+- Response: `{ success, message?, data? }`; several endpoints add sibling keys.
 
----
+## Ownership and RBAC
 
-## All 19 Mongoose Models (do not duplicate)
+- Courses: `utils/courseAccess.js` `canManageCourse(req, course)` (owner or Admin), `isEnrolledOrOwner`, `findCourseForSection`. `section`/`subSection` controllers verify the caller owns the parent course and that child ids belong to the parent (404 otherwise). `editCourse` applies an allow-list. `getCourseDetails` returns Published only and hides video URLs/support materials. `getFullCourseDetails`, notes: enrolled, owner or Admin. `getAssetUrl` authorizes per asset (enrolled/owner sub-section, Published thumbnail, profile image).
+- Classrooms: `utils/classroomAccess.js`. Roles: owner, coInstructor, member, guest, admin (Admin bypass). Staff = owner/coInstructor/admin. Use `assertMember(classroom, req.user)` / `assertStaff(...)` after loading context (`loadTopicContext`, `loadAssignmentContext`, `loadQuizContext`, `loadScreenContext`). Only `POST /classroom/create` has a role guard (`isInstructor`); `/join` is open to any authenticated user (becomes Student member).
+- Students: `submitAssignment` only role `member`, targeted, published, unlocked, before due date, not graded. Quiz answers graded server-side (`utils/quizz.js`), `stripQuizAnswerKeys` for non-staff until a finished attempt; one `Attempt` per (quiz,user), one `Submission` per (assignment,student) via unique indexes.
+- Invite code: 16 hex chars (`crypto.randomBytes(8)`), hidden from non-staff.
+- Cascades: `utils/courseCleanup.js`, `utils/userCleanup.js`; `deleteUserWithData` returns `{deleted:false}` (409) for an instructor with published courses that have students.
 
-Verified models in `src/models/`:
+## Enrollment and payment (`utils/enrollment.js`, `controllers/payments.js`)
 
-| Model | Key Fields | Key Relations |
-|-------|-----------|---------------|
-| `User` | preferredName, email, password(hashed), accountType, active, approved, verified | → Profile(1:1), → Course[], → CourseProgress[] |
-| `Profile` | gender, dateOfBirth, about, contactNumber, protectMe | standalone |
-| `Course` | courseName, instructor, courseContent[], price, thumbnail, status, requiresApproval, enrollmentRequests[] | → User, → Section[], → Category, → RatingAndReview[] |
-| `Category` | name, description, courses[] | → Course[] |
-| `Section` | sectionName, subSection[] | → SubSection[] |
-| `SubSection` | title, timeDuration, description, supportMaterials[], externalVideoUrl | standalone |
-| `CourseProgress` | courseID, userId, completedVideos[] | → Course, → User, → SubSection[] |
-| `OTP` | email, otp, createdAt (TTL 5min) | auto-delete via TTL index |
-| `RatingAndReview` | user, rating, review, course | → User, → Course |
-| `Note` | userId, courseId, sectionId, subSectionId, content | → User, → Course/Section/SubSection |
-| `Classroom` | title, owner, inviteCode(unique 4-byte hex), members[], coInstructors[], guests[] | → User |
-| `Announcement` | classroom, author, title, body, pinned | → Classroom, → User |
-| `Topic` | classroom, title, status, position, items[], assignmentsCount | → Classroom, → User |
-| `Assignment` | topic, title, dueDate, points, attachments[], publish, assigneeType, lockSubmissions | → Topic, → User |
-| `Submission` | assignment, student, content, attachments[], grade, feedback, gradedBy | → Assignment, → User |
-| `Quiz` | topic, title, timeLimit, shuffle, screens[], publish | → Topic, → User |
-| `Attempt` | quiz, user, answers[], totalPoints, startedAt, finishedAt | → Quiz, → User |
-| `Message` | classroom, from, toUser(null=broadcast), content, attachments[] | → Classroom, → User — NO real-time layer |
-| `ClassroomSession` | classroom, title, startAt, endAt, externalUrl | → Classroom, → User |
+- `enrollStudentInCourses`: per course (Published only): already enrolled -> `already-enrolled`; `requiresApproval` -> Pending request + instructor email; else `completeEnrollment` (atomic `$ne` claim, `CourseProgress` upsert, email).
+- `verifyPayment`: all courses `price===0` -> enroll; else valid Razorpay HMAC with `RAZORPAY_SECRET` -> enroll, invalid -> 400, none -> 402 unless `NODE_ENV!=="production"` and `ALLOW_STUBBED_PAYMENT==="true"`. `capturePayment` only totals prices (no gateway order).
+- Approval: `POST /course/enrollmentRequests/:courseId/:requestId/respond` with `{ action: "approve"|"reject", note }`; 409 if already answered.
 
-**Model creation utility** (`src/utils/createModel.js`):
-```javascript
-function createModel(name, schema) {
-  return mongoose.models[name] || mongoose.model(name, schema);
-}
-```
-Always use this. Prevents duplicate model registration on hot reload.
+## Uploads (`utils/fileUploader.js`, `middleware/uploadGuard.js`)
 
----
+- `uploadFileToCloudinary(file, folder, height, quality, opts)` always `type:"authenticated"`; resource type from mimetype. Store `url`, `publicId`, `resourceType`, `originalName`, `mimeType`, `size`; delete with `deleteResourceFromCloudinary(publicIdOrUrl, resourceType)`.
+- `uploadGuard` rejects empty files, blocked extensions, and non-images (incl. SVG) in fields `thumbnail|thumbnailImage|profileImage|image`.
 
-## Cloudinary — File Upload Flow
+## Email (`utils/mailSender.js`)
 
-All uploads go through `src/utils/fileUploader.js`:
+`mailSender(to, subject, html)` returns the nodemailer info or `null` on any failure (never throws). `MAIL_SERVICE=gmail` uses Gmail, else SMTP (`MAIL_HOST/PORT/SECURE`). Decide per caller whether `null` is fatal (`sendOTP` answers 502; enrollment mail is best-effort). Templates in `src/mail/templates/`.
 
-```javascript
-// Upload
-const result = await uploadFileToCloudinary(req.files.fieldName, folder, height, quality, opts);
-// result = { secure_url, public_id, resource_type, ... }
+## Public snapshot (`utils/snapshotPublisher.js`, `controllers/snapshot.js`)
 
-// Delete
-await deleteResourceFromCloudinary(publicId, resourceType);
-```
+Keeps the site usable while the free Render instance cold-starts. `buildSnapshot()` runs the public controllers in-process (fake req/res) so the snapshot equals the live API; it must stay deterministic (no random or time-dependent fields, or the hash changes on every build and every wake re-uploads) and must contain public data only. Published as a public raw Cloudinary file `<SNAPSHOT_FOLDER>/snapshot/snapshot.json`, single-flight, 8 s debounce after successful writes matched by `CONTENT_MUTATION_PATH` (add new public-data mutations there and in the frontend `resources.js` regex), skipped when the hash is unchanged, then optional `RENDER_DEPLOY_HOOK_URL`. Routes: `GET /api/v1/health`, `GET /api/v1/snapshot` (60 s cache), admin `POST /admin/snapshot/publish`, `GET /admin/snapshot/status`. Tests blank Cloudinary env vars in `test/helpers.js`; never let a test publish for real.
 
-Key facts:
-- `express-fileupload` must be active (it is globally) — file arrives at `req.files.fieldName`
-- Resource type auto-detected from mimetype: `image/` → "image", `video/` → "video", else "raw" or "auto"
-- All uploads use `type: "authenticated"` — requires Cloudinary API auth, not public access
-- `publicId` and `resourceType` must be stored alongside the URL on the model for later deletion
-- Temp files land in `/tmp` — cleaned up by express-fileupload after response
+## Models (19, `src/models/`, always via `utils/createModel`)
 
-**Store on model**:
-```javascript
-{
-  url: result.secure_url,
-  publicId: result.public_id,
-  resourceType: result.resource_type,
-  originalName: file.name,
-  mimeType: file.mimetype,
-  size: file.size
-}
-```
+User (email unique+lowercase, `active`, `approved`, `verified`, `passwordChangedAt`, `token` select:false), Profile, Course (`price` min 0, `requiresApproval`, embedded `enrollmentRequests`), Category, Section, SubSection, CourseProgress, OTP (`email`, `otpHash`, `attempts`, TTL), RatingAndReview (rating Number 1-5, unique user+course), Note, Classroom, Announcement, Topic (embedded `items`), Assignment, Submission (unique assignment+student), Quiz (embedded `screens`), Attempt (unique quiz+user), Message and ClassroomSession (unused, no real-time layer).
 
----
+## Env vars (`backend/.env.example`)
 
-## Email — How It Works
+Required: `DATABASE_URL`, `JWT_SECRET`, `CLOUD_NAME`, `API_KEY`, `API_SECRET`, `FOLDER_NAME`, `MAIL_USER`, `MAIL_PASS`, `FRONTEND_URL` (reset link; replaces `API_URL`), `CORS_ALLOWED_ORIGINS` (required in production).
+Optional: `PORT`, `NODE_ENV`, `JWT_EXPIRES`, `CORS_BLOCK_NO_ORIGIN`, `APP_DOMAIN`, `MAX_UPLOAD_MB`, `ALLOW_STUBBED_PAYMENT` (non-production only), `MAIL_SERVICE`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_TLS_REJECT_UNAUTHORIZED`, `MAIL_FROM_NAME`, `MAIL_FROM_EMAIL`, `RAZORPAY_SECRET` (signature check), `RAZORPAY_KEY` (unused).
 
-`src/utils/mailSender.js`: `async function mailSender(email, title, bodyHtml)`
+## Testing
 
-Transport selection (env var `MAIL_SERVICE`):
-- `MAIL_SERVICE=gmail` → Gmail service using `MAIL_USER`/`MAIL_PASS`
-- Otherwise → Custom SMTP: `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER`, `MAIL_PASS`
+`npm test` = `node test/run.js`: in-memory mongod, `node:test` + supertest, serial. Files in `backend/test`: `auth`, `classroom`, `course`, `payment`, `profile-admin`, `uploads`, `smoke`, `contact` (`*.test.js`), helpers `helpers.js` (`createUser`, `asUser`, `api`, `sentMails`), `seed.js`, `stubFileUploader.js`. Mail and Cloudinary are stubbed; rate limits are off. Single file: `npm test -- test/auth.test.js`. Add or update a test for every behavior change; run the whole suite before declaring done.
 
-**OTP emails are NOT called directly in controllers**. They fire via a **pre-save hook on the OTP model**:
-```javascript
-// OTP model pre-save hook
-otpSchema.pre('save', async function(next) {
-  await mailSender(this.email, "OTP", otpTemplate(this.otp, ...));
-  next();
-});
-```
-Creating an OTP document automatically sends the email.
+## Done checklist
 
-**Templates** in `src/mail/templates/`:
-- `emailVerificationTemplate.js` → `otpTemplate(otp, name)` — OTP email, valid 3 min
-- `passwordUpdate.js` → `passwordUpdated(email, name)` — after password change
-- `courseEnrollmentEmail.js` → `courseEnrollmentEmail(courseName, name)` — after enrollment
-
----
-
-## Validation Pattern (No class-validator — all inline)
-
-Required field check pattern:
-```javascript
-const missing = ["fieldA", "fieldB"]
-  .filter(f => req.body[f] === undefined || req.body[f] === null ||
-    (typeof req.body[f] === "string" && req.body[f].trim() === ""))
-  .map(f => f);
-if (missing.length > 0) {
-  return res.status(400).json({ success: false, message: `Required: ${missing.join(', ')}` });
-}
-```
-
-ObjectId validation:
-```javascript
-if (!mongoose.isValidObjectId(id)) {
-  return res.status(400).json({ success: false, message: "Invalid id" });
-}
-```
-
-Email normalization (always apply):
-```javascript
-const email = String(req.body.email || "").toLowerCase().trim();
-```
-
----
-
-## Course Enrollment — Two Paths
-
-### Path 1: Payment (currently non-functional)
-`capturePayment` → `verifyPayment` → `enrollStudents()`
-
-**Status**: Razorpay call is commented out in `payments.js`. `enrollStudents()` call also commented.
-Do NOT treat this as working. The stub returns empty responses.
-
-### Path 2: Request-based (`course.requiresApproval = true`)
-1. Student: POST `/course/requestEnrollment` → pushes `{ user, status: "Pending" }` to `course.enrollmentRequests`
-2. Instructor: GET `/course/enrollmentRequests/:courseId` → see pending requests
-3. Instructor: POST `/course/enrollmentRequests/:courseId/:requestId/respond` with `{ status: "Approved"|"Rejected", note }` → on Approved, `enrollStudents()` runs
-
-`enrollStudents(courseIds, userId)`:
-- Pushes userId to `course.studentsEnrolled`
-- Pushes courseId to `user.courses`
-- Sends enrollment confirmation email
-
----
-
-## Classroom Hierarchy
-
-```
-Classroom (owner + members with roles)
-├── Announcement[]
-├── Topic[] (ordered by position)
-│   ├── items[] (inline: assignment/quiz/material/subsection/copied)
-│   ├── Assignment[]
-│   │   └── Submission[] (one per student)
-│   └── Quiz[]
-│       └── Attempt[] (one per student per attempt)
-├── Message[]          ← model only, no real-time layer
-└── ClassroomSession[] ← Zoom/Meet URLs with time window
-```
-
-**Invite code**: 4-byte hex string, unique, generated on classroom creation.
-**Member roles**: `Instructor`, `CoInstructor`, `Student`, `Guest` — stored in `members[].role`.
-**Temporary membership**: `members[].temporaryUntil` — date field, null = permanent.
-
----
-
-## Quiz Scoring (`src/utils/quizz.js`)
-
-Question types: `multiple`, `truefalse`, `short`, `slider`, `poll`, `puzzle`
-
-Scoring includes:
-- Base points per screen (`screen.properties.points`)
-- Time bonus based on `timeTaken` vs `screen.properties.timeLimit`
-- `answerMode`: `single` (one correct answer) or `multiple` (multiple correct answers)
-
-Attempt stores per-answer: `correct`, `points`, `basePoints`, `timeTaken`, `timeBonus`.
-
----
-
-## Environment Variables — All Consumed
-
-| Required | Variable | Used In |
-|----------|----------|---------|
-| ✅ | `DATABASE_URL` | database.js |
-| ✅ | `JWT_SECRET` | jwt.js |
-| ✅ | `CLOUD_NAME` | cloudinary.js |
-| ✅ | `API_KEY` | cloudinary.js |
-| ✅ | `API_SECRET` | cloudinary.js |
-| ✅ | `FOLDER_NAME` | course.js, subSection.js controllers |
-| ✅ | `MAIL_USER` | mailSender.js |
-| ✅ | `MAIL_PASS` | mailSender.js |
-| ✅ | `API_URL` | resetPassword.js (reset link URL) |
-| Optional | `PORT` | server.js (default 5000) |
-| Optional | `JWT_EXPIRES` | jwt.js (default "24h") |
-| Optional | `NODE_ENV` | server.js, mailSender.js |
-| Optional | `MAIL_SERVICE` | mailSender.js ("gmail" or SMTP) |
-| Optional | `CORS_ALLOWED_ORIGINS` | server.js (comma-separated) |
-| Future | `RAZORPAY_KEY`, `RAZORPAY_SECRET` | payments.js (currently stubbed) |
-
----
-
-## Known Issues — Do Not Assume These Work
-
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Payment fully stubbed | `payments.js` lines 58-59, 80 | `capturePayment`/`verifyPayment` return empty, enrollment not triggered |
-| Razorpay config commented | `config/rajorpay.js` | Instance never created |
-| Message model without transport | `models/message.js` | No WebSocket/Socket.io — model is dead code |
-| node-schedule unused | `package.json` | Installed, never required anywhere |
-| RatingAndReview typo | `models/ratingAndReview.js` line 12 | `reqired` typo — rating field NOT required |
-| No test runner | `package.json` | `npm test` exits with error |
-| Inconsistent HTTP status | Various controllers | Some 4xx errors return status 200 |
-
----
-
-## Conditions Under Which Changes Work
-
-Before marking any backend task done, verify:
-
-1. **Route registered?** New routes must be added to the route file AND route file must be mounted in `server.js`.
-2. **Auth guards correct?** Public endpoints need no guard. Role-specific endpoints need `auth` + `isRole`. Missing guard = security hole; wrong guard = broken feature.
-3. **Token extraction works?** Token can come from 3 sources. Do not assume only body or only header.
-4. **All required env vars set?** If a new feature needs a new env var, it must exist in `.env`. Server will not crash gracefully if `JWT_SECRET` is missing — it throws at startup.
-5. **ObjectIds validated?** Any `req.params` or `req.body` ID must pass `mongoose.isValidObjectId()` before use.
-6. **Document existence checked?** After `findById`, check if result is null before accessing properties.
-7. **Cloudinary upload errors handled?** Upload can fail (network, quota, invalid file type). Wrap in try/catch and return 500 with message.
-8. **Email failure non-blocking?** `mailSender` returns null on error. Enrollment/OTP should not fail the entire request if email fails — log and continue.
-9. **Both enrollment paths tested?** Payment path is stubbed. Request-based path is functional. New enrollment logic must work for both.
-10. **Classroom permissions?** Most classroom write operations are `auth+isInstructor`. Student-facing reads are `auth` only. Verify the correct guard.
-11. **TTL index on OTP?** OTPs expire in 5 minutes automatically. Do not build logic assuming OTP persists longer.
+1. Route registered and mounted; guard and resource check correct (403 for wrong role/non-owner/non-member, 401 only for authentication).
+2. ObjectIds validated (`isObjectId`), null checks after `find*`, no `$`-keys trusted, no mass assignment.
+3. User text escaped in emails; no secrets or `error.message` in responses or logs.
+4. New env var added to `.env.example` and documented.
+5. `npm test` passes; docs in `documentation/` updated when endpoints or behavior change.

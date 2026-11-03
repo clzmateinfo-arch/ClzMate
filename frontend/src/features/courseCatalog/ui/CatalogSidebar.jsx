@@ -51,28 +51,6 @@ export default function CatalogSidebar({
                         </label>
                     </div>
                 </div>
-
-                <div>
-                    <h4 className="text-xs font-medium mb-2">Level</h4>
-                    <div className="flex flex-col gap-2">
-                        <label className="inline-flex items-center gap-2 text-sm">
-                            <input type="radio" name="level" onChange={() => onChange({ level: "all" })} defaultChecked className="form-radio" />
-                            <span>All</span>
-                        </label>
-                        <label className="inline-flex items-center gap-2 text-sm">
-                            <input type="radio" name="level" onChange={() => onChange({ level: "beginner" })} className="form-radio" />
-                            <span>Beginner</span>
-                        </label>
-                        <label className="inline-flex items-center gap-2 text-sm">
-                            <input type="radio" name="level" onChange={() => onChange({ level: "intermediate" })} className="form-radio" />
-                            <span>Intermediate</span>
-                        </label>
-                        <label className="inline-flex items-center gap-2 text-sm">
-                            <input type="radio" name="level" onChange={() => onChange({ level: "advanced" })} className="form-radio" />
-                            <span>Advanced</span>
-                        </label>
-                    </div>
-                </div>
             </div>
         </aside>
     );

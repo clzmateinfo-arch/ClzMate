@@ -1,4 +1,3 @@
-// frontend/src/features/classroom/ui/Topic/MaterialCard.jsx
 import { useState, useRef, useEffect } from "react";
 import {
     FiCopy,

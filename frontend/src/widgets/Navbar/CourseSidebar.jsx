@@ -52,20 +52,6 @@ export default function CourseSidebar() {
         aria-label="Quick links"
         className="fixed right-4 mr-1 top-1/3 z-[99999] flex -translate-y-1/2 flex-col items-center gap-3"
       >
-        {/* <button
-          aria-controls="full-sidebar"
-          onClick={() => dispatch(setDrawMode(!drawMode))}
-          title="Home"
-          className={`group relative mt-3 flex h-12 w-12 items-center justify-center rounded-full ${drawMode ? "bg-gradient-to-tr from-[#dcc3f1] to-[#ffffff]" : "bg-gradient-to-tr from-[#757575] to-[#c4c4c4]"}  text-black shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ba7bf0]/40`}
-        >
-          <LiaChalkboardTeacherSolid size={18} />
-          <span
-            className="flex items-center justify-center min-w-[150px] absolute right-full mr-3 hidden select-none rounded-md px-3 py-1 text-sm font-medium text-white backdrop-blur-sm bg-black/50 border border-white/6 opacity-0 transform translate-x-2 group-hover:flex group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            aria-hidden
-          >
-            Whiteboard
-          </span>
-        </button> */}
         <button
           aria-controls="full-sidebar"
           onClick={() => handleNavigate(-1)}

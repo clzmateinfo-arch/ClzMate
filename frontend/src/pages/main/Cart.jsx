@@ -1,4 +1,3 @@
-// frontend/src/pages/main/Cart.jsx
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import RenderCartCourses from "@/features/cart/ui/RenderCartCourses";

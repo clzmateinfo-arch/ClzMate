@@ -13,4 +13,6 @@ const announcementSchema = new mongoose.Schema({
   },
 });
 
+announcementSchema.index({ classroom: 1, pinned: -1 });
+
 module.exports = createModel("Announcement", announcementSchema);

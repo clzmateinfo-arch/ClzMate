@@ -28,4 +28,6 @@ const assignmentSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
 });
 
+assignmentSchema.index({ topic: 1 });
+
 module.exports = createModel("Assignment", assignmentSchema);

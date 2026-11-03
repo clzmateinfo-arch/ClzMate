@@ -1,4 +1,3 @@
-// frontend/src/features/classroom/ui/LinkCourse/LinkCourseCoursePicker.jsx
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLinkCourse, setStep } from "@/entities/classroom/model/classroomSlice";

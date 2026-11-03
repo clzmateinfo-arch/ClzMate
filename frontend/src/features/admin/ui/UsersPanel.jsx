@@ -60,6 +60,18 @@ export default function UsersPanel({ searchTerm = "" }) {
         }
     };
 
+    const handleToggleApproved = async (userId, approved) => {
+        setProcessingId(userId);
+        try {
+            const updated = await updateUser(token, { userId, approved });
+            if (updated) setUsers((s) => s.map((u) => (u._id === updated._id ? updated : u)));
+        } catch (err) {
+            console.error("Failed to toggle approval", err);
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
     const handleDelete = async (userId) => {
         if (!confirm("Delete user? This cannot be undone.")) return;
         setProcessingId(userId);
@@ -105,6 +117,18 @@ export default function UsersPanel({ searchTerm = "" }) {
                                                     selectClass="text-sm"
                                                 />
                                             </div>
+
+                                            {u.accountType === "Instructor" && (
+                                                <div>
+                                                    <IconBtn
+                                                        onClick={() => handleToggleApproved(u._id, !u.approved)}
+                                                        className="w-full text-sm"
+                                                        disabled={processingId === u._id}
+                                                        customClasses={u.approved ? "bg-emerald-600" : "bg-amber-500"}
+                                                        text={u.approved ? "Revoke approval" : "Approve instructor"}
+                                                    />
+                                                </div>
+                                            )}
 
                                             <div>
                                                 <IconBtn

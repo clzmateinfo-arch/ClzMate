@@ -2,6 +2,7 @@ import os from "os";
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { pipeline } from "stream/promises";
 import zlib from "zlib";
@@ -28,7 +29,10 @@ const {
     TOKEN_FILE_PATH = path.join(process.cwd(), "drive_access_token.json"),
     RETENTION_COUNT = "10",
     RESTORE_BATCH_SIZE = "1000",
-    PORT = "3500"
+    PORT = "3500",
+    HOST = "127.0.0.1",
+    BACKUP_API_KEY,
+    SKIP_INITIAL_BACKUP
 } = process.env;
 
 if (!MONGO_URI) {
@@ -549,55 +553,126 @@ async function restoreFromArchive(archivePath, { dropExisting = true } = {}) {
 }
 
 /* ---------- REST API ---------- */
-const app = express();
-app.use(express.json());
+const MIN_API_KEY_LENGTH = 24;
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60000;
+const rateBuckets = new Map();
 
-app.get("/health", (req, res) => res.json({ ok: true }));
+function isValidApiKey(provided) {
+    if (typeof provided !== "string" || !BACKUP_API_KEY) return false;
+    const expected = crypto.createHash("sha256").update(BACKUP_API_KEY).digest();
+    const actual = crypto.createHash("sha256").update(provided).digest();
+    return crypto.timingSafeEqual(expected, actual);
+}
 
-app.get("/backups", async (req, res) => {
-    try {
-        const files = await listDriveBackups();
-        res.json({ ok: true, files });
-    } catch (err) {
-        res.status(500).json({ ok: false, error: err && err.message });
+function extractApiKey(req) {
+    const headerKey = req.get("x-api-key");
+    if (headerKey) return headerKey;
+    const auth = req.get("authorization") || "";
+    return auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+}
+
+function requireApiKey(req, res, next) {
+    if (req.path === "/health" && req.method === "GET") return next();
+    if (!isValidApiKey(extractApiKey(req))) return res.status(401).json({ ok: false, error: "Unauthorized" });
+    next();
+}
+
+function rateLimitPosts(req, res, next) {
+    if (req.method !== "POST") return next();
+    const now = Date.now();
+    const ip = req.ip || "unknown";
+    const recent = (rateBuckets.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (recent.length >= RATE_LIMIT_MAX) {
+        rateBuckets.set(ip, recent);
+        return res.status(429).json({ ok: false, error: "Too many requests" });
     }
-});
+    recent.push(now);
+    rateBuckets.set(ip, recent);
+    next();
+}
 
-app.post("/backup", async (req, res) => {
-    try {
-        const result = await backupOnce();
-        res.json({ ok: true, result });
-    } catch (err) {
-        res.status(500).json({ ok: false, error: err && err.message });
-    }
-});
-
-app.post("/restore", async (req, res) => {
-    const { driveFileId, localFileName, dropExisting = true } = req.body || {};
-    if (!driveFileId && !localFileName) return res.status(400).json({ ok: false, error: "driveFileId or localFileName is required" });
-    const drive = await createDriveClient();
-    try {
-        let archivePath;
-        if (driveFileId) {
-            const dest = path.join(BACKUP_DIR, `restore_${driveFileId}_${nowTs()}.tar.gz`);
-            await downloadDriveFileToPath(drive, driveFileId, dest);
-            archivePath = dest;
-        } else {
-            const localPath = path.join(BACKUP_DIR, localFileName);
-            if (!fs.existsSync(localPath)) return res.status(404).json({ ok: false, error: "localFileName not found in BACKUP_DIR" });
-            archivePath = localPath;
+function validateRestoreBody(body) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) return "JSON object body is required";
+    const { driveFileId, localFileName, dropExisting, confirm } = body;
+    if (driveFileId !== undefined && (typeof driveFileId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(driveFileId))) return "driveFileId must be a valid Drive file id string";
+    if (localFileName !== undefined) {
+        if (typeof localFileName !== "string" || !localFileName || localFileName !== path.basename(localFileName) || /[\\/]/.test(localFileName) || localFileName.includes("..")) {
+            return "localFileName must be a plain file name inside BACKUP_DIR";
         }
-        await restoreFromArchive(archivePath, { dropExisting });
-        res.json({ ok: true, restoredFrom: archivePath });
-    } catch (err) {
-        console.error("Restore failed:", err && err.stack ? err.stack : err);
-        res.status(500).json({ ok: false, error: err && err.message });
     }
-});
+    if (driveFileId === undefined && localFileName === undefined) return "driveFileId or localFileName is required";
+    if (driveFileId !== undefined && localFileName !== undefined) return "provide only one of driveFileId or localFileName";
+    if (dropExisting !== undefined && typeof dropExisting !== "boolean") return "dropExisting must be a boolean";
+    if (confirm !== undefined && typeof confirm !== "string") return "confirm must be a string";
+    if (dropExisting === true && confirm !== "RESTORE") return 'confirm: "RESTORE" is required when dropExisting is true';
+    return null;
+}
 
-app.listen(Number(PORT), () => {
-    console.log(`API listening on port ${PORT}`);
-});
+function startApiServer() {
+    if (!BACKUP_API_KEY || BACKUP_API_KEY.length < MIN_API_KEY_LENGTH) {
+        console.error(`BACKUP_API_KEY is required and must be at least ${MIN_API_KEY_LENGTH} characters; refusing to start the HTTP server.`);
+        process.exit(1);
+    }
+
+    const app = express();
+    app.disable("x-powered-by");
+    app.use(express.json({ limit: "10kb" }));
+    app.use(requireApiKey);
+    app.use(rateLimitPosts);
+
+    app.get("/health", (req, res) => res.json({ ok: true }));
+
+    app.get("/backups", async (req, res) => {
+        try {
+            const files = await listDriveBackups();
+            res.json({ ok: true, files: files.map(f => ({ name: f.name, size: f.size })) });
+        } catch (err) {
+            res.status(500).json({ ok: false, error: err && err.message });
+        }
+    });
+
+    app.post("/backup", async (req, res) => {
+        try {
+            const result = await backupOnce();
+            res.json({ ok: true, result: { name: result.name, driveFileId: result.driveFile && result.driveFile.id } });
+        } catch (err) {
+            res.status(500).json({ ok: false, error: err && err.message });
+        }
+    });
+
+    app.post("/restore", async (req, res) => {
+        const validationError = validateRestoreBody(req.body);
+        if (validationError) return res.status(400).json({ ok: false, error: validationError });
+        const { driveFileId, localFileName, dropExisting = false } = req.body;
+        try {
+            let archivePath;
+            if (driveFileId) {
+                const drive = await createDriveClient();
+                archivePath = path.join(BACKUP_DIR, `restore_${driveFileId}_${nowTs()}.tar.gz`);
+                await downloadDriveFileToPath(drive, driveFileId, archivePath);
+            } else {
+                archivePath = path.join(BACKUP_DIR, localFileName);
+                if (!fs.existsSync(archivePath)) return res.status(404).json({ ok: false, error: "localFileName not found in BACKUP_DIR" });
+            }
+            await restoreFromArchive(archivePath, { dropExisting });
+            res.json({ ok: true, restoredFrom: path.basename(archivePath) });
+        } catch (err) {
+            console.error("Restore failed:", err && err.stack ? err.stack : err);
+            res.status(500).json({ ok: false, error: err && err.message });
+        }
+    });
+
+    app.use((err, req, res, next) => {
+        if (res.headersSent) return next(err);
+        const status = err && err.status >= 400 && err.status < 500 ? err.status : 500;
+        res.status(status).json({ ok: false, error: status === 500 ? "Internal error" : err.message });
+    });
+
+    app.listen(Number(PORT), HOST, () => {
+        console.log(`API listening on ${HOST}:${PORT}`);
+    });
+}
 
 /* ---------- Scheduler ---------- */
 async function startScheduler(runOnce = false) {
@@ -605,7 +680,8 @@ async function startScheduler(runOnce = false) {
         try { await backupOnce(); console.log("One-time backup completed."); process.exit(0); } catch (err) { console.error("One-time backup failed:", err && err.message); process.exit(1); }
     } else {
         console.log("Starting scheduler: will run every 12 hours (cron: '0 */12 * * *') timezone Asia/Colombo");
-        try { await backupOnce(); } catch (err) { console.warn("Initial backup failed:", err && err.message); }
+        if (SKIP_INITIAL_BACKUP === "true") console.log("SKIP_INITIAL_BACKUP=true: skipping initial backup.");
+        else try { await backupOnce(); } catch (err) { console.warn("Initial backup failed:", err && err.message); }
         cron.schedule("0 */12 * * *", async () => {
             console.log(`[${new Date().toISOString()}] Scheduled run starting...`);
             try { await backupOnce(); } catch (err) { console.error("Scheduled backup failed:", err && err.message); }
@@ -615,4 +691,5 @@ async function startScheduler(runOnce = false) {
 
 const args = process.argv.slice(2);
 const runOnce = args.includes("--once") || args.includes("--run-once");
+if (!runOnce) startApiServer();
 startScheduler(runOnce).catch(err => { console.error("Scheduler fatal:", err && err.message); process.exit(1); });

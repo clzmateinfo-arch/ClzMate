@@ -1,23 +1,29 @@
-#Backend
+# ClzMate
 
-PORT=5000
-DATABASE_URL=mongodb+srv://cmint:Sandeepa1994@cm.ei9wtnf.mongodb.net/?retryWrites=true&w=majority&appName=cm
-MAIL_HOST=smtp.gmail.com
-MAIL_USER=clzmate.info@gmail.com
-MAIL_PASS=emlguxaccyyeouux
-CLOUD_NAME=dfay7bp1e
-API_KEY=499363241349988
-API_SECRET=JksnGziAdmGzEaYotPqUr3ondyQ
-FOLDER_NAME=data
-JWT_SECRET=puncha
-API_URL=http://localhost:5000/api/v1
+E-learning / academy management platform: courses, classrooms, assignments, quizzes, materials.
 
+| Project | Stack |
+|---|---|
+| `backend/` | Express 5, Mongoose 8, JWT, Cloudinary, Nodemailer (port 5000) |
+| `frontend/` | React 18, Vite, Redux Toolkit, Tailwind v4 (JavaScript) |
+| `backup/` | Mongo -> Google Drive backup service (see `backup/README.md`) |
 
-#render
-bash ./scripts/deploy.sh
-npm run start:render
+## Run locally
 
-#Frontend
+```bash
+cd backend && cp .env.example .env && npm install && npm run start:dev
+cd frontend && cp .env.example .env && npm install --legacy-peer-deps && npm start
+```
 
-VITE_APP_BASE_URL=http://localhost:5000/api/v1
-VITE_APP_RAZORPAY_KEY=
+Fill `.env` with your own values (`JWT_SECRET` at least 32 random characters). Never commit `.env*` files or credential JSON.
+
+Backend tests: `cd backend && npm test`.
+
+## Deploy (Render)
+
+```bash
+bash ./scripts/deploy.sh   # in backend/ or frontend/
+npm run start:render       # backend
+```
+
+Details, environment variables, architecture and known gaps: `CLAUDE.md`. Design documents: `documentation/`.

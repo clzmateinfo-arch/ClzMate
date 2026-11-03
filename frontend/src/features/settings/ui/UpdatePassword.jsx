@@ -1,4 +1,3 @@
-// UpdatePassword.jsx
 import { useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -53,7 +52,6 @@ export default function UpdatePassword() {
       }
     } catch (err) {
       console.error("Change password failed", err);
-      //setErrors((p) => ({ ...p, form: "Unable to change password. Please try again." }));
     } finally {
       setSubmitting(false);
     }

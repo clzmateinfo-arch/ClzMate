@@ -1,9 +1,4 @@
-import { useEffect, useState } from "react";
-import { apiConnector } from "@/shared/services/api/apiConnector";
-import { toast } from "react-hot-toast";
-import { commanEndpoints } from "@/app/config/apis";
-
-const { SITE_STATS_API } = commanEndpoints;
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 
 
 const FALLBACK = [
@@ -23,44 +18,17 @@ function SkeletonTile() {
   );
 }
 
+const toStatTiles = (stats) => [
+  { count: stats.totalStudents != null ? String(stats.totalStudents) : " ", label: "Active students" },
+  { count: stats.mentors != null ? String(stats.mentors) : " ", label: "Mentors" },
+  { count: stats.courses != null ? String(stats.courses) : " ", label: "Courses" },
+  { count: stats.awards != null ? String(stats.awards) : " ", label: "Completions" },
+];
+
 export default function StatsComponenet() {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await apiConnector("GET", SITE_STATS_API);
-        if (!mounted) return;
-        if (res?.data?.success && res.data.data) {
-          const d = res.data.data;
-          const mapped = [
-            { count: d.totalStudents != null ? String(d.totalStudents) : " ", label: "Active students" },
-            { count: d.mentors != null ? String(d.mentors) : " ", label: "Mentors" },
-            { count: d.courses != null ? String(d.courses) : " ", label: "Courses" },
-            { count: d.awards != null ? String(d.awards) : " ", label: "Compltions" },
-          ];
-          setStats(mapped);
-        } else {
-          throw new Error(res?.data?.message || "Invalid response");
-        }
-      } catch (err) {
-        console.error("Failed to load stats", err);
-        toast.error("Could not load site stats   showing defaults");
-        setStats(FALLBACK);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const show = stats ?? FALLBACK;
+  const { data: stats, isSettled } = usePublicResource("stats");
+  const loading = !isSettled;
+  const show = stats ? toStatTiles(stats) : FALLBACK;
 
   return (
     <section aria-labelledby="site-stats-title" className="py-12 bg-transparent">
@@ -99,7 +67,6 @@ export default function StatsComponenet() {
 
                   <div className="flex-1">
                     <p className="text-base font-semibold text-black">{s.label}</p>
-                    {/* <p className="mt-1 text-xs text-black">Trusted by learners worldwide</p> */}
                   </div>
                 </dd>
               </div>

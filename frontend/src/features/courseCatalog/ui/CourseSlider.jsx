@@ -25,11 +25,13 @@ export default function CourseSlider({
     setHasMore(true);
   }, [categoryId, initialFeatured]);
 
+  const isDefaultQuery = !searchTerm && (!filters?.price || filters.price === "all");
+
   useEffect(() => {
-    setCourses([]);
+    if (!isDefaultQuery) setCourses([]);
     setPage(1);
     setHasMore(true);
-  }, [searchTerm, filters, categoryId]);
+  }, [searchTerm, filters, categoryId, isDefaultQuery]);
 
   useEffect(() => {
     let mounted = true;
@@ -44,7 +46,14 @@ export default function CourseSlider({
           limit: pageSize,
           search: searchTerm,
           filters,
+          isSilent: true,
         });
+
+        if (!mounted) return;
+        if (res?.success === false) {
+          setHasMore(false);
+          return;
+        }
 
         const received =
           res?.data?.data?.courses ??

@@ -1,4 +1,3 @@
-// frontend/src/features/classroom/ui/Topic/TopicItem.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import {
     FiChevronDown,

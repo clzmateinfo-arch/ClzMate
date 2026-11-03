@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import IconBtn from "@/shared/components/ui/IconBtn";
 import { FiX } from "react-icons/fi";
+import { showToast } from "@/shared/components/feedback/CustomToast";
 
 export default function AnnouncementEditor({ onClose = () => { }, onCreate = () => { }, defaultClassroomId = null, disabled = false }) {
     const [title, setTitle] = useState("");
@@ -10,7 +11,7 @@ export default function AnnouncementEditor({ onClose = () => { }, onCreate = () 
     const [saving, setSaving] = useState(false);
 
     const handleSubmit = async () => {
-        if (!title.trim()) return alert("Title is required");
+        if (!title.trim()) return showToast("Title is required", "error");
         setSaving(true);
         try {
             await onCreate({ title: title.trim(), body: body.trim(), pinned: !!pinned, classroom: defaultClassroomId });

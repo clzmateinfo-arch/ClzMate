@@ -1,7 +1,7 @@
 import { forwardRef, useId } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { CalendarDays } from "lucide-react";
+import { LuCalendarDays } from "react-icons/lu";
 import { format } from "date-fns";
 
 const Dateinput = forwardRef(
@@ -26,7 +26,7 @@ const Dateinput = forwardRef(
             error,
             helpText,
             ariaLabel,
-            leftIcon = <CalendarDays className="w-5 h-5" />,
+            leftIcon = <LuCalendarDays className="w-5 h-5" />,
             onlyFuture = true,
             ...rest
         },

@@ -46,7 +46,6 @@ export default function StudentClassrooms() {
                 setJoinedHasMore(page * PAGE_SIZE < total);
                 setJoinedPage(page);
             } catch (err) {
-                console.error("Failed to load joined classrooms", err);
                 toast.error(err?.message || "Failed to load classrooms");
             } finally {
                 setLoadingJoined(false);
@@ -70,17 +69,14 @@ export default function StudentClassrooms() {
         navigate(`/classroom/${classroom._id}/overview`);
     };
 
-    const handleMembers = (classroom) => {
-        console.log("Show members for", classroom);
-    };
+    const handleMembers = () => {};
 
     const handleCopyInvite = (inviteCode) => {
         if (!inviteCode) return;
         try {
             navigator.clipboard?.writeText(inviteCode);
             toast.success("Invite code copied");
-        } catch (e) {
-            console.warn("Copy failed", e);
+        } catch {
             toast.error("Failed to copy");
         }
     };
@@ -137,32 +133,6 @@ export default function StudentClassrooms() {
                 </section>
 
                 {/* OWNED SECTION */}
-                {/* <section className="mb-10">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">My Classroom</h3>
-                        <div className="text-sm text-gray-500">{loadingOwned ? "" : `${ownedList.length} shown`}</div>
-                    </div>
-
-                    {loadingOwned ? (
-                        <Loading />
-                    ) : (
-                        <>
-                            <ClassroomGrid
-                                classrooms={ownedList}
-                                onOpen={handleOpen}
-                                onMembers={handleMembers}
-                                onCopyInvite={handleCopyInvite}
-                            />
-                            <div className="mt-4 flex justify-center">
-                                {ownedHasMore ? (
-                                    <Button onClick={() => loadOwned(ownedPage + 1, true)}>Load more</Button>
-                                ) : (
-                                    ownedList.length > 0 && <div className="text-sm text-gray-500">No more classrooms</div>
-                                )}
-                            </div>
-                        </>
-                    )}
-                </section> */}
 
 
             </div>

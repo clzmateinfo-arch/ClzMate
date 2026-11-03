@@ -34,7 +34,6 @@ export default function InstructorDashboard() {
           search: searchTerm,
         });
         if (!mounted) return;
-        //console.log("instructorApiData: ", instructorApiData, "instructorCoursesApiData: ", instructorCoursesApiData);
         setInstructorData(Array.isArray(instructorApiData) ? instructorApiData : []);
         setCourses(Array.isArray(instructorCoursesApiData?.data) ? instructorCoursesApiData?.data : []);
       } catch (err) {
@@ -166,7 +165,7 @@ export default function InstructorDashboard() {
           <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm shadow-violet-950/10 p-6 text-center">
             <p className="text-2xl font-bold text-black mb-3">You haven&apos;t created any courses yet</p>
             <Link to="/dashboard/add-course">
-              <p className="text-lg font-semibold text-yellow-50 hover:underline">Create a course</p>
+              <p className="text-lg font-semibold text-purple-200 hover:underline">Create a course</p>
             </Link>
           </div>
         )}

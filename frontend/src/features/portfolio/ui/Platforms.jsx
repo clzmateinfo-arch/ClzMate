@@ -1,9 +1,7 @@
-// frontend/src/features/portfolio/ui/Platforms.jsx
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
-
-import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 
 // fallback image used when category has no image
 const FALLBACK_IMG = "/shared/assets/images/porfolio/advertisment.png";
@@ -21,14 +19,6 @@ function PlatformsGridInner({ platforms }) {
                         <p className="text-xl text-center text-white/70 group-hover:text-white/90 group-focus:text-white/90 transition-colors">
                             {p.name}
                         </p>
-                        {/* <Img
-                            src={p.src}
-                            alt={p.name}
-                            className="max-w-full h-8 object-contain brightness-0 invert"
-                            loading="lazy"
-                            width="150"
-                            height="28"
-                        /> */}
                     </Link>
                 </li>
             ))}
@@ -40,56 +30,26 @@ export function PlatformsGrid({ platforms = [] }) {
     return <PlatformsGridInner platforms={platforms} />;
 }
 
+const FALLBACK_PLATFORMS = [
+    { key: "fallback-1", name: "Computing", src: FALLBACK_IMG, href: "/catalog/all" },
+    { key: "fallback-2", name: "Web Development", src: FALLBACK_IMG, href: "/catalog/web-all" },
+    { key: "fallback-3", name: "Python", src: FALLBACK_IMG, href: "/catalog/all" },
+];
+
+const toPlatform = (category) => ({
+    key: category._id ?? category.id ?? category.name,
+    name: category.name ?? "Untitled",
+    src: category.thumbnail || category.image || FALLBACK_IMG,
+    href: `/catalog/${encodeURIComponent(category._id ?? category.id ?? category.name)}`,
+});
+
 export function Platforms() {
-    const [platforms, setPlatforms] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        let mounted = true;
-
-        (async () => {
-            setLoading(true);
-            try {
-                const cats = await fetchCourseCategories();
-                if (!mounted) return;
-
-                const mapped = Array.isArray(cats)
-                    ? cats.map((cat) => {
-                        const src = cat.thumbnail || cat.image || FALLBACK_IMG;
-                        const href = `/catalog/${encodeURIComponent(cat._id ?? cat.id ?? cat.name)}`;
-                        return {
-                            key: cat._id ?? cat.id ?? cat.name,
-                            name: cat.name ?? "Untitled",
-                            src,
-                            href,
-                        };
-                    })
-                    : [];
-                if (mapped.length === 0) {
-                    setPlatforms([
-                        { key: "fallback-1", name: "Computing", src: FALLBACK_IMG, href: "/catalog/all" },
-                        { key: "fallback-2", name: "Web Development", src: FALLBACK_IMG, href: "/catalog/web-all" },
-                        { key: "fallback-3", name: "Python", src: FALLBACK_IMG, href: "/catalog/all" },
-                    ]);
-                } else {
-                    setPlatforms(mapped);
-                }
-            } catch (err) {
-                console.error("Failed to load course categories for Platforms:", err);
-                setPlatforms([
-                    { key: "fallback-1", name: "Computing", src: FALLBACK_IMG, href: "/catalog/all" },
-                    { key: "fallback-2", name: "Web Development", src: FALLBACK_IMG, href: "/catalog/web-all" },
-                    { key: "fallback-3", name: "Python", src: FALLBACK_IMG, href: "/catalog/all" },
-                ]);
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        })();
-
-        return () => {
-            mounted = false;
-        };
-    }, []);
+    const { data: categories, isSettled } = usePublicResource("categories");
+    const loading = !isSettled;
+    const platforms = useMemo(
+        () => (categories?.length ? categories.map(toPlatform) : FALLBACK_PLATFORMS),
+        [categories]
+    );
 
     return (
         <section className="relative py-16 lg:py-24 xl:py-32 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-600 text-white overflow-hidden">

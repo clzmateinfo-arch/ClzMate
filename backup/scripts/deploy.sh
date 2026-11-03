@@ -1,25 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🚀 Starting deployment script..."
-
-cd "$(dirname "$0")"
-
-echo "🧹 Cleaning up..."
-rm -rf node_modules
-
-echo "📦 Installing dependencies..."
-
-npm cache clean --force
+cd "$(dirname "$0")/.."
 
 if [ -f package-lock.json ]; then
-  echo "Using npm ci with dev deps and legacy-peer-deps..."
-  npm ci --include=dev --legacy-peer-deps
+  npm ci --omit=dev
 else
-  echo "No package-lock.json found, using npm install with dev deps..."
-  npm install --include=dev --legacy-peer-deps
+  npm install --omit=dev
 fi
 
-echo "⚡ Running build..."
-
-echo "✅ Build finished."
+echo "Dependencies installed. Start with: npm start"

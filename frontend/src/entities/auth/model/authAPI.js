@@ -10,6 +10,7 @@ const {
   VERIFYOTP_API,
   SIGNUP_API,
   LOGIN_API,
+  LOGOUT_API,
   RESETPASSTOKEN_API,
   RESETPASSWORD_API,
 } = endpoints;
@@ -41,7 +42,11 @@ export function register(signupData, navigate) {
         showToast(`Ops! ${response.data.message}`, "error");
         throw new Error(response.data.message);
       } else {
-        showToast(`Awesome, Welcome to the club ${signupData?.preferredName}`, "success");
+        const approvalNote =
+          signupData?.accountType === "Instructor"
+            ? " Your instructor account needs admin approval before you can use instructor features."
+            : "";
+        showToast(`Welcome ${signupData?.preferredName}! Verify your email to continue.${approvalNote}`, "success");
         await dispatch(sendOtp(signupData.email, navigate));
       }
 
@@ -154,7 +159,16 @@ export function login(email, password, navigate) {
 
       navigate("/dashboard");
     } catch (error) {
-      showToast(`Ops! ${extractErrorMessage(error)}`, "error");
+      const message = extractErrorMessage(error);
+      if (error?.response?.status === 403 && /verify your email/i.test(message)) {
+        showToast("Your email is not verified. We sent you a new code.", "info");
+        await dispatch(setSignupData({ email }));
+        await dispatch(sendOtp(email, navigate));
+      } else if (error?.response?.status === 403) {
+        showToast(message, "warning");
+      } else {
+        showToast(`Ops! ${message}`, "error");
+      }
     } finally {
       dispatch(setLoading(false));
     }
@@ -218,6 +232,7 @@ export function resetPassword(password, confirmPassword, token, navigate) {
 
 export function logout(navigate) {
   return (dispatch) => {
+    apiConnector("POST", LOGOUT_API).catch(() => {});
     dispatch(setToken(null));
     dispatch(setUser(null));
     dispatch(resetCart());

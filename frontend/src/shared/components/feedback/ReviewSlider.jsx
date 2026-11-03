@@ -5,10 +5,8 @@ import "swiper/css/pagination";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, FreeMode } from "swiper/modules";
-import { useEffect, useState } from "react";
 import Img from "@/shared/components/ui/Img";
-import { apiConnector } from "@/shared/services/api/apiConnector";
-import { ratingsEndpoints } from "@/app/config/apis";
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 
 
 function Stars({ rating = 0, size = 16 }) {
@@ -34,42 +32,12 @@ function Stars({ rating = 0, size = 16 }) {
 }
 
 export default function ReviewSlider() {
-  const [reviews, setReviews] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data, isSettled } = usePublicResource("reviews");
+  const reviews = data ?? [];
 
   const truncateWords = 18;
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await apiConnector("GET", ratingsEndpoints.REVIEWS_DETAILS_API);
-        if (cancelled) return;
-        if (data?.success) {
-          setReviews(Array.isArray(data.data) ? data.data : []);
-        } else {
-          setReviews([]);
-        }
-      } catch (err) {
-        console.error("Failed to load reviews:", err);
-        setError("Could not load reviews");
-        setReviews([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (loading) {
-    return null;
-  }
-
-  if (error) {
+  if (!isSettled) {
     return null;
   }
 

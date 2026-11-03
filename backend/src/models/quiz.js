@@ -33,4 +33,6 @@ const quizSchema = new mongoose.Schema({
     }
 });
 
+quizSchema.index({ topic: 1 });
+
 module.exports = createModel("Quiz", quizSchema);

@@ -8,12 +8,15 @@ const ratingAndReviewSchema = new mongoose.Schema({
         required: true,
     },
     rating: {
-        type: String,
-        reqired: true,
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5,
     },
     review: {
         type: String,
         required: true,
+        maxlength: 2000,
     },
     course: {
         type: mongoose.Schema.Types.ObjectId,
@@ -22,5 +25,7 @@ const ratingAndReviewSchema = new mongoose.Schema({
         index: true,
     },
 });
+
+ratingAndReviewSchema.index({ user: 1, course: 1 }, { unique: true });
 
 module.exports = createModel("RatingAndReview", ratingAndReviewSchema);

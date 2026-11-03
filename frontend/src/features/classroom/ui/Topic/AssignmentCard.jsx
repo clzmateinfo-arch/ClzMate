@@ -22,9 +22,6 @@ export default function AssignmentCard({
         <div className={`relative w-full min-h-[170px] sm:min-w-[18rem] mx-1 rounded-lg border border-[#f3eff9]/70 bg-white p-3 transition hover:shadow-sm flex flex-col justify-between ${className}`}>
             <div>
                 <div className="absolute top-3 right-3">
-                    {/* <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-[#8b5cf6]/10 to-[#7c3aed]/10 text-[#5b21b6] border border-[#efe6ff]">
-                        Assignment
-                    </span> */}
                 </div>
 
                 <div className="flex items-start gap-3">

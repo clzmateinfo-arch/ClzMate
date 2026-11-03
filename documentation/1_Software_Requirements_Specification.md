@@ -1,68 +1,98 @@
-
 # Software Requirements Specification (SRS)
 
 ## 1. Introduction
 
-This document outlines the functional and non-functional requirements for the ClzMate MVP. ClzMate is an online learning platform designed to provide features for students, instructors, and administrators.
+ClzMate is an e-learning and academy management platform. Tutors and academies publish recorded-content courses, run classrooms (topics, assignments, quizzes, announcements), and manage students. The system is under development and not in production use.
 
-## 2. Functional Requirements
+Status legend: **Implemented** (code present and covered by the automated suite unless noted), **Partial** (works with a stated limitation), **Not implemented** (stub or absent). "Covered" means a test in `backend/test` exercises it (see document 8); external services (Cloudinary, SMTP, Razorpay, Google Drive) are stubbed or never called in tests.
 
-### 2.1 User Management
+## 2. Roles
 
-| ID | User Story | Acceptance Criteria |
+| Role | Signup | Notes |
 | :--- | :--- | :--- |
-| 2.1.1 | As a new user, I want to be able to sign up for an account so that I can access the platform. | - The system shall provide a sign-up form that collects the user's name, email, password, and account type (Student or Instructor).<br>- The system shall validate the provided information.<br>- The system shall send an OTP to the user's email for verification.<br>- Upon successful OTP verification, the system shall create a new user account. |
-| 2.1.2 | As a registered user, I want to be able to log in to my account so that I can access my dashboard and other features. | - The system shall provide a login form that accepts the user's email and password.<br>- The system shall authenticate the user's credentials.<br>- Upon successful authentication, the system shall grant the user access to their account. |
-| 2.1.3 | As a logged-in user, I want to be able to change my password so that I can keep my account secure. | - The system shall provide a form for changing the password.<br>- The system shall require the user to enter their old password and a new password.<br>- The system shall validate the old password before updating it to the new one. |
-| 2.1.4 | As a user who has forgotten my password, I want to be able to reset it so that I can regain access to my account. | - The system shall provide a "Forgot Password" feature.<br>- The system shall send a password reset link to the user's email.<br>- The user shall be able to set a new password by clicking the link. |
-| 2.1.5 | As an administrator, I want to be able to view a list of all users so that I can manage user accounts. | - The system shall provide a user management interface for administrators.<br>- The interface shall display a list of all registered users with their details. |
-| 2.1.6 | As an administrator, I want to be able to update a user's account information so that I can manage user roles and status. | - The system shall allow administrators to update a user's account type, and active/approved status. |
-| 2.1.7 | As an administrator, I want to be able to delete a user's account so that I can remove users from the platform. | - The system shall allow administrators to delete user accounts. |
+| Student | Public | Enrolls in courses, joins classrooms as a member, submits work. |
+| Instructor | Public; account starts with `approved = false` | Can log in immediately, but every `isInstructor` route returns 403 ("Instructor account is pending admin approval") until an admin sets `approved = true` (`POST /admin/updateUser`). Admins approve or revoke from the admin users page. |
+| Admin | Not creatable through signup | Signup accepts only `Student` or `Instructor` (400 otherwise). Admins must be created directly in the database. |
 
-### 2.2 Course Management
+`Parent` no longer exists (removed from the frontend constants and never in the schema enum).
 
-| ID | User Story | Acceptance Criteria |
+Roles are enforced by backend middleware (`isStudent`, `isInstructor`, `isAdmin`; role mismatch is HTTP 403) and by frontend `RoleRoute` guards per route. The `auth` middleware re-loads the user on every request, so role, `active` and `approved` changes take effect immediately.
+
+## 3. Functional Requirements
+
+### 3.1 Account Management
+
+| ID | Requirement | Status |
 | :--- | :--- | :--- |
-| 2.2.1 | As an instructor, I want to be able to create a new course so that I can offer it to students. | - The system shall provide a form for creating a new course.<br>- The form shall include fields for course name, description, price, category, and thumbnail image.<br>- The system shall allow instructors to add sections and subsections to the course. |
-| 2.2.2 | As an instructor, I want to be able to edit an existing course so that I can update its content. | - The system shall allow instructors to edit the details of their courses.<br>- The system shall allow instructors to add, update, and delete sections and subsections. |
-| 2.2.3 | As an instructor, I want to be able to view a list of all my courses so that I can manage them. | - The system shall provide a dashboard for instructors to view and manage their courses. |
-| 2.2.4 | As a user, I want to be able to view a list of all available courses so that I can choose which ones to enroll in. | - The system shall display a list of all published courses.<br>- The system shall provide options for filtering and sorting the courses. |
-| 2.2.5 | As a user, I want to be able to view the details of a course so that I can learn more about it. | - The system shall display the course details, including the curriculum, instructor, and reviews. |
-| 2.2.6 | As a student, I want to be able to enroll in a course so that I can access its content. | - The system shall allow students to enroll in courses.<br>- For paid courses, the system shall require payment before granting access. |
-| 2.2.7 | As a student, I want to be able to track my progress in a course so that I can see how much I have completed. | - The system shall track the student's progress in each course.<br>- The system shall display the progress on the student's dashboard. |
+| 3.1.1 | Sign up (`/auth/signup`) with preferred name, optional first/last name, email, password (8-72 chars), confirm password, account type `Student` or `Instructor`, optional contact number. Creates an unverified user; the frontend then calls `/auth/sendotp`. | Implemented, covered |
+| 3.1.2 | Email verification by a 6-digit OTP (`/auth/sendotp`, `/auth/verifyotp`): CSPRNG code stored only as an HMAC hash, 5-minute TTL, 60 s resend cooldown, 5 wrong attempts invalidate it, deleted after use. | Implemented, covered (mail is stubbed) |
+| 3.1.3 | Log in with email and password; JWT returned and set as an httpOnly cookie. Requires `verified` and `active` (403 otherwise). Wrong email or password returns the same 401 "Invalid credentials". | Implemented, covered |
+| 3.1.4 | Change password (old + new). Invalidates tokens issued before the change (`passwordChangedAt`). | Implemented, covered |
+| 3.1.5 | Forgot/reset password by emailed link (`/auth/reset-password-token`, `/auth/reset-password`): sha256-hashed single-use token, 15-minute TTL, generic response that does not reveal whether the email exists. Link is built from `FRONTEND_URL`. | Implemented, covered (mail is stubbed) |
+| 3.1.6 | Update profile fields and display picture (image types only, no SVG); delete own account (blocked with 409 for an instructor who still owns published courses with enrolled students); view limited public profile (`protectMe` hides details). | Implemented, covered |
 
-### 2.3 Classroom Management
+### 3.2 Administration
 
-| ID | User Story | Acceptance Criteria |
+| ID | Requirement | Status |
 | :--- | :--- | :--- |
-| 2.3.1 | As an instructor, I want to be able to create a classroom so that I can manage a group of students. | - The system shall allow instructors to create classrooms with a title and description.<br>- The system shall generate an invite code for each classroom. |
-| 2.3.2 | As a student, I want to be able to join a classroom using an invite code so that I can participate in the class. | - The system shall allow students to join a classroom by entering the invite code. |
-| 2.3.3 | As an instructor, I want to be able to create announcements in a classroom so that I can communicate with the students. | - The system shall allow instructors to post announcements in the classroom. |
-| 2.3.4 | As an instructor, I want to be able to create assignments in a classroom so that I can assess the students' learning. | - The system shall allow instructors to create assignments with a title, description, due date, and attachments. |
-| 2.3.5 | As a student, I want to be able to submit my assignments so that the instructor can grade them. | - The system shall allow students to submit their assignments with text and file attachments. |
-| 2.3.6 | As an instructor, I want to be able to create quizzes in a classroom so that I can test the students' knowledge. | - The system shall allow instructors to create quizzes with multiple-choice questions. |
-| 2.3.7 | As a student, I want to be able to take quizzes so that I can test my knowledge. | - The system shall allow students to take quizzes and view their scores. |
+| 3.2.1 | Admin lists/searches (paginated), updates (`accountType`, `active`, `approved`) and deletes users (`/admin/*`). An admin cannot demote, deactivate or delete themselves. User deletion cascades to owned courses, enrollments, progress, notes and reviews. | Implemented, covered |
+| 3.2.2 | Admin creates, updates and deletes course categories (delete is refused with 409 while the category has courses). | Implemented, covered |
 
-### 2.4 Payment Management
+### 3.3 Courses
 
-| ID | User Story | Acceptance Criteria |
+| ID | Requirement | Status |
 | :--- | :--- | :--- |
-| 2.4.1 | As a student, I want to be able to pay for a course so that I can enroll in it. | - The system shall integrate with a payment gateway (Razorpay) to process payments.<br>- The system shall securely handle the payment process. |
-| 2.4.2 | As a student, I want to be able to view my payment history so that I can keep track of my purchases. | - The system shall provide a payment history page for students. |
+| 3.3.1 | Instructor creates, edits, publishes/unpublishes and deletes own courses (name, description, price, category, tags, thumbnail, instructions, `features`, `requiresApproval`). `editCourse` applies only a field allow-list. Deleting a course cascades to sections, sub-sections, progress, notes, reviews, cart entries and Cloudinary assets. | Implemented, covered (Cloudinary stubbed) |
+| 3.3.2 | Instructor manages sections and sub-sections (video, PDF, HTML, external http(s) video URL, support materials). Every call checks the caller owns the parent course (admin bypass where the route admits admins). | Implemented, covered |
+| 3.3.3 | Public catalog: paginated/filterable list of Published courses, details of a Published course (video URLs and support materials hidden), categories, category page. | Implemented, covered |
+| 3.3.4 | Enrolled student tracks lecture completion per sub-section (once per sub-section). | Implemented, covered |
+| 3.3.5 | Enrolled student (or owner/admin) saves and reads personal notes per course/section/sub-section. | Implemented, covered |
+| 3.3.6 | Enrolled student rates (integer 1-5) and reviews a course once; public average rating (`GET /course/getAverageRating?courseId=`) and review list. | Implemented, covered |
+| 3.3.7 | Cart: add (Published, not already enrolled), remove, clear, list. | Implemented, covered |
+| 3.3.8 | Enrollment through the payment endpoints: free courses (`price === 0`) enroll directly. Paid courses require a valid Razorpay signature (HMAC with `RAZORPAY_SECRET`); otherwise `verifyPayment` returns 402. In non-production only, `ALLOW_STUBBED_PAYMENT=true` accepts paid enrollment without a gateway. There is no Razorpay order creation (`capturePayment` only totals the price). | **Partial**: signature check is implemented and covered; real Razorpay order flow and frontend checkout are not (the `razorpay` package is not a dependency). |
+| 3.3.9 | Approval-based enrollment: for a `requiresApproval` course, enrollment (request endpoint or payment path) creates a Pending request; the owner/admin approves or rejects (`action: approve\|reject`), student sees own requests. | Implemented, covered |
+| 3.3.10 | Signed Cloudinary download URLs (`/course/getAssetUrl`), issued only for assets belonging to a sub-section the caller is enrolled in or owns, a Published course thumbnail (or one the caller manages), or a stored profile image. | Implemented, covered (signing is local; Cloudinary itself is not called) |
 
-### 2.5 Profile Management
+### 3.4 Classrooms
 
-| ID | User Story | Acceptance Criteria |
+Access is decided per classroom by `utils/classroomAccess.js`: **owner**, **coInstructor**, **member** (students), **guest**, plus **Admin** (global bypass). Staff = owner, coInstructor, admin. Non-members get 403.
+
+| ID | Requirement | Status |
 | :--- | :--- | :--- |
-| 2.5.1 | As a user, I want to be able to view and update my profile so that I can keep my personal information up to date. | - The system shall provide a profile page where users can view and edit their personal information.<br>- The system shall allow users to upload a profile picture. |
-| 2.5.2 | As a user, I want to be able to view my enrolled courses on my dashboard so that I can easily access them. | - The system shall display a list of enrolled courses on the user's dashboard. |
+| 3.4.1 | Approved instructor creates a classroom (invite code, 16 hex chars); any authenticated user joins by code as a Student member; list own classrooms (owned/joined, search, paging); classroom overview. Invite code is hidden from non-staff. | Implemented, covered |
+| 3.4.2 | Staff add/remove members (`POST /classroom/:id/add-member`, `remove-member`). Owner/admin adding an Instructor-type user makes them coInstructor; the owner cannot be removed; only owner/admin can remove a coInstructor. | Implemented, covered |
+| 3.4.3 | Staff manage topics (create, update, delete, reorder) and topic items (create, update, delete, reorder, copy between topics, publish toggle). | Implemented, covered |
+| 3.4.4 | Assignments: staff create, update, delete (cascades to submissions and files); members list/get published and targeted ones; students submit (not after `dueDate`, not when `lockSubmissions`, not once graded), staff list and grade (0..points) with feedback. `assigneeType` `all`/`selected`. One submission per student (unique index). | Implemented, covered |
+| 3.4.5 | Quizzes: staff create, update, delete; screens of type multiple, truefalse, short, slider, poll, puzzle; reorder; students submit attempts graded **server-side**; one attempt per user per quiz (unique index; `finish: true` closes it); leaderboard. Students never receive `options[].correct` (short/slider options are emptied) until they finish an attempt. | Implemented, covered. `puzzle` screens are never marked correct by the evaluator. |
+| 3.4.6 | Announcements per classroom (staff create, members list). | Implemented, covered |
+| 3.4.7 | Classroom sessions (external meeting URLs), in-classroom messaging. | Not implemented: `ClassroomSession` and `Message` models exist, nothing uses them; no Socket.io. |
 
-## 3. Non-Functional Requirements
+### 3.5 Dashboards and Site
 
-| ID | Requirement | Description |
+| ID | Requirement | Status |
 | :--- | :--- | :--- |
-| 3.1 | **Performance** | The system should be able to handle a reasonable number of concurrent users without significant degradation in performance. Page load times should be within acceptable limits. |
-| 3.2 | **Scalability** | The architecture of the system should be scalable to accommodate future growth in the number of users and courses. |
-| 3.3 | **Security** | The system shall ensure the security of user data and financial transactions. All sensitive data should be encrypted. The system should be protected against common web vulnerabilities. |
-| 3.4 | **Usability** | The user interface should be intuitive and easy to use. The system should be accessible to users with disabilities. |
-| 3.5 | **Reliability** | The system should be available 24/7 with minimal downtime. The system should have a backup and recovery plan in place. |
+| 3.5.1 | Student dashboard (`GET /student/dashboard`, any authenticated user), approved-instructor dashboard (`/profile/instructorDashboard`), enrolled courses. | Implemented, covered |
+| 3.5.2 | Public site statistics (`/site/stats`), cached in memory for 60 s. | Implemented, covered |
+| 3.5.3 | Contact form (`POST /reach/contact`): validated, HTML-escaped, mailed to `MAIL_FROM_EMAIL` or `MAIL_USER`; 5 requests per 15 min per IP. | Implemented, covered (mail is stubbed) |
+
+### 3.6 Operations
+
+| ID | Requirement | Status |
+| :--- | :--- | :--- |
+| 3.6.1 | Scheduled MongoDB backup to Google Drive (every 12 h) with REST trigger/restore (separate `backup/` service). REST API requires `BACKUP_API_KEY` (min 24 chars) and binds to `HOST` (default `127.0.0.1`). | Implemented, independent of the main app, not covered by tests |
+
+## 4. Non-Functional Requirements
+
+| Area | Requirement | Status |
+| :--- | :--- | :--- |
+| Security | bcrypt password hashing (8-72 chars); JWT with per-request user reload (deleted/inactive user or token older than `passwordChangedAt` gives 401); helmet; CORS allow-list with explicit 403; rate limits (global 600/15 min, auth endpoints 20/15 min, contact 5/15 min); 1 MB JSON limit; upload size limit and extension/type guard; NoSQL operator-key stripping; HTML escaping in emails; ownership and classroom RBAC checks; production start refuses a short `JWT_SECRET` or missing `CORS_ALLOWED_ORIGINS`. | Implemented, largely covered |
+| Reliability | JSON 404 and central error handler (no error text leaks on 5xx; `CastError`/validation/bad JSON map to 400); database connected before listening, process exits on failure; graceful shutdown on SIGTERM/SIGINT. | Implemented |
+| Compatibility | Node.js >= 18 (Express 5). | Required |
+| Testing | `cd backend && npm test`: in-memory MongoDB. No frontend or backup tests. See document 8. | Backend only |
+| Performance, scalability | No measured targets. Only caching is the 60 s site-stats cache; several list endpoints still filter/paginate in memory. | Not assessed |
+| Payments | Secure online payment. | Partial (see 3.3.8) |
+
+## 5. Constraints
+
+- JavaScript only (no TypeScript) in `backend/`, `frontend/`, `backup/`.
+- Single Express process, MongoDB (Mongoose), Cloudinary for uploads, Nodemailer for email.

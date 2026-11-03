@@ -1,4 +1,3 @@
-// frontend/src/pages/classroom/ClassroomOverview.jsx
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -77,8 +76,7 @@ export default function ClassroomOverview() {
             }
 
             try {
-                const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                const resp = await apiConnector("GET", `/api/classroom/${classroomId}`, null, headers);
+                const resp = await apiConnector("GET", `/api/classroom/${classroomId}`);
                 if (resp?.data?.success) {
                     setClassroom(resp.data.data || resp.data || null);
                 } else {

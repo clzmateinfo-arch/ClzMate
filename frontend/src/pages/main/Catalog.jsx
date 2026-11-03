@@ -1,51 +1,30 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import CourseSlider from "@/features/courseCatalog/ui/CourseSlider";
 import CatalogSidebar from "@/features/courseCatalog/ui/CatalogSidebar";
 import Footer from "@/widgets/Footer/Footer";
 import Loading from "@/shared/components/navigation/Loading";
-import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
-import { getCatalogPageData } from "@/shared/operations/pageAndComponentData";
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 import backImg from "@/shared/assets/images/course_catlog/default-cover.webp";
 import PageHeader from "@/shared/components/ui/PageHeader";
 
 export default function Catalog() {
   const { catalogId } = useParams();
-  const [catalogPageData, setCatalogPageData] = useState(null);
-  const [categoryId, setCategoryId] = useState("");
-  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ price: "all", level: "all" });
+  const [filters, setFilters] = useState({ price: "all" });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetchCourseCategories();
-        const matched = res.find(
-          (ct) => ct._id.split(" ").join("").toLowerCase() === catalogId
-        );
-        if (matched) setCategoryId(matched._id);
-      } catch (error) {
-        console.error("Could not fetch Categories.", error);
-      }
-    })();
-  }, [catalogId]);
-
-  useEffect(() => {
-    if (!categoryId) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await getCatalogPageData(categoryId);
-        setCatalogPageData(res);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [categoryId]);
+  const categoriesResource = usePublicResource("categories");
+  const categoryId = useMemo(
+    () =>
+      (categoriesResource.data ?? []).find(
+        (category) => String(category._id).split(" ").join("").toLowerCase() === catalogId
+      )?._id ?? "",
+    [categoriesResource.data, catalogId]
+  );
+  const catalogResource = usePublicResource(categoryId ? `catalog:${categoryId}` : null);
+  const catalogPageData = catalogResource.data ?? null;
+  const loading = !categoriesResource.isSettled || Boolean(categoryId && !catalogResource.isSettled);
 
   const handleToggleSidebar = useCallback(() => {
     setSidebarOpen((s) => !s);
@@ -90,7 +69,7 @@ export default function Catalog() {
         <div className="flex gap-6">
           <div className={`${sidebarOpen ? "w-72" : "w-0"} transition-all duration-300 overflow-hidden`}>
             <CatalogSidebar
-              categories={catalogPageData?.allCategories ?? []}
+              categories={categoriesResource.data ?? []}
               selectedCategoryId={categoryId}
               onChange={handleFiltersChange}
               onClose={() => setSidebarOpen(false)}

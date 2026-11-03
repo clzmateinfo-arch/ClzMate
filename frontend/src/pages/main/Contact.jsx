@@ -24,11 +24,6 @@ const Contact = () => {
               <ContactForm />
             </div>
           </div>
-          {/* 
-        <div className="w-full max-w-5xl">
-          <h4 className="text-m font-medium mb-2 text-black">Reviews from other learners</h4>
-          <ReviewSlider />
-        </div> */}
         </div>
       </div>
       <Footer />

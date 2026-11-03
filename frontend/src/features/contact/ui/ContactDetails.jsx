@@ -47,13 +47,6 @@ const socials = [
 const ContactDetails = () => {
   return (
     <aside className="space-y-8 text-black">
-      {/* <div className="rounded-2xl p-6 bg-white/6 backdrop-blur-md border border-white/8 shadow-sm">
-        <h3 className="text-xl font-semibold mb-2 text-black">Get in Touch</h3>
-        <p className="text-sm text-black">
-          Whether you’ve got questions, feedback, or just want to say hi   we’re here for you.
-          Expect replies within 24 hours on business days.
-        </p>
-      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {contactDetails.map((ele, i) => {

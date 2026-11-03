@@ -22,4 +22,7 @@ const classroomSchema = new mongoose.Schema({
     },
 });
 
+classroomSchema.index({ owner: 1 });
+classroomSchema.index({ "members.user": 1 });
+
 module.exports = createModel("Classroom", classroomSchema);

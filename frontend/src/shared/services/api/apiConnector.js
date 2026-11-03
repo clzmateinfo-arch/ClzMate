@@ -1,8 +1,15 @@
 import axios from "axios";
+import { markRequestStart, markRequestEnd, notifySuccessfulMutation } from "./requestActivity";
 
 export const axiosInstance = axios.create({
   withCredentials: true,
 });
+
+const READ_METHODS = ["get", "head", "options"];
+
+const finishTracking = (config) => {
+  if (config?.requestActivityId) markRequestEnd(config.requestActivityId);
+};
 
 let interceptorsInitialized = false;
 
@@ -17,14 +24,21 @@ export const setupAxiosInterceptors = () => {
         config.headers = config.headers || {};
         config.headers["Authorization"] = `Bearer ${token}`;
       }
+      if (!config.skipActivityTracking) config.requestActivityId = markRequestStart();
       return config;
     },
     (error) => Promise.reject(error)
   );
 
   axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      finishTracking(response.config);
+      const method = String(response.config?.method || "get").toLowerCase();
+      if (!READ_METHODS.includes(method)) notifySuccessfulMutation(method, response.config?.url || "");
+      return response;
+    },
     (error) => {
+      finishTracking(error?.config);
       const response = error?.response;
       if (!response) return Promise.reject(error);
 
@@ -32,9 +46,7 @@ export const setupAxiosInterceptors = () => {
       const isLoginRoute = window.location.pathname.startsWith("/login");
 
       if (status === 401 && !isLoginRoute) {
-        // Distinguish session-invalid 401s (token missing/expired) from role-guard 401s
-        // ("protected only for Instructor/Student/Admin"). Only clear session for the former.
-        const msg = (response.data?.message || response.data?.messgae || "").toLowerCase();
+        const msg = (response.data?.message || "").toLowerCase();
         const isSessionError =
           msg.includes("token") ||
           msg.includes("missing") ||
@@ -42,11 +54,10 @@ export const setupAxiosInterceptors = () => {
           msg.includes("unauthorized");
 
         if (isSessionError) {
-          console.warn("Session invalid → clearing session and redirecting");
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           setTimeout(() => {
-            window.location.replace("/");
+            window.location.replace("/login");
           }, 300);
         }
       }

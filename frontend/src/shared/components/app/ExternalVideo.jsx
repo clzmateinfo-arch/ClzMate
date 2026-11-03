@@ -296,7 +296,7 @@ export default function ExternalVideo({ url }) {
                         height="100%"
                         frameBorder="0"
                         allow="autoplay; fullscreen; encrypted-media"
-                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                        sandbox="allow-scripts allow-popups allow-forms"
                         className="block w-full h-full"
                         style={{ background: "black" }}
                     />
