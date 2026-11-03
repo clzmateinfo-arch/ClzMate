@@ -84,7 +84,6 @@ Responses are `{ success, message?, data? }`; some endpoints add sibling keys (`
 | :--- | :--- | :--- | :--- |
 | POST | `/payment/capturePayment` | auth, isStudent | `{ coursesId: [ids] }` (1-50 valid ids). Returns `data: { totalAmount, currency: "USD", receipt }`. 404 if any course is missing/unpublished, 400 if already enrolled. No gateway order is created |
 | POST | `/payment/verifyPayment` | auth, isStudent | `{ coursesId, razorpay_order_id, razorpay_payment_id, razorpay_signature }`. If every course has `price === 0`, enrolls. Otherwise: valid signature with `RAZORPAY_SECRET` enrolls; invalid signature 400; no secret/signature gives 402 unless `NODE_ENV != production` and `ALLOW_STUBBED_PAYMENT=true`. Returns `results[]` with `status` `enrolled`, `pending` (approval course), `already-enrolled` or failure |
-| POST | `/payment/sendPaymentSuccessEmail` | auth, isStudent | `{ orderId, paymentId, coursesId }`; 403 unless the student is enrolled in all listed courses; amount computed server-side |
 
 ### 3.4 `/course`
 
@@ -222,6 +221,24 @@ Quizzes
 | GET | `/classroom/quizzes/:quizId/leaderboard` | member or staff | `{ board, me }` |
 
 Route-order note: `GET /classroom/my` is declared before `GET /classroom/:id`, and the `/topics/...`, `/assignments/...`, `/quizzes/...` routes before the `/:id` and `/:classroomId` ones.
+
+### 3.8.1 Emails sent by the API
+
+All emails are built in `backend/src/mail/templates/index.js` on one layout (`src/mail/layout.js`) and sent with `mailSender.sendTemplate`. A failed send never fails the request, except the signup OTP (502) and the contact form (500).
+
+| Trigger | Recipient | Subject |
+| :--- | :--- | :--- |
+| `POST /auth/sendotp` | user | `<code> is your ClzMate verification code` |
+| `POST /auth/verifyotp` succeeds | user | `Welcome to ClzMate` (instructors: pending approval note) |
+| `POST /auth/reset-password-token` (active account) | user | `Reset your ClzMate password` |
+| `POST /auth/reset-password` succeeds | user | `Your ClzMate password was reset` |
+| `POST /auth/changepassword` succeeds | user | `Your ClzMate password was changed` |
+| Enrollment completed (free, verified payment, approved request) | student | `You're enrolled in <course>` |
+| Enrollment request created (approval course) | instructor and student | `New enrollment request for <course>` / `Enrollment request sent: <course>` |
+| Request rejected | student | `Update on your request for <course>` |
+| `POST /payment/verifyPayment` with a verified signature | student | `Payment receipt: Rs. <total>` |
+| `POST /reach/contact` | `MAIL_FROM_EMAIL` (Reply-To: sender) | `New contact message from <name>` |
+| `POST /admin/updateUser` makes an approved Instructor | instructor | `Your ClzMate instructor account is approved` |
 
 ### 3.9 Root, health and snapshot
 

@@ -4,16 +4,15 @@ const User = require("../models/user");
 const mailSender = require("../utils/mailSender");
 const { validatePassword } = require("../utils/passwordPolicy");
 const { isNonEmptyString } = require("../middleware/sanitize");
+const { appLink } = require("../mail/layout");
+const { passwordResetRequestEmail, passwordResetCompletedEmail } = require("../mail/templates");
 
-const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
+const RESET_TOKEN_TTL_MINUTES = 15;
+const RESET_TOKEN_TTL_MS = RESET_TOKEN_TTL_MINUTES * 60 * 1000;
 const GENERIC_RESET_MESSAGE = "If the email is registered, a password reset link has been sent";
 
 const hashResetToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
-
-const buildResetUrl = (token) => {
-  const baseUrl = (process.env.FRONTEND_URL || process.env.APP_DOMAIN || "").replace(/\/+$/, "");
-  return `${baseUrl}/update-password/${token}`;
-};
+const greetingName = (user) => user.preferredName || user.firstName;
 
 exports.hashResetToken = hashResetToken;
 
@@ -31,10 +30,13 @@ exports.resetPasswordToken = async (req, res) => {
       user.resetPasswordTokenExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
       await user.save();
 
-      await mailSender(
+      await mailSender.sendTemplate(
         user.email,
-        "Password Reset Link",
-        `<p>Use this link to reset your password. It expires in 15 minutes.</p><p><a href="${buildResetUrl(token)}">${buildResetUrl(token)}</a></p>`
+        passwordResetRequestEmail({
+          name: greetingName(user),
+          resetUrl: appLink(`/update-password/${token}`),
+          ttlMinutes: RESET_TOKEN_TTL_MINUTES,
+        })
       );
     }
 
@@ -73,6 +75,8 @@ exports.resetPassword = async (req, res) => {
     user.token = undefined;
     user.resetPasswordTokenExpires = undefined;
     await user.save();
+
+    await mailSender.sendTemplate(user.email, passwordResetCompletedEmail({ name: greetingName(user), at: user.passwordChangedAt }));
 
     return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {

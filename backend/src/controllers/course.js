@@ -10,7 +10,8 @@ const { canManageCourse, isEnrolledOrOwner } = require("../utils/courseAccess");
 const { deleteCourseWithDependents } = require("../utils/courseCleanup");
 const { completeEnrollment, createEnrollmentRequest } = require("../utils/enrollment");
 const mailSender = require("../utils/mailSender");
-const { escapeHtml, isObjectId, buildSearchRegex, sendServerError } = require("../utils/validators");
+const { enrollmentRejectedEmail } = require("../mail/templates");
+const { isObjectId, buildSearchRegex, sendServerError } = require("../utils/validators");
 
 const MAX_NAME_LENGTH = 200;
 const MAX_DESCRIPTION_LENGTH = 5000;
@@ -652,12 +653,16 @@ exports.getEnrollmentRequests = async (req, res) => {
   }
 };
 
-async function notifyStudent(studentId, subject, body) {
+async function notifyEnrollmentRejected(studentId, courseName, note) {
   try {
-    const student = await User.findById(studentId).select("email");
-    if (student) await mailSender(student.email, subject, body);
+    const student = await User.findById(studentId).select("email firstName preferredName");
+    if (!student) return;
+    await mailSender.sendTemplate(
+      student.email,
+      enrollmentRejectedEmail({ name: student.preferredName || student.firstName, courseName, note })
+    );
   } catch (error) {
-    console.error("Failed to notify student:", error.message);
+    console.error("Failed to send enrollment rejection email:", error.message);
   }
 }
 
@@ -693,15 +698,11 @@ exports.respondEnrollmentRequest = async (req, res) => {
     await course.save();
 
     if (action === "approve") {
-      await completeEnrollment(courseId, request.user);
+      await completeEnrollment(courseId, request.user, { reason: "approved" });
       return res.status(200).json({ success: true, message: "Student approved and enrolled" });
     }
 
-    await notifyStudent(
-      request.user,
-      `Enrollment rejected: ${course.courseName}`,
-      `Your enrollment request for ${escapeHtml(course.courseName)} was rejected. ${escapeHtml(note || "")}`
-    );
+    await notifyEnrollmentRejected(request.user, course.courseName, note);
     return res.status(200).json({ success: true, message: "Request rejected" });
   } catch (error) {
     return sendServerError(res, "respondEnrollmentRequest error", error, "Failed to respond to enrollment request");

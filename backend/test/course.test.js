@@ -435,7 +435,7 @@ describe("course, content, access and review endpoints", () => {
       assert.equal((await request()).status, 200);
       assert.equal((await request()).body.message, "Enrollment request already pending");
       assert.equal((await Course.findById(course._id)).enrollmentRequests.length, 1);
-      assert.equal(h.sentMails.length, 1);
+      assert.deepEqual(h.sentMails.map((mail) => mail.to).sort(), [instructor.email, student.email].sort());
 
       const requestId = (await Course.findById(course._id)).enrollmentRequests[0]._id;
       const respond = (user, id, action = "approve") =>
@@ -452,7 +452,7 @@ describe("course, content, access and review endpoints", () => {
       const stored = await Course.findById(course._id);
       assert.equal(stored.studentsEnrolled.length, 1);
       assert.equal(await CourseProgress.countDocuments({ courseID: course._id, userId: student._id }), 1);
-      assert.ok(h.sentMails.some((mail) => mail.to === student.email && /Enrolled/.test(mail.subject)));
+      assert.ok(h.sentMails.some((mail) => mail.to === student.email && /^You're enrolled in /.test(mail.subject) && /approved/i.test(mail.text)));
       assert.equal((await respond(instructor, requestId)).status, 409);
       assert.equal((await Course.findById(course._id)).studentsEnrolled.length, 1);
 

@@ -1,5 +1,6 @@
 const mailSender = require("../utils/mailSender");
-const { escapeHtml, sendServerError } = require("../utils/validators");
+const { contactMessageEmail } = require("../mail/templates");
+const { sendServerError } = require("../utils/validators");
 
 const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
@@ -38,14 +39,15 @@ exports.submitContact = async (req, res) => {
     }
 
     const fullName = stripLineBreaks(`${firstName} ${lastName || ""}`.trim());
-    const body = [
-      `<p><strong>Name:</strong> ${escapeHtml(fullName)}</p>`,
-      `<p><strong>Email:</strong> ${escapeHtml(email.trim())}</p>`,
-      phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : "",
-      `<p><strong>Message:</strong></p><p>${escapeHtml(message).replace(/\r?\n/g, "<br>")}</p>`,
-    ].join("");
+    const senderEmail = stripLineBreaks(email.trim());
+    const mail = contactMessageEmail({
+      fullName,
+      email: senderEmail,
+      phone: phone ? stripLineBreaks(phone) : "",
+      message,
+    });
 
-    const sent = await mailSender(recipient, `Contact form message from ${fullName}`, body);
+    const sent = await mailSender.sendTemplate(recipient, mail, { replyTo: senderEmail });
     if (!sent) {
       return res.status(500).json({ success: false, message: "Could not send your message" });
     }

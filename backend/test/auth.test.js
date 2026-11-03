@@ -17,8 +17,8 @@ const signupBody = (overrides = {}) => ({
 });
 
 const extractOtp = () => {
-  const mail = h.sentMails[h.sentMails.length - 1];
-  return mail.body.match(/<h2 class="highlight">(\d{6})<\/h2>/)[1];
+  const mail = [...h.sentMails].reverse().find((entry) => /^\d{6} is your /.test(entry.subject));
+  return mail.subject.slice(0, 6);
 };
 
 const registerAndVerify = async (email = "sam@test.local") => {

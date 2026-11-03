@@ -16,10 +16,18 @@ require.cache[mailSenderPath] = {
   id: mailSenderPath,
   filename: mailSenderPath,
   loaded: true,
-  exports: async (to, subject, body) => {
-    sentMails.push({ to, subject, body });
-    return { messageId: "test" };
-  },
+  exports: Object.assign(
+    async (to, subject, body, options = {}) => {
+      sentMails.push({ to, subject, body, text: options.text, replyTo: options.replyTo });
+      return { messageId: "test" };
+    },
+    {
+      sendTemplate: async (to, mail, options = {}) => {
+        sentMails.push({ to, subject: mail.subject, body: mail.html, text: mail.text, replyTo: options.replyTo });
+        return { messageId: "test" };
+      },
+    }
+  ),
 };
 
 const bcrypt = require("bcrypt");

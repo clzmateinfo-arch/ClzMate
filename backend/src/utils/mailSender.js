@@ -22,12 +22,23 @@ const getFromAddress = () => {
     return `"${name.replace(/"/g, "")}" <${email}>`;
 };
 
-const buildMessage = (to, subject, html) => ({
+const htmlToText = (html) =>
+    String(html || "")
+        .replace(/<(style|head)[\s\S]*?<\/\1>/gi, "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|tr|h\d)>/gi, "\n")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+const buildMessage = (to, subject, html, { text, replyTo } = {}) => ({
     from: getFromAddress(),
     to,
     subject,
     html,
-    text: html ? html.replace(/<[^>]*>/g, "") : undefined,
+    text: text || htmlToText(html),
+    ...(replyTo ? { replyTo } : {}),
 });
 
 let cachedAccessToken = null;
@@ -117,16 +128,19 @@ async function sendWithSmtp(message) {
     return { messageId: info.messageId, transport: "smtp" };
 }
 
-const mailSender = async (email, title, bodyHtml) => {
+const mailSender = async (email, title, bodyHtml, options = {}) => {
     const transport = selectedTransport();
     try {
-        const message = buildMessage(email, title, bodyHtml);
+        const message = buildMessage(email, title, bodyHtml, options);
         return transport === "gmail-api" ? await sendWithGmailApi(message) : await sendWithSmtp(message);
     } catch (error) {
         console.error(`Error while sending mail (${transport}) -`, error?.message || error, { to: email });
         return null;
     }
 };
+
+mailSender.sendTemplate = (email, mail, options = {}) =>
+    mailSender(email, mail.subject, mail.html, { text: mail.text, ...options });
 
 mailSender.resetForTests = () => {
     cachedAccessToken = null;

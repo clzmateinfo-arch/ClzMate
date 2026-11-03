@@ -1,4 +1,6 @@
 const User = require("../models/user");
+const mailSender = require("../utils/mailSender");
+const { instructorApprovedEmail } = require("../mail/templates");
 const { deleteUserWithData } = require("../utils/userCleanup");
 const { isObjectId, buildSearchRegex, sendServerError } = require("../utils/validators");
 
@@ -56,10 +58,18 @@ exports.updateUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "You cannot demote or deactivate your own account" });
         }
 
+        const previous = await User.findById(userId).select("accountType approved").lean();
+        if (!previous) return res.status(404).json({ success: false, message: "User not found" });
+
         const updated = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true })
             .select(SENSITIVE_USER_FIELDS)
             .lean();
         if (!updated) return res.status(404).json({ success: false, message: "User not found" });
+
+        const isApprovedInstructor = (user) => user.accountType === "Instructor" && user.approved === true;
+        if (isApprovedInstructor(updated) && !isApprovedInstructor(previous)) {
+            await mailSender.sendTemplate(updated.email, instructorApprovedEmail({ name: updated.preferredName || updated.firstName }));
+        }
 
         return res.status(200).json({ success: true, data: updated, message: "User updated" });
     } catch (error) {
