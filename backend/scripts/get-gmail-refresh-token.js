@@ -1,7 +1,21 @@
 require("dotenv").config({ quiet: true });
 
+const fs = require("fs");
+const path = require("path");
 const http = require("http");
 const crypto = require("crypto");
+
+const shouldSaveToEnv = process.argv.includes("--save");
+const envPath = path.resolve(__dirname, "..", ".env");
+
+function saveRefreshToken(refreshToken) {
+  const line = `GMAIL_REFRESH_TOKEN=${refreshToken}`;
+  const current = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+  const next = /^GMAIL_REFRESH_TOKEN=.*$/m.test(current)
+    ? current.replace(/^GMAIL_REFRESH_TOKEN=.*$/m, line)
+    : `${current.replace(/\s*$/, "")}\n${line}\n`;
+  fs.writeFileSync(envPath, next);
+}
 
 const SCOPE = "https://www.googleapis.com/auth/gmail.send";
 const PORT = Number(process.env.GMAIL_OAUTH_PORT) || 53682;
@@ -54,8 +68,13 @@ const server = http.createServer(async (req, res) => {
     console.error("No refresh token returned:", body.error_description || body.error || response.status);
     return finish(500, "Failed, see the terminal.");
   }
-  console.log("\nSet this on the backend (Render env and backend/.env), keep it secret:\n");
-  console.log(`GMAIL_REFRESH_TOKEN=${body.refresh_token}\n`);
+  if (shouldSaveToEnv) {
+    saveRefreshToken(body.refresh_token);
+    console.log(`\nSaved GMAIL_REFRESH_TOKEN (length ${body.refresh_token.length}) to ${envPath}. Copy it from there to the Render env; keep it secret.\n`);
+  } else {
+    console.log("\nSet this on the backend (Render env and backend/.env), keep it secret:\n");
+    console.log(`GMAIL_REFRESH_TOKEN=${body.refresh_token}\n`);
+  }
   finish(200, "Done. Return to the terminal; you can close this tab.");
 });
 
