@@ -1,70 +1,14 @@
-import { useEffect, useState } from "react";
 import { LinkButton } from "@/shared/components/ui/LinkButton";
 import CourseGrid from "@/shared/components/ui/CourseGrid";
 import Loading from "@/shared/components/navigation/Loading";
-import { getAllCourses } from "@/entities/course/model/courseDetailsAPI";
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 
 export function NewCourses() {
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { data, isSettled } = usePublicResource("newCourses");
+    const courses = (data ?? []).slice(0, 3);
+    const loading = !isSettled;
 
-    async function loadPopular() {
-        setLoading(true);
-        try {
-            const res = await getAllCourses({ page: 1, limit: 3, sort: "" });
-
-            const received =
-                res?.data?.data?.courses ??
-                res?.data?.data ??
-                res?.data?.courses ??
-                res?.data ??
-                res?.courses ??
-                res?.items ??
-                [];
-
-            if (!received || received.length === 0) {
-                const fallback = await getAllCourses({ page: 1, limit: 200 });
-                const all =
-                    fallback?.data?.data?.courses ??
-                    fallback?.data?.data ??
-                    fallback?.data?.courses ??
-                    fallback?.data ??
-                    fallback?.courses ??
-                    fallback?.items ??
-                    [];
-
-                const sorted = Array.isArray(all)
-                    ? all
-                        .slice()
-                        .sort(
-                            (a, b) =>
-                                (b?.studentsEnrolled?.length ?? b?.studentsEnrolled ?? 0) -
-                                (a?.studentsEnrolled?.length ?? a?.studentsEnrolled ?? 0)
-                        )
-                        .slice(0, 3)
-                    : [];
-
-                setCourses(sorted);
-            } else {
-                setCourses(received.slice(0, 3));
-            }
-        } catch (err) {
-            console.error("Failed to load popular courses", err);
-            setCourses([]);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        loadPopular();
-    }, []);
-
-    function onAddToCart(course) {
-        console.log("add", course);
-    }
-
-    console.log("courses", courses);
+    function onAddToCart() {}
 
     return (
         <section className="relative bg-white py-10 xl:py-10 overflow-visible">

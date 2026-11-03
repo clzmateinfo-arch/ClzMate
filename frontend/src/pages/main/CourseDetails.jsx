@@ -1,5 +1,5 @@
  
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -7,7 +7,7 @@ import ConfirmationModal from "@/shared/components/feedback/ConfirmationModal";
 import Footer from "@/widgets/Footer/Footer";
 import CourseDetailsCard from "@/features/courseDetails/ui/CourseDetailsCard";
 
-import { fetchCourseDetails } from "@/entities/course/model/courseDetailsAPI";
+import { usePublicResource } from "@/shared/snapshot/dataCache";
 import { buyCourse } from "@/entities/student/model/studentFeaturesAPI";
 
 import CourseDetailsHeader from "../../features/courseDetails/ui/CourseDetailsHeader";
@@ -26,33 +26,40 @@ function CourseDetails() {
   const { courseId } = useParams();
   const location = useLocation();
 
-  const [response, setResponse] = useState(null);
+  const courseResource = usePublicResource(courseId ? `course:${courseId}` : null);
+  const response = courseResource.data ?? null;
+  const unavailableMessage = courseResource.isNotFound
+    ? "This course does not exist or is no longer published."
+    : courseResource.isSettled && !response
+      ? "This course could not be loaded right now. Please try again shortly."
+      : null;
   const [confirmationModal, setConfirmationModal] = useState(null);
 
-  useEffect(() => {
-    const fectchCourseDetailsData = async () => {
-      try {
-        const res = await fetchCourseDetails(courseId);
-        setResponse(res);
-      } catch {
-        console.log("Could not fetch Course Details");
-      }
-    };
-    fectchCourseDetailsData();
-  }, [courseId]);
-
-  const [totalNoOfLectures, setTotalNoOfLectures] = useState(0);
-  useEffect(() => {
-    let lectures = 0;
-    response?.data?.courseDetails?.courseContent?.forEach((sec) => {
-      lectures += sec.subSection?.length || 0;
-    });
-    setTotalNoOfLectures(lectures);
-  }, [response]);
+  const totalNoOfLectures = useMemo(
+    () =>
+      (response?.data?.courseDetails?.courseContent ?? []).reduce(
+        (total, section) => total + (section.subSection?.length || 0),
+        0
+      ),
+    [response]
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  if (unavailableMessage) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center px-4 text-center">
+        <div className="space-y-4">
+          <p className="text-lg font-semibold text-richblack-900">{unavailableMessage}</p>
+          <Link to="/" className="text-sm font-semibold text-purple-200 hover:underline">
+            Back to home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (paymentLoading || loading || !response) {
     return (

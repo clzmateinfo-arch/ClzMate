@@ -8,8 +8,6 @@ export default function QuizCard({ quiz = {}, _onStart = () => {}, _onTogglePubl
     const navigate = useNavigate();
     const { classroomId } = useParams();
 
-    console.log("QuizCard", quiz, "classroomId:", classroomId);
-
     const handleStart = () => {
         const path = classroomId
             ? `/classroom/${classroomId}/quizz/${quiz?._id}/play`

@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
+            lowercase: true,
+            unique: true,
         },
         password: {
             type: String,
@@ -62,8 +64,15 @@ const userSchema = new mongoose.Schema(
         },
         token: {
             type: String,
+            select: false,
+            index: true,
+            sparse: true,
         },
         resetPasswordTokenExpires: {
+            type: Date,
+            select: false,
+        },
+        passwordChangedAt: {
             type: Date,
         },
         verified: {

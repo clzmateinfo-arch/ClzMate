@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 
 import OpenRoute from "@/features/auth/ui/OpenRoute";
 import ProtectedRoute from "@/features/auth/ui/ProtectedRoute";
+import RoleRoute from "@/features/auth/ui/RoleRoute";
 import MainLayout from "@/app/layouts/MainLayout";
 import UserLayout from "@/app/layouts/UserLayout";
 import AuthLayout from "@/app/layouts/AuthLayout";
@@ -11,7 +12,6 @@ import CourseLayout from "@/app/layouts/CourseLayout";
 import ClassLayout from "@/app/layouts/ClassLayout";
 
 import { ACCOUNT_TYPE } from "@/utils/constants";
-import StudentDashboard from "../../pages/user/StudentDashboard";
 import Loading from "@/shared/components/navigation/Loading";
 
 const SignIn = lazy(() => import("@/pages/auth/SignIn"));
@@ -31,6 +31,7 @@ const Dashboard = lazy(() => import("@/pages/user/Dashboard"));
 const MyProfile = lazy(() => import("@/pages/user/MyProfile"));
 const Settings = lazy(() => import("@/pages/user/Settings"));
 const PublicProfile = lazy(() => import("@/pages/user/PublicProfile"));
+const StudentDashboard = lazy(() => import("@/pages/user/StudentDashboard"));
 const InstructorDashboard = lazy(() => import("@/pages/user/InstructorDashboard"));
 const EnrolledCourses = lazy(() => import("@/pages/user/EnrolledCourses"));
 
@@ -58,9 +59,6 @@ const ViewClassroom = lazy(() => import("@/pages/classroom/ViewClassroom"));
 const AssignmentSubmissions = lazy(() => import("@/pages/classroom/AssignmentSubmissions"));
 const QuizPlayer = lazy(() => import("@/features/classroom/ui/Quiz/QuizPlayer"));
 
-// Defined at module scope so React never treats it as a new component type on re-renders.
-// A 5-second timeout redirects to "/" if user/loading state never resolves, preventing
-// permanent spinner when the Redux store is in an inconsistent state after tab resume.
 function RedirectToRole() {
     const { user, loading: profileLoading } = useSelector((s) => s.profile);
     const [timedOut, setTimedOut] = useState(false);
@@ -83,16 +81,13 @@ function RedirectToRole() {
 export default function AppRoutes() {
     return (
         <Routes>
-            {/* Auth */}
             <Route element={<AuthLayout />}>
                 <Route path="/signup" element={<OpenRoute><SignUp /></OpenRoute>} />
                 <Route path="/login" element={<OpenRoute><SignIn /></OpenRoute>} />
                 <Route path="/forgot-password" element={<OpenRoute><ForgotPassword /></OpenRoute>} />
                 <Route path="/verify-email" element={<OpenRoute><VerifyEmail /></OpenRoute>} />
-                <Route path="/update-password/:id" element={<ProtectedRoute><UpdatePassword /></ProtectedRoute>} />
+                <Route path="/update-password/:id" element={<OpenRoute><UpdatePassword /></OpenRoute>} />
             </Route>
-
-            {/* MainLayout */}
             <Route element={<MainLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
@@ -102,56 +97,42 @@ export default function AppRoutes() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/profile/public/:id" element={<PublicProfile />} />
             </Route>
-
-            {/* UserLayout — all dashboard routes always registered so they survive user=null state */}
             <Route element={<UserLayout />}>
                 <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
                     <Route index element={<RedirectToRole />} />
 
                     <Route path="my-profile" element={<MyProfile />} />
                     <Route path="settings" element={<Settings />} />
-
-                    {/* Admin */}
-                    <Route path="admin-controls/users" element={<ManageUsers />} />
-                    <Route path="admin-controls/categories" element={<ManageCategories />} />
-
-                    {/* Student */}
-                    <Route path="student" element={<StudentDashboard />} />
-                    <Route path="enrolled-courses" element={<EnrolledCourses />} />
-                    <Route path="enrollments/pending" element={<PendingEnrollments />} />
-                    <Route path="my-classrooms" element={<StudentClassrooms />} />
-
-                    {/* Instructor */}
-                    <Route path="instructor" element={<InstructorDashboard />} />
-                    <Route path="add-course" element={<AddCourse />} />
-                    <Route path="my-courses" element={<InstructorCourses />} />
-                    <Route path="edit-course/:courseId" element={<EditCourse />} />
-                    <Route path="course/:courseId/requests" element={<EnrollmentRequests />} />
-                    <Route path="classrooms" element={<InstructorClassrooms />} />
+                    <Route path="admin-controls/users" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.ADMIN]}><ManageUsers /></RoleRoute>} />
+                    <Route path="admin-controls/categories" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.ADMIN]}><ManageCategories /></RoleRoute>} />
+                    <Route path="student" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.STUDENT]}><StudentDashboard /></RoleRoute>} />
+                    <Route path="enrolled-courses" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.STUDENT]}><EnrolledCourses /></RoleRoute>} />
+                    <Route path="enrollments/pending" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.STUDENT]}><PendingEnrollments /></RoleRoute>} />
+                    <Route path="my-classrooms" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.STUDENT]}><StudentClassrooms /></RoleRoute>} />
+                    <Route path="instructor" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><InstructorDashboard /></RoleRoute>} />
+                    <Route path="add-course" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><AddCourse /></RoleRoute>} />
+                    <Route path="my-courses" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><InstructorCourses /></RoleRoute>} />
+                    <Route path="edit-course/:courseId" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><EditCourse /></RoleRoute>} />
+                    <Route path="course/:courseId/requests" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><EnrollmentRequests /></RoleRoute>} />
+                    <Route path="classrooms" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><InstructorClassrooms /></RoleRoute>} />
                 </Route>
             </Route>
-
-            {/* CourseLayout */}
             <Route path="/view-course/*" element={<ProtectedRoute><CourseLayout /></ProtectedRoute>}>
                 <Route path=":courseId/section/:sectionId/sub-section/:subSectionId" element={<ViewCourse />} />
             </Route>
-
-            {/* ClassLayout */}
             <Route path="/classroom/*" element={<ProtectedRoute><ClassLayout /></ProtectedRoute>}>
-                <Route path=":classroomId/overview" element={<ClassroomOverview />} />
-                <Route path=":classroomId/classwork" element={<ClassroomClasswork />} />
-                <Route path=":classroomId/classwork/manage-assignment/:topicId" element={<ManageAssignment />} />
-                <Route path=":classroomId/classwork/assignment/:assignmentId/edit" element={<ManageAssignment />} />
-                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
-                <Route path=":classroomId/classwork/manage-quiz/:topicId" element={<ManageQuiz />} />
-                <Route path=":classroomId/classwork/quiz/:quizId/edit" element={<ManageQuiz />} />
-                <Route path=":classroomId/classwork/manage-link-course/:topicId" element={<ManageLinkCourse />} />
-                <Route path=":classroomId/classwork/link-course/:linkId/edit" element={<ManageLinkCourse />} />
-                <Route path=":classroomId/view" element={<ViewClassroom />} />
-                <Route path=":classroomId/quizz/:quizId/play" element={<QuizPlayer />} />
+                <Route path=":classroomId/overview" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR, ACCOUNT_TYPE.STUDENT]}><ClassroomOverview /></RoleRoute>} />
+                <Route path=":classroomId/classwork" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ClassroomClasswork /></RoleRoute>} />
+                <Route path=":classroomId/classwork/manage-assignment/:topicId" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageAssignment /></RoleRoute>} />
+                <Route path=":classroomId/classwork/assignment/:assignmentId/edit" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageAssignment /></RoleRoute>} />
+                <Route path=":classroomId/classwork/assignment/:assignmentId/submissions" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><AssignmentSubmissions /></RoleRoute>} />
+                <Route path=":classroomId/classwork/manage-quiz/:topicId" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageQuiz /></RoleRoute>} />
+                <Route path=":classroomId/classwork/quiz/:quizId/edit" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageQuiz /></RoleRoute>} />
+                <Route path=":classroomId/classwork/manage-link-course/:topicId" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageLinkCourse /></RoleRoute>} />
+                <Route path=":classroomId/classwork/link-course/:linkId/edit" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR]}><ManageLinkCourse /></RoleRoute>} />
+                <Route path=":classroomId/view" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.STUDENT]}><ViewClassroom /></RoleRoute>} />
+                <Route path=":classroomId/quizz/:quizId/play" element={<RoleRoute allowedRoles={[ACCOUNT_TYPE.INSTRUCTOR, ACCOUNT_TYPE.STUDENT]}><QuizPlayer /></RoleRoute>} />
             </Route>
-
-            {/* Errors */}
             <Route path="*" element={<PageNotFound />} />
         </Routes>
     );

@@ -1,11 +1,10 @@
-// frontend/src/features/classroom/ui/Quiz/QuizPlayer.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { getQuizAPI, submitQuizAttemptAPI, getQuizLeaderboardAPI } from "@/entities/classroom/model/classroomAPI";
 import IconBtn from "@/shared/components/ui/IconBtn";
-import { toast } from "react-hot-toast";
+import { showToast } from "@/shared/components/feedback/CustomToast";
 
 import Landing from "./components/player/Landing";
 import LeaderboardPanel from "./components/player/LeaderboardPanel";
@@ -49,6 +48,7 @@ export default function QuizPlayer({ token = null }) {
 
     // Leaderboard state (from server)
     const [leaderboard, setLeaderboard] = useState([]); // array of { id, name, score, rank }
+    const isResolvingRef = useRef(false);
 
     useEffect(() => {
         let mounted = true;
@@ -61,8 +61,7 @@ export default function QuizPlayer({ token = null }) {
                     setQuiz({ ...q, screens });
                 }
             } catch (err) {
-                console.error("Quiz load failed", err);
-                toast.error("Failed to load quiz");
+                showToast(err?.response?.data?.message || "Failed to load quiz", "error");
             } finally {
                 if (mounted) setLoading(false);
             }
@@ -89,54 +88,14 @@ export default function QuizPlayer({ token = null }) {
 
     const totalPossible = useMemo(() => (quiz?.screens || []).reduce((s, sc) => s + ((sc.properties?.points) || 0), 0), [quiz]);
 
-    // Score locally (used for immediate UX). Server will be authoritative when available.
-    function scoreAnswer(screen, provided, effectiveTimeLimit, remainingLocal = remaining) {
-        const props = screen.properties || {};
-        const base = Number(props.points || 0) || 0;
-        const timeLimit = Number(effectiveTimeLimit || props.timeLimit || quiz?.timeLimit || DEFAULT_SCREEN_TIME) || 0;
-        const timeTaken = Math.max(0, (timeLimit - (remainingLocal || 0)));
-        const answerMode = props.answerMode || "single";
-        let correct = false;
-
-        if (screen.type === "multiple" || screen.type === "truefalse") {
-            const correctSet = (screen.options || []).map((o, i) => (o.correct ? String(i) : null)).filter(Boolean);
-            if (answerMode === "multiple") {
-                const providedArr = Array.isArray(provided) ? provided.map(String) : (provided ? [String(provided)] : []);
-                correct = providedArr.length > 0 && providedArr.length === correctSet.length && providedArr.every((id) => correctSet.includes(String(id)));
-            } else {
-                correct = correctSet.includes(String(provided));
-            }
-        } else if (screen.type === "short") {
-            const expected = (screen.options || []).map((o) => (o.text || "").trim().toLowerCase()).filter(Boolean);
-            const resp = (provided || "").toString().trim().toLowerCase();
-            correct = expected.length === 0 ? false : expected.includes(resp);
-        } else if (screen.type === "slider") {
-            const target = (screen.options && screen.options[0] && (screen.options[0].value !== undefined ? Number(screen.options[0].value) : (screen.options[0].text !== undefined ? Number(screen.options[0].text) : null))) || null;
-            const val = Number(provided);
-            if (target === null || isNaN(target)) {
-                correct = true;
-            } else {
-                correct = !isNaN(val) && Math.abs(val - target) === 0;
-            }
-        } else if (screen.type === "poll") {
-            correct = false;
-        } else {
-            correct = false;
-        }
-
-        const timeBonus = timeLimit > 0 ? Math.round(base * ((Math.max(0, timeLimit - timeTaken) / timeLimit) * 0.5)) : 0;
-        const pointsEarned = correct ? base + timeBonus : 0;
-        return { correct, pointsEarned, base, timeTaken, timeBonus };
-    }
-
     const onStart = () => {
         if (!quiz) return;
         setStage("running");
         setIndex(0);
         setAnswers([]);
         setTotalPoints(0);
-        // reset leaderboard when starting a new run (optional)
         setLeaderboard([]);
+        isResolvingRef.current = false;
         setTimeout(() => startScreen(0), 200);
     };
 
@@ -144,127 +103,119 @@ export default function QuizPlayer({ token = null }) {
         const sc = quiz.screens[i];
         const scProps = sc?.properties || {};
         const t = Number(scProps.timeLimit ?? quiz?.timeLimit ?? DEFAULT_SCREEN_TIME) || DEFAULT_SCREEN_TIME;
+        isResolvingRef.current = false;
         setScreenState("question");
         setCurrentTL(t);
         setRemaining(t);
         setRunning(t > 0);
     }
 
-    const onTimeUp = async () => {
-        if (screenState !== "question") return;
-        setRunning(false);
+    function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+    function mapServerAnswers(serverAnswers) {
+        return serverAnswers.map((aa) => ({
+            screenId: String(aa.screenId),
+            answer: aa.provided,
+            correct: !!aa.correct,
+            points: Number(aa.points || 0),
+            basePoints: Number(aa.basePoints || 0),
+            timeTaken: Number(aa.timeTaken || 0),
+            timeBonus: Number(aa.timeBonus || 0),
+        }));
+    }
+
+    function defaultProvided(screen, existing) {
+        if (existing?.answer !== undefined) return existing.answer;
+        if (screen.type === "multiple") return [];
+        if (screen.type === "slider") return screen.properties?.default ?? null;
+        return "";
+    }
+
+    async function sendAttempt(answersPayload, finish) {
+        try {
+            const attempt = await submitQuizAttemptAPI(quizId, { answers: answersPayload, finish }, token);
+            return { attempt, isAlreadyFinished: false };
+        } catch (err) {
+            const isAlreadyFinished = err?.response?.status === 409;
+            showToast(
+                isAlreadyFinished
+                    ? "You have already finished this quiz."
+                    : (err?.response?.data?.message || "Could not submit your answer. Check your connection."),
+                "error"
+            );
+            return { attempt: null, isAlreadyFinished };
+        }
+    }
+
+    async function showResolvedScreen(serverAnswers) {
+        if (Array.isArray(serverAnswers)) setAnswers(mapServerAnswers(serverAnswers));
         setScreenState("reveal");
-
-        const existing = answers.find(a => String(a.screenId) === String(currentScreen._id));
-        const provided = existing ? existing.answer : (currentScreen.type === "multiple" ? [] : (currentScreen.type === "slider" ? currentScreen.properties?.default : ""));
-        const { correct, pointsEarned, base, timeTaken, timeBonus } = scoreAnswer(currentScreen, provided, currentTL);
-        // record locally and sync to server
-        const newAnswers = recordAnswerAndReturn({ screenId: currentScreen._id, provided, correct, pointsEarned, base, timeTaken, timeBonus });
-
-        // show reveal -> scoreboard -> next (with increased durations)
         await delay(REVEAL_DURATION);
         setScreenState("scoreboard");
         await delay(SCOREBOARD_DURATION);
-        await goNext(newAnswers);
-    };
-
-    function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
-
-    // recordAnswer but also returns the updated answers array for immediate use
-    function recordAnswerAndReturn({ screenId, provided, correct, pointsEarned, base, timeTaken, timeBonus }) {
-        const entry = { screenId, answer: provided, correct, points: pointsEarned, basePoints: base, timeTaken, timeBonus };
-        // build newAnswers deterministically (replace existing for same screenId)
-        const copy = [...answers.filter(p => String(p.screenId) !== String(screenId))];
-        const newArr = [...copy, entry];
-        setAnswers(newArr);
-        // update local total points (note: server will be authoritative if available)
-        setTotalPoints(_prev => {
-            const recomputed = newArr.reduce((s, a) => s + (a.points || 0), 0);
-            return recomputed;
-        });
-        // sync to server (don't await here)
-        syncAttemptToServer(newArr, false);
-        return newArr;
+        await goNext();
     }
 
-    // Generic attempt -> server sync
-    async function syncAttemptToServer(answersArr = answers, finish = false) {
-        if (!token) {
-            // no auth — can't persist attempts or fetch leaderboard
-            return null;
-        }
-        if (!quizId) return null;
-        try {
-            const payload = {
-                answers: (answersArr || []).map(a => ({
-                    screenId: a.screenId,
-                    provided: a.answer,
-                    timeTaken: Number(a.timeTaken || 0),
-                })),
-                finish: !!finish,
-            };
-            const attempt = await submitQuizAttemptAPI(quizId, payload, token);
-            if (attempt) {
-                // server-calculated authoritative answers & totalPoints
-                // attempt.answers may be an array with screenId, provided, correct, points, basePoints, timeTaken ...
-                if (Array.isArray(attempt.answers)) {
-                    // Map server attempt answers to our local format
-                    const mapped = attempt.answers.map((aa) => ({
-                        screenId: String(aa.screenId),
-                        answer: aa.provided,
-                        correct: !!aa.correct,
-                        points: Number(aa.points || 0),
-                        basePoints: Number(aa.basePoints || aa.base || 0),
-                        timeTaken: Number(aa.timeTaken || 0),
-                        timeBonus: Number(aa.timeBonus || 0),
-                    }));
-                    setAnswers(mapped);
-                    setTotalPoints(Number(attempt.totalPoints || 0));
-                } else {
-                    // fallback: update totalPoints only
-                    setTotalPoints(Number(attempt.totalPoints || 0));
-                }
-
-                // fetch and update leaderboard (real participants)
-                try {
-                    const res = await getQuizLeaderboardAPI(quizId, token);
-                    if (res && res.board) {
-                        setLeaderboard(res.board || []);
-                    }
-                } catch (lbErr) {
-                    console.warn("Failed to fetch leaderboard after submit:", lbErr);
-                }
-            }
-            return attempt;
-        } catch (err) {
-            console.warn("syncAttemptToServer failed", err);
-            return null;
-        }
-    }
-
-    const submitAnswer = async (provided) => {
-        if (!currentScreen) return;
-        if (screenState !== "question") return;
+    async function resolveCurrentScreen(provided, isTimeUp = false) {
+        if (!currentScreen || isResolvingRef.current) return;
+        isResolvingRef.current = true;
         setRunning(false);
-        const { correct, pointsEarned, base, timeTaken, timeBonus } = scoreAnswer(currentScreen, provided, currentTL);
-        const newAnswers = recordAnswerAndReturn({ screenId: currentScreen._id, provided, correct, pointsEarned, base, timeTaken, timeBonus });
-        setScreenState("reveal");
-        await delay(1600);
-        setScreenState("scoreboard");
-        await delay(2000);
-        await goNext(newAnswers);
+
+        const screenId = String(currentScreen._id);
+        const timeTaken = Math.max(0, currentTL - remaining);
+        const { attempt, isAlreadyFinished } = await sendAttempt([{ screenId, provided, timeTaken }], false);
+
+        if (isAlreadyFinished) {
+            await finishQuiz(true);
+            return;
+        }
+        if (!attempt) {
+            if (!isTimeUp) {
+                isResolvingRef.current = false;
+                setRunning(true);
+                return;
+            }
+            setAnswers((prev) => [...prev.filter((a) => String(a.screenId) !== screenId), { screenId, answer: provided, correct: false, points: 0, timeTaken }]);
+            await showResolvedScreen(null);
+            return;
+        }
+
+        setTotalPoints(Number(attempt.totalPoints || 0));
+        await showResolvedScreen(attempt.answers || []);
+    }
+
+    const onTimeUp = () => {
+        if (screenState !== "question" || !currentScreen) return;
+        const existing = answers.find(a => String(a.screenId) === String(currentScreen._id));
+        resolveCurrentScreen(defaultProvided(currentScreen, existing), true);
     };
 
-    // Make goNext asynchronous so we can finalize attempt at the end
-    async function goNext(currentAnswers = answers) {
-        setScreenState("question");
+    const submitAnswer = (provided) => {
+        if (screenState !== "question") return;
+        resolveCurrentScreen(provided);
+    };
+
+    async function finishQuiz(knownAlreadyFinished = false) {
+        let attempt = null;
+        if (!knownAlreadyFinished) {
+            ({ attempt } = await sendAttempt([], true));
+        }
+        if (attempt) setTotalPoints(Number(attempt.totalPoints || 0));
+        try {
+            const res = await getQuizLeaderboardAPI(quizId, token);
+            if (res?.board) setLeaderboard(res.board);
+        } catch {
+            showToast("Could not load the leaderboard.", "error");
+        }
+        setStage("results");
+        setRunning(false);
+        setRemaining(0);
+    }
+
+    async function goNext() {
         const next = index + 1;
         if (!quiz || next >= (quiz.screens || []).length) {
-            // finalize attempt on server if token present
-            await syncAttemptToServer(currentAnswers, true);
-            setStage("results");
-            setRunning(false);
-            setRemaining(0);
+            await finishQuiz();
             return;
         }
         setIndex(next);
@@ -274,33 +225,17 @@ export default function QuizPlayer({ token = null }) {
     const onSelectOption = (idx) => {
         if (!currentScreen) return;
         if (screenState !== "question") return;
-        const props = currentScreen.properties || {};
-        if (props.answerMode === "multiple") {
-            const existingObj = answers.find(a => String(a.screenId) === String(currentScreen._id));
-            let arr = existingObj?.answer ? (Array.isArray(existingObj.answer) ? [...existingObj.answer] : [existingObj.answer]) : [];
+        const screenId = String(currentScreen._id);
+        if ((currentScreen.properties || {}).answerMode === "multiple") {
+            const existingObj = answers.find(a => String(a.screenId) === screenId);
+            const arr = existingObj?.answer ? (Array.isArray(existingObj.answer) ? [...existingObj.answer] : [existingObj.answer]) : [];
             const sidx = arr.findIndex(v => String(v) === String(idx));
             if (sidx === -1) arr.push(String(idx)); else arr.splice(sidx, 1);
-
-            setAnswers(prev => {
-                const copy = prev.filter(p => String(p.screenId) !== String(currentScreen._id));
-                const newArr = [...copy, { screenId: currentScreen._id, answer: arr }];
-                // sync partially (we will submit once user clicks submit)
-                syncAttemptToServer(newArr, false).catch(() => {});
-                return newArr;
-            });
-        } else {
-            // immediate selection for single-answer
-            setAnswers(prev => {
-                const copy = prev.filter(p => String(p.screenId) !== String(currentScreen._id));
-                const newArr = [...copy, { screenId: currentScreen._id, answer: String(idx) }];
-                // we will call submitAnswer which will score & sync
-                return newArr;
-            });
+            setAnswers(prev => [...prev.filter(p => String(p.screenId) !== screenId), { screenId, answer: arr }]);
+            return;
         }
-
-        if ((currentScreen.properties || {}).answerMode !== "multiple") {
-            setTimeout(() => submitAnswer(String(idx)), 300);
-        }
+        setAnswers(prev => [...prev.filter(p => String(p.screenId) !== screenId), { screenId, answer: String(idx) }]);
+        setTimeout(() => submitAnswer(String(idx)), 300);
     };
 
     const onSubmitMultiple = () => {
@@ -423,6 +358,7 @@ export default function QuizPlayer({ token = null }) {
                                                 onSelectOption={onSelectOption}
                                                 onSubmitMultiple={onSubmitMultiple}
                                                 showCorrect={screenState !== "question"}
+                                                result={existing}
                                                 answerMode={props.answerMode || "single"}
                                             />
                                         )}

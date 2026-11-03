@@ -1,4 +1,3 @@
-/* InstructorChart.jsx */
 import { useMemo, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import { Doughnut } from "react-chartjs-2";

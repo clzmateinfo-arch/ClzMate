@@ -16,7 +16,6 @@ export default function Home() {
       <PopularCourses />
       <Features />
       <SpotlightCard />
-      {/* <LogosQueue logos={["/logos/supabase.svg","/logos/tailscale.svg", "/logos/upstash.svg"]} speedSeconds={50} /> */}
       <Platforms />
       <AdvertisementLayout />
       <Footer />

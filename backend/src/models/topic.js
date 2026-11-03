@@ -40,4 +40,6 @@ const topicSchema = new mongoose.Schema({
     },
 });
 
+topicSchema.index({ classroom: 1, position: 1 });
+
 module.exports = createModel("Topic", topicSchema);

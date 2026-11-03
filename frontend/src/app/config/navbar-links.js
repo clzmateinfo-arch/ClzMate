@@ -1,7 +1,8 @@
-import { fetchCourseCategories } from "@/entities/course/model/courseDetailsAPI";
+import { getPublicResource } from "@/shared/snapshot/dataCache";
+
 const fetchCategories = async () => {
-  const res = await fetchCourseCategories();
-  return (res || []).map((r) => ({ id: r._id, name: r.name }));
+  const categories = await getPublicResource("categories");
+  return (categories || []).map((category) => ({ id: category._id, name: category.name }));
 };
 
 export const NavbarLinks = [

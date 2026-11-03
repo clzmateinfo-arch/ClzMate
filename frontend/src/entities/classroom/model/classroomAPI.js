@@ -505,16 +505,10 @@ export async function updateSubmissionAPI(assignmentId, submissionId, payload = 
 }
 
 export async function submitQuizAttemptAPI(quizId, payload = {}, token) {
-  try {
-    const headers = safeHeaders(token);
-    const response = await apiConnector("POST", `${QUIZZES_API}/${quizId}/attempts`, payload, headers);
-    if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
-    return response.data.data;
-  } catch (err) {
-    console.error("submitQuizAttemptAPI error", err);
-    toast.error(err?.response?.data?.message || err?.message || "Failed to submit attempt");
-    throw err;
-  }
+  const headers = safeHeaders(token);
+  const response = await apiConnector("POST", `${QUIZZES_API}/${quizId}/attempts`, payload, headers);
+  if (!response?.data?.success) throw new Error(response?.data?.message || "Failed");
+  return response.data.data;
 }
 
 export async function getQuizLeaderboardAPI(quizId, token) {

@@ -1,4 +1,3 @@
- 
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -8,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
     return children;
   }
 
-  return <Navigate to="/" />;
+  return <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

@@ -11,6 +11,7 @@ import IconBtn from "@/shared/components/ui/IconBtn";
 import { IoArrowBack } from "react-icons/io5";
 import { RiCloseCircleLine } from "react-icons/ri";
 import { MdDone } from "react-icons/md";
+import { showToast } from "@/shared/components/feedback/CustomToast";
 
 export default function EnrollmentRequests() {
     const { courseId } = useParams();
@@ -51,11 +52,11 @@ export default function EnrollmentRequests() {
             if (res?.success) {
                 setRequests((prev) => prev.map((r) => (r._id === requestId ? { ...r, status: action === "approve" ? "Approved" : "Rejected", responder: res.data?.responder || "You" } : r)));
             } else {
-                alert(res?.message || "Failed to respond");
+                showToast(res?.message || "Failed to respond", "error");
             }
         } catch (err) {
             console.error("respond error", err);
-            alert("Failed to respond to request");
+            showToast("Failed to respond to request", "error");
         } finally {
             setProcessing(null);
         }

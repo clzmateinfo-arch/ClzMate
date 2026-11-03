@@ -69,8 +69,8 @@ async function verifyPayment(bodyData, token, navigate, dispatch) {
       navigate("/dashboard/enrolled-courses");
     }
   } catch (error) {
-    console.log("PAYMENT VERIFY ERROR....", error);
-    toast.error("Could not verify Payment");
+    console.error("PAYMENT VERIFY ERROR....", error);
+    toast.error(error?.response?.data?.message || "Could not verify Payment");
   } finally {
     toast.dismiss(toastId);
     dispatch(setPaymentLoading(false));

@@ -117,8 +117,6 @@ export default function AssignmentAssigneesPublish({ classroomId, overview }) {
                         </div>
                     </div>
                     <label className="inline-flex items-center gap-2 text-sm select-none">
-                        {/* <input type="checkbox" checked={publishChecked} onChange={(e) => setPublishChecked(Boolean(e.target.checked))} className="h-4 w-4" />
-                        <span className="text-sm text-[#0b1220]">Publish</span> */}
                         <input id="public" type="checkbox" checked={publishChecked} onChange={(e) => setPublishChecked(Boolean(e.target.checked))} className="sr-only peer" />
                         <div className="flex items-center justify-center mt-0.5 w-6 h-6 rounded-md border-2 transition-all duration-150
                            border-slate-500 peer-checked:border-transparent peer-checked:bg-gradient-to-tr peer-checked:from-[#ba7bf0] peer-checked:via-[#996bec] peer-checked:to-[#5046e4]

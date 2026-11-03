@@ -1,4 +1,3 @@
-// frontend/src/shared/components/ui/ClassroomGrid.jsx
 import ClassroomCard from "@/shared/components/ui/ClassroomCard";
 
 export default function ClassroomGrid({ classrooms = [], onOpen = () => { }, onMembers = () => { }, onCopyInvite = () => { } }) {

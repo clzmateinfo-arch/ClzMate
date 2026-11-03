@@ -69,6 +69,6 @@ exports.getStudentDashboard = async (req, res) => {
         });
     } catch (err) {
         console.error("getStudentDashboard error", err);
-        return res.status(500).json({ success: false, message: err.message || "Failed to get dashboard" });
+        return res.status(500).json({ success: false, message: "Failed to get dashboard" });
     }
 };

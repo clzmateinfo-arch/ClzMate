@@ -1,4 +1,3 @@
-// frontend/src/features/classroom/ui/AnnouncementCard.jsx
 import { FiMoreVertical } from "react-icons/fi";
 import { formatDistanceToNow } from "date-fns";
 

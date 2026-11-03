@@ -1,58 +1,53 @@
 const User = require("../models/user");
 const Course = require("../models/course");
 const CourseProgress = require("../models/courseProgress");
+const { sendServerError } = require("../utils/validators");
 
-async function safeCount(model, query = {}) {
-    try {
-        return await model.countDocuments(query);
-    } catch (e) {
-        console.warn("safeCount error:", e.message);
-        return 0;
-    }
+const CACHE_TTL_MS = 60 * 1000;
+
+let cachedStats = null;
+let cachedAt = 0;
+
+async function countCompletedCourses() {
+    const [result] = await CourseProgress.aggregate([
+        { $lookup: { from: "courses", localField: "courseID", foreignField: "_id", as: "course" } },
+        { $unwind: "$course" },
+        { $lookup: { from: "sections", localField: "course.courseContent", foreignField: "_id", as: "sections" } },
+        {
+            $project: {
+                required: { $sum: { $map: { input: "$sections", as: "section", in: { $size: { $ifNull: ["$$section.subSection", []] } } } } },
+                completed: { $size: { $ifNull: ["$completedVideos", []] } },
+            },
+        },
+        { $match: { $expr: { $and: [{ $gt: ["$required", 0] }, { $gte: ["$completed", "$required"] }] } } },
+        { $count: "awards" },
+    ]);
+    return result?.awards || 0;
+}
+
+async function computeStats() {
+    const [totalStudents, mentors, courses, awards] = await Promise.all([
+        User.countDocuments({ accountType: "Student" }),
+        User.countDocuments({ accountType: "Instructor" }),
+        Course.countDocuments({}),
+        countCompletedCourses(),
+    ]);
+    return { totalStudents, mentors, courses, awards };
 }
 
 exports.getSiteStats = async (req, res) => {
     try {
-        const totalStudents = await safeCount(User, { accountType: "Student" });
-        const mentors = await safeCount(User, { accountType: "Instructor" });
-
-        const courses = await safeCount(Course, {});
-
-        const allCourses = await Course.find({}, { courseContent: 1 }).populate({
-            path: "courseContent",
-            select: "subSection",
-        }).lean();
-
-        const courseSubsectionCount = {};
-        for (const c of allCourses) {
-            let total = 0;
-            if (Array.isArray(c.courseContent)) {
-                for (const s of c.courseContent) {
-                    if (Array.isArray(s.subSection)) total += s.subSection.length;
-                }
-            }
-            courseSubsectionCount[String(c._id)] = total;
+        if (!cachedStats || Date.now() - cachedAt > CACHE_TTL_MS) {
+            cachedStats = await computeStats();
+            cachedAt = Date.now();
         }
-
-        let awards = 0;
-        const cursor = CourseProgress.find({}).cursor();
-        for (let cp = await cursor.next(); cp != null; cp = await cursor.next()) {
-            try {
-                const courseId = String(cp.courseID);
-                const required = courseSubsectionCount[courseId] ?? 0;
-                const completed = Array.isArray(cp.completedVideos) ? cp.completedVideos.length : 0;
-                if (required > 0 && completed >= required) awards += 1;
-            } catch (e) {
-                // ignore single doc errors
-            }
-        }
-
-        return res.status(200).json({
-            success: true,
-            data: { totalStudents, mentors, courses, awards },
-        });
-    } catch (err) {
-        console.error("getSiteStats error:", err);
-        return res.status(500).json({ success: false, message: err.message || "Failed to fetch stats" });
+        return res.status(200).json({ success: true, data: cachedStats });
+    } catch (error) {
+        return sendServerError(res, "getSiteStats error:", error, "Failed to fetch stats");
     }
+};
+
+exports.resetStatsCache = () => {
+    cachedStats = null;
+    cachedAt = 0;
 };

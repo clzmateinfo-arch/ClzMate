@@ -1,42 +1,30 @@
 const mongoose = require("mongoose");
-const mailSender = require("../utils/mailSender");
-const createModel = require('../utils/createModel');
+const createModel = require("../utils/createModel");
+
+const OTP_TTL_SECONDS = 5 * 60;
 
 const OTPSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
+        lowercase: true,
+        trim: true,
+        index: true,
     },
-    otp: {
+    otpHash: {
         type: String,
         required: true,
     },
+    attempts: {
+        type: Number,
+        default: 0,
+    },
     createdAt: {
         type: Date,
-        default: Date.now(),
-        expires: 5 * 60,
+        default: Date.now,
+        expires: OTP_TTL_SECONDS,
     },
 });
 
-async function sendVerificationEmail(email, otp) {
-    try {
-        const mailResponse = mailSender(
-            email,
-            "Verification Email from Up",
-            otp
-        );
-        console.log("Email sent successfully to - ", email);
-    } catch (error) {
-        console.log("Error while sending an email to ", email);
-        throw new error();
-    }
-}
-
-OTPSchema.pre("save", async (next) => {
-    if (this.isNew) {
-        await sendVerificationEmail(this.email, this.otp);
-    }
-    next();
-});
-
 module.exports = createModel("OTP", OTPSchema);
+module.exports.OTP_TTL_SECONDS = OTP_TTL_SECONDS;

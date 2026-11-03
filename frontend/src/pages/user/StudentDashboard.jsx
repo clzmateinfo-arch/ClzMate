@@ -117,7 +117,7 @@ export default function StudentDashboard() {
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-bold text-black">Learning Progress</h3>
                                     <Link to="/dashboard/my-courses">
-                                        <p className="text-xs font-semibold text-yellow-50 hover:underline">View all</p>
+                                        <p className="text-xs font-semibold text-purple-200 hover:underline">View all</p>
                                     </Link>
                                 </div>
 
@@ -197,7 +197,7 @@ export default function StudentDashboard() {
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-lg font-bold text-black">Enrolled Courses</p>
                                 <Link to="/dashboard/my-courses">
-                                    <p className="text-xs font-semibold text-yellow-50 hover:underline">View all</p>
+                                    <p className="text-xs font-semibold text-purple-200 hover:underline">View all</p>
                                 </Link>
                             </div>
 

@@ -34,9 +34,6 @@ const MainNavbar = () => {
     <header className="fixed top-0 left-0 right-0 z-[500] w-full bg-transparent">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-30">
-          {/* <div className="ml-1 relative z-[60] flex-none flex items-center rounded-full bg-white/75 bg-gradient-to-r from-pink-300/40 via-violet-300/40 to-indigo-300/40 border border-white/50 text-sm font-medium text-gray-800 shadow-lg shadow-gray-800/5 ring-1 ring-gray-800/[.075] backdrop-blur-xl px-0">
-            <Logo onClick={() => setMobileOpen(false)} className="" />
-          </div> */}
           <button
             onClick={() => setMobileOpen((s) => !s)}
             aria-expanded={mobileOpen}

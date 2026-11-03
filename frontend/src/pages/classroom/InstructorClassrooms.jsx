@@ -130,9 +130,7 @@ export default function InstructorClassrooms() {
         navigate(`/classroom/${classroom._id}/overview`);
     };
 
-    const handleMembers = (classroom) => {
-        console.log("Show members for", classroom);
-    };
+    const handleMembers = () => {};
 
     const handleCopyInvite = (inviteCode) => {
         if (!inviteCode) return;

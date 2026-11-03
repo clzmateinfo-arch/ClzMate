@@ -1,1027 +1,1055 @@
 const mongoose = require("mongoose");
-const Classroom = require("../models/classroom");
 const Announcement = require("../models/announcement");
 const Topic = require("../models/topic");
 const Assignment = require("../models/assignment");
 const Submission = require("../models/submission");
-const User = require("../models/user");
 const Quiz = require("../models/quiz");
 const Attempt = require("../models/attempt");
 const { uploadFileToCloudinary, deleteResourceFromCloudinary } = require("../utils/fileUploader");
 const { evaluateScreenAnswer } = require("../utils/quizz");
+const { isNonEmptyString } = require("../middleware/sanitize");
+const {
+    HttpError,
+    isValidId,
+    assertValidId,
+    sendError,
+    getRoleInClassroom,
+    assertMember,
+    assertStaff,
+    isStaffRole,
+    loadClassroomOrFail,
+    loadTopicContext,
+    loadAssignmentContext,
+    loadQuizContext,
+    loadScreenContext,
+    isAssignmentTargetedAt,
+    serializeClassroomForViewer,
+} = require("../utils/classroomAccess");
 
-const pickSingle = (files, key) => {
-    if (!files) return null;
-    const val = files[key];
-    if (!val) return null;
-    return Array.isArray(val) ? val[0] : val;
-};
+const USER_PUBLIC_FIELDS = "firstName lastName email image";
+const MAX_TITLE_LENGTH = 300;
+const MAX_TEXT_LENGTH = 20000;
+const MAX_LIST_LENGTH = 500;
+const MAX_ANSWERS_PER_REQUEST = 200;
+const MAX_SUBMISSION_FILES = 10;
 
 const pickMany = (files, key) => {
-    if (!files) return [];
-    const val = files[key];
-    if (!val) return [];
-    return Array.isArray(val) ? val : [val];
+    const value = files && files[key];
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
 };
 
-const isValidId = (id) => mongoose.Types.ObjectId.isValid(String(id));
+const parseBoolean = (value) => value === true || value === "true" || value === "1" || value === 1;
+
+function requireText(value, label, maxLength = MAX_TITLE_LENGTH) {
+    if (!isNonEmptyString(value) || value.trim().length > maxLength) {
+        throw new HttpError(400, `${label} is required`);
+    }
+    return value.trim();
+}
+
+function optionalText(value, label, maxLength = MAX_TEXT_LENGTH) {
+    if (value === undefined || value === null) return "";
+    if (typeof value !== "string" || value.length > maxLength) throw new HttpError(400, `Invalid ${label}`);
+    return value;
+}
+
+function optionalLink(value) {
+    const link = optionalText(value, "link", 2048).trim();
+    if (link && !/^https?:\/\//i.test(link)) throw new HttpError(400, "Link must start with http:// or https://");
+    return link;
+}
+
+function parseList(value) {
+    if (value === undefined || value === null || value === "") return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [parsed];
+        } catch (error) {
+            return [value];
+        }
+    }
+    throw new HttpError(400, "Invalid list");
+}
+
+function parseIdList(value, label) {
+    const list = parseList(value);
+    if (list.length > MAX_LIST_LENGTH || !list.every(isValidId)) throw new HttpError(400, `Invalid ${label}`);
+    return Array.from(new Set(list));
+}
+
+function parseStringList(value, label) {
+    const list = parseList(value);
+    if (list.length > MAX_LIST_LENGTH || !list.every((entry) => typeof entry === "string")) {
+        throw new HttpError(400, `Invalid ${label}`);
+    }
+    return list;
+}
+
+function parseOptionalDate(value, label) {
+    if (value === undefined) return undefined;
+    if (value === null || value === "") return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) throw new HttpError(400, `Invalid ${label}`);
+    return date;
+}
+
+function parsePoints(value, fallback) {
+    if (value === undefined || value === null || value === "") return fallback;
+    const points = Number(value);
+    if (!Number.isFinite(points) || points < 0) throw new HttpError(400, "points must be a non-negative number");
+    return points;
+}
+
+const matchesAttachment = (attachment, removeList) =>
+    removeList.includes(attachment.publicId) ||
+    removeList.includes(attachment.url) ||
+    removeList.includes(attachment.originalName) ||
+    removeList.includes(String(attachment._id));
+
+async function uploadAttachments(files, folder) {
+    const uploadedList = [];
+    for (const file of files) {
+        const uploaded = await uploadFileToCloudinary(file, folder);
+        uploadedList.push({
+            url: uploaded.secure_url || "",
+            publicId: uploaded.public_id || "",
+            originalName: file.name || "",
+            mimeType: file.mimetype || "",
+            size: file.size || 0,
+            resourceType: uploaded.resource_type || uploaded._resource_type || "",
+        });
+    }
+    return uploadedList;
+}
+
+async function discardCloudFiles(attachments) {
+    await Promise.allSettled(
+        (attachments || [])
+            .filter((attachment) => attachment && attachment.publicId)
+            .map((attachment) => deleteResourceFromCloudinary(attachment.publicId, attachment.resourceType))
+    );
+}
+
+function applyAttachmentRemoval(attachments, removeList) {
+    const removed = [];
+    const kept = [];
+    for (const attachment of attachments || []) {
+        (matchesAttachment(attachment, removeList) ? removed : kept).push(attachment);
+    }
+    return { kept, removed };
+}
+
+function stripQuizAnswerKeys(quizPlain) {
+    return {
+        ...quizPlain,
+        screens: (quizPlain.screens || []).map((screen) => {
+            const hidesOptions = screen.type === "short" || screen.type === "slider";
+            return {
+                ...screen,
+                options: hidesOptions ? [] : (screen.options || []).map(({ correct, ...option }) => option),
+            };
+        }),
+    };
+}
+
+async function viewQuizForUser(quiz, userId, isStaff) {
+    const plain = typeof quiz.toObject === "function" ? quiz.toObject() : quiz;
+    if (isStaff) return plain;
+    const hasFinishedAttempt = await Attempt.exists({ quiz: plain._id, user: userId, finishedAt: { $ne: null } });
+    return hasFinishedAttempt ? plain : stripQuizAnswerKeys(plain);
+}
+
+async function deleteAssignmentsCascade(assignmentIds) {
+    if (!assignmentIds.length) return;
+    const assignments = await Assignment.find({ _id: { $in: assignmentIds } }).select("attachments").lean();
+    const submissions = await Submission.find({ assignment: { $in: assignmentIds } }).select("attachments").lean();
+    await Submission.deleteMany({ assignment: { $in: assignmentIds } });
+    await Assignment.deleteMany({ _id: { $in: assignmentIds } });
+    await discardCloudFiles([...assignments, ...submissions].flatMap((doc) => doc.attachments || []));
+}
+
+async function deleteQuizzesCascade(quizIds) {
+    if (!quizIds.length) return;
+    await Attempt.deleteMany({ quiz: { $in: quizIds } });
+    await Quiz.deleteMany({ _id: { $in: quizIds } });
+}
+
+function assigneeVisibilityFilter(isStaff) {
+    return isStaff ? {} : { publish: true };
+}
+
+async function resolveAssignees(classroom, assigneeType, rawAssignees) {
+    if (assigneeType === undefined && rawAssignees === undefined) return {};
+    const result = {};
+    if (assigneeType !== undefined) {
+        if (!["all", "selected"].includes(assigneeType)) throw new HttpError(400, "Invalid assigneeType");
+        result.assigneeType = assigneeType;
+    }
+    if (rawAssignees !== undefined) {
+        const assignees = parseIdList(rawAssignees, "assignees");
+        if (assignees.some((id) => !getRoleInClassroom(classroom, id))) {
+            throw new HttpError(400, "Every assignee must belong to the classroom");
+        }
+        result.assignees = assignees;
+    }
+    return result;
+}
 
 exports.getClassOverview = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        if (!isValidId(classroomId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const classroom = await Classroom.findById(classroomId)
-            .populate("owner members.user", "firstName lastName email image")
-            .lean();
-        if (!classroom) return res.status(404).json({ success: false, message: "Classroom not found" });
-        const announcements = await Announcement.find({ classroom: classroomId }).sort({ pinned: -1, createdAt: -1 }).limit(20).lean();
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        const role = assertMember(classroom, req.user);
+        const isStaff = isStaffRole(role);
+        const classroomId = classroom._id;
+
+        await classroom.populate([
+            { path: "owner", select: USER_PUBLIC_FIELDS },
+            { path: "members.user", select: USER_PUBLIC_FIELDS },
+        ]);
+
         const topicIds = await Topic.find({ classroom: classroomId }).distinct("_id");
-        const upcomingAssignments = await Assignment.find({ topic: { $in: topicIds }, dueDate: { $gte: new Date() } })
+        const visibility = assigneeVisibilityFilter(isStaff);
+        const upcomingCandidates = await Assignment.find({ topic: { $in: topicIds }, dueDate: { $gte: new Date() }, ...visibility })
             .sort({ dueDate: 1 })
-            .limit(10)
             .lean();
+        const upcomingAssignments = (isStaff
+            ? upcomingCandidates
+            : upcomingCandidates.filter((assignment) => isAssignmentTargetedAt(assignment, req.user.id))
+        ).slice(0, 10);
+
+        const [announcements, topicsCount, assignmentsCount] = await Promise.all([
+            Announcement.find({ classroom: classroomId }).sort({ pinned: -1, createdAt: -1 }).limit(20).lean(),
+            Topic.countDocuments({ classroom: classroomId }),
+            Assignment.countDocuments({ topic: { $in: topicIds }, ...visibility }),
+        ]);
+
         return res.json({
             success: true,
             data: {
-                classroom,
+                classroom: serializeClassroomForViewer(classroom, isStaff),
                 announcements,
                 upcomingAssignments,
                 counts: {
-                    members: (classroom.members || []).length,
-                    topics: await Topic.countDocuments({ classroom: classroomId }),
-                    assignments: await Assignment.countDocuments({ topic: { $in: topicIds } }),
+                    members: classroom.members.length,
+                    topics: topicsCount,
+                    assignments: assignmentsCount,
                 },
             },
         });
-    } catch (err) {
-        console.error("getClassOverview", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "getClassOverview");
     }
 };
 
 exports.createAnnouncement = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const { title, body, pinned } = req.body;
-        if (!title) return res.status(400).json({ success: false, message: "Title is required" });
-        const ann = await Announcement.create({
-            classroom: classroomId,
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        assertStaff(classroom, req.user);
+        const { title, body, pinned } = req.body || {};
+        const announcement = await Announcement.create({
+            classroom: classroom._id,
             author: req.user.id,
-            title,
-            body,
-            pinned: !!pinned,
+            title: requireText(title, "Title"),
+            body: optionalText(body, "body"),
+            pinned: parseBoolean(pinned),
         });
-        return res.status(200).json({ success: true, data: ann });
-    } catch (err) {
-        console.error("createAnnouncement", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(200).json({ success: true, data: announcement });
+    } catch (error) {
+        return sendError(res, error, "createAnnouncement");
     }
 };
 
 exports.listAnnouncements = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const anns = await Announcement.find({ classroom: classroomId }).sort({ pinned: -1, createdAt: -1 }).lean();
-        return res.json({ success: true, data: anns });
-    } catch (err) {
-        console.error("listAnnouncements", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        assertMember(classroom, req.user);
+        const announcements = await Announcement.find({ classroom: classroom._id }).sort({ pinned: -1, createdAt: -1 }).lean();
+        return res.json({ success: true, data: announcements });
+    } catch (error) {
+        return sendError(res, error, "listAnnouncements");
     }
 };
 
 exports.createTopic = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const { title, description } = req.body;
-        if (!title) return res.status(400).json({ success: false, message: "title required" });
-        const maxPosDoc = await Topic.findOne({ classroom: classroomId }).sort({ position: -1 }).select("position").lean();
-        const position = maxPosDoc ? (maxPosDoc.position || 0) + 1 : 1;
-        const t = await Topic.create({ classroom: classroomId, title, description, createdBy: req.user.id, position });
-        return res.json({ success: true, data: t });
-    } catch (err) {
-        console.error("createTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        assertStaff(classroom, req.user);
+        const { title, description } = req.body || {};
+        const cleanTitle = requireText(title, "title");
+        const cleanDescription = optionalText(description, "description");
+        const lastTopic = await Topic.findOne({ classroom: classroom._id }).sort({ position: -1 }).select("position").lean();
+        const topic = await Topic.create({
+            classroom: classroom._id,
+            title: cleanTitle,
+            description: cleanDescription,
+            createdBy: req.user.id,
+            position: lastTopic ? (lastTopic.position || 0) + 1 : 1,
+        });
+        return res.json({ success: true, data: topic });
+    } catch (error) {
+        return sendError(res, error, "createTopic");
     }
 };
 
 exports.listTopics = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const topics = await Topic.find({ classroom: classroomId }).sort({ position: 1, "meta.createdAt": -1 }).lean();
-        return res.json({ success: true, data: topics });
-    } catch (err) {
-        console.error("listTopics", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        const isStaff = isStaffRole(assertMember(classroom, req.user));
+        const topics = await Topic.find({ classroom: classroom._id }).sort({ position: 1, "meta.createdAt": -1 }).lean();
+        const data = isStaff
+            ? topics
+            : topics.map((topic) => ({ ...topic, items: (topic.items || []).filter((item) => item.status === "published") }));
+        return res.json({ success: true, data });
+    } catch (error) {
+        return sendError(res, error, "listTopics");
     }
 };
 
 exports.updateTopic = async (req, res) => {
     try {
-        const { topicId } = req.params;
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
         const payload = req.body || {};
-        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
-        const t = await Topic.findById(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        ["title", "description", "status"].forEach((f) => {
-            if (payload[f] !== undefined) t[f] = payload[f];
-        });
-        t.meta = t.meta || {};
-        t.meta.updatedAt = new Date();
-        await t.save();
-        return res.json({ success: true, data: t });
-    } catch (err) {
-        console.error("updateTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        if (payload.title !== undefined) topic.title = requireText(payload.title, "title");
+        if (payload.description !== undefined) topic.description = optionalText(payload.description, "description");
+        if (payload.status !== undefined) topic.status = payload.status;
+        topic.meta.updatedAt = new Date();
+        await topic.save();
+        return res.json({ success: true, data: topic });
+    } catch (error) {
+        return sendError(res, error, "updateTopic");
     }
 };
 
 exports.deleteTopic = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        if (!isValidId(topicId)) {
-            return res.status(400).json({ success: false, message: "Invalid topic id" });
-        }
-        const deletedTopic = await Topic.findByIdAndDelete(topicId);
-        let removed = !!deletedTopic;
-        let classroomAfterPull = null;
-        if (!removed) {
-            classroomAfterPull = await Classroom.findOneAndUpdate(
-                { "topics._id": topicId },
-                { $pull: { topics: { _id: topicId } } },
-                { new: true }
-            );
-            if (classroomAfterPull) {
-                removed = true;
-            }
-        }
-        if (!removed) {
-            return res.status(404).json({ success: false, message: "Topic not found" });
-        }
-        const assignments = await Assignment.find({ topic: topicId }).select("_id").lean();
-        const assignmentIds = Array.isArray(assignments) ? assignments.map(a => a._id) : [];
-        if (assignmentIds.length > 0) {
-            await Submission.deleteMany({ assignment: { $in: assignmentIds } });
-            await Assignment.deleteMany({ _id: { $in: assignmentIds } });
-        }
-        return res.json({ success: true, data: { _id: topicId } });
-    } catch (err) {
-        console.error("deleteTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const assignmentIds = await Assignment.find({ topic: topic._id }).distinct("_id");
+        const quizIds = await Quiz.find({ topic: topic._id }).distinct("_id");
+        await deleteAssignmentsCascade(assignmentIds);
+        await deleteQuizzesCascade(quizIds);
+        await topic.deleteOne();
+        return res.json({ success: true, data: { _id: String(topic._id) } });
+    } catch (error) {
+        return sendError(res, error, "deleteTopic");
     }
 };
 
 exports.reorderTopics = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const { order } = req.body;
-        if (!Array.isArray(order)) return res.status(400).json({ success: false, message: "order must be array" });
-        const bulk = order.map((id, idx) => ({
+        const classroom = await loadClassroomOrFail(req.params.classroomId);
+        assertStaff(classroom, req.user);
+        const order = req.body && req.body.order;
+        if (!Array.isArray(order) || order.length > MAX_LIST_LENGTH || !order.every(isValidId)) {
+            throw new HttpError(400, "order must be an array of topic ids");
+        }
+        const now = new Date();
+        const operations = order.map((topicId, index) => ({
             updateOne: {
-                filter: { _id: id, classroom: classroomId },
-                update: { $set: { position: idx + 1, "meta.updatedAt": new Date() } }
+                filter: { _id: topicId, classroom: classroom._id },
+                update: { $set: { position: index + 1, "meta.updatedAt": now } },
             },
         }));
-        if (bulk.length > 0) await Topic.bulkWrite(bulk);
+        if (operations.length > 0) await Topic.bulkWrite(operations);
         return res.json({ success: true });
-    } catch (err) {
-        console.error("reorderTopics", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "reorderTopics");
     }
 };
 
 exports.createItem = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        const { type, title, content = "", link = "", refId = null } = req.body;
-        if (!type || !title) return res.status(400).json({ success: false, message: "type and title required" });
-        const t = await Topic.findById(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        const nextPos = (t.items && t.items.length > 0) ? Math.max(...t.items.map(i => i.position || 0)) + 1 : 1;
-        const item = { type, title, content, link, refId: refId || null, position: nextPos, status: "draft" };
-        t.items.push(item);
-        t.meta = t.meta || {};
-        t.meta.updatedAt = new Date();
-        await t.save();
-        const created = t.items[t.items.length - 1];
-        return res.json({ success: true, data: created });
-    } catch (err) {
-        console.error("createItem", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const { type, title, content, link, refId } = req.body || {};
+        if (!isNonEmptyString(type)) throw new HttpError(400, "type and title required");
+        if (refId !== undefined && refId !== null && refId !== "" && !isValidId(refId)) throw new HttpError(400, "Invalid refId");
+        const nextPosition = topic.items.length > 0 ? Math.max(...topic.items.map((item) => item.position || 0)) + 1 : 1;
+        topic.items.push({
+            type,
+            title: requireText(title, "title"),
+            content: optionalText(content, "content"),
+            link: optionalLink(link),
+            refId: refId || null,
+            position: nextPosition,
+            status: "draft",
+        });
+        topic.meta.updatedAt = new Date();
+        await topic.save();
+        return res.json({ success: true, data: topic.items[topic.items.length - 1] });
+    } catch (error) {
+        return sendError(res, error, "createItem");
     }
 };
 
 exports.updateItem = async (req, res) => {
     try {
-        const { topicId, itemId } = req.params;
+        assertValidId(req.params.itemId, "item id");
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const item = topic.items.id(req.params.itemId);
+        if (!item) throw new HttpError(404, "Item not found");
+
         const payload = req.body || {};
-        if (!isValidId(topicId) || !isValidId(itemId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const t = await Topic.findById(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        const it = t.items.id(itemId);
-        if (!it) return res.status(404).json({ success: false, message: "Item not found" });
+        if (payload.title !== undefined) item.title = requireText(payload.title, "title");
+        if (payload.content !== undefined) item.content = optionalText(payload.content, "content");
+        if (payload.link !== undefined) item.link = optionalLink(payload.link);
+        if (payload.status !== undefined) item.status = payload.status;
+        if (payload.type !== undefined) item.type = payload.type;
 
-        ["title", "content", "link", "status", "type"].forEach((f) => {
-            if (payload[f] !== undefined) it[f] = payload[f];
-        });
-
-        let removeList = payload.removeAttachments || payload.removeAttachments || [];
-        if (typeof removeList === "string") {
-            try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
-        }
-        if (Array.isArray(removeList) && removeList.length) {
-            it.attachments = (it.attachments || []).filter(att => {
-                const match = removeList.includes(att.publicId) || removeList.includes(att.url) || removeList.includes(att.originalName) || removeList.includes(att._id?.toString?.());
-                if (match) {
-                    try { deleteResourceFromCloudinary(att.publicId || att.url, att.resourceType); } catch (e) { console.warn("Failed to delete item attachment:", e.message); }
-                }
-                return !match;
-            });
-        }
-
+        const removeList = parseStringList(payload.removeAttachments, "removeAttachments");
+        const { kept, removed } = applyAttachmentRemoval(item.attachments, removeList);
         const newFiles = pickMany(req.files, "attachments");
-        if (newFiles && newFiles.length) {
-            it.attachments = it.attachments || [];
-            for (const f of newFiles) {
-                const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "materials");
-                it.attachments.push({
-                    url: uploaded.secure_url || null,
-                    publicId: uploaded.public_id || null,
-                    originalName: f.name || f.originalname || f.name,
-                    mimeType: f.mimetype || null,
-                    size: f.size || null,
-                    resourceType: uploaded.resource_type || uploaded._resource_type || null,
-                });
-            }
-        }
+        if (newFiles.length > MAX_SUBMISSION_FILES) throw new HttpError(400, "Too many attachments");
+        const uploaded = await uploadAttachments(newFiles, process.env.FOLDER_NAME || "materials");
 
-        it.meta = it.meta || {};
-        it.meta.updatedAt = new Date();
-        t.meta = t.meta || {};
-        t.meta.updatedAt = new Date();
-        await t.save();
-        return res.json({ success: true, data: it });
-    } catch (err) {
-        console.error("updateItem", err);
-        return res.status(500).json({ success: false, message: err.message });
+        item.attachments = [...kept, ...uploaded];
+        item.meta.updatedAt = new Date();
+        topic.meta.updatedAt = new Date();
+        await topic.save();
+        await discardCloudFiles(removed);
+        return res.json({ success: true, data: item });
+    } catch (error) {
+        return sendError(res, error, "updateItem");
     }
 };
 
 exports.deleteItem = async (req, res) => {
     try {
-        const { classroomId, topicId } = req.params;
-        if (!isValidId(classroomId) || !isValidId(topicId)) {
-            return res.status(400).json({ success: false, message: "Invalid id" });
-        }
-        const classroom = await Classroom.findById(classroomId);
-        if (!classroom) return res.status(404).json({ success: false, message: "Classroom not found" });
-        const t = classroom.topics.id(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        t.remove();
-        (classroom.topics || []).forEach((tp, idx) => {
-            tp.position = idx + 1;
+        assertValidId(req.params.itemId, "item id");
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const item = topic.items.id(req.params.itemId);
+        if (!item) throw new HttpError(404, "Item not found");
+        const removedAttachments = [...item.attachments];
+        topic.items.pull({ _id: item._id });
+        topic.items.forEach((remaining, index) => {
+            remaining.position = index + 1;
         });
-        classroom.meta = classroom.meta || {};
-        classroom.meta.updatedAt = new Date();
-        await classroom.save();
-        return res.json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("deleteTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        topic.meta.updatedAt = new Date();
+        await topic.save();
+        await discardCloudFiles(removedAttachments);
+        return res.json({ success: true, data: { _id: String(item._id) } });
+    } catch (error) {
+        return sendError(res, error, "deleteItem");
     }
 };
 
 exports.reorderItems = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        const { order } = req.body;
-        if (!isValidId(topicId) || !Array.isArray(order)) return res.status(400).json({ success: false, message: "Invalid input" });
-        const t = await Topic.findById(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        const map = {};
-        (t.items || []).forEach(it => { map[String(it._id)] = it; });
-        const newItems = [];
-        order.forEach((id, idx) => {
-            const found = map[String(id)];
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const order = req.body && req.body.order;
+        if (!Array.isArray(order) || order.length > MAX_LIST_LENGTH || !order.every(isValidId)) {
+            throw new HttpError(400, "order must be an array of item ids");
+        }
+        const remaining = new Map(topic.items.map((item) => [String(item._id), item]));
+        const reordered = [];
+        order.forEach((itemId) => {
+            const found = remaining.get(itemId);
             if (found) {
-                found.position = idx + 1;
-                newItems.push(found);
-                delete map[String(id)];
+                reordered.push(found);
+                remaining.delete(itemId);
             }
         });
-        Object.keys(map).forEach((k) => {
-            const it = map[k];
-            it.position = newItems.length + 1;
-            newItems.push(it);
+        remaining.forEach((item) => reordered.push(item));
+        reordered.forEach((item, index) => {
+            item.position = index + 1;
         });
-        t.items = newItems;
-        t.meta.updatedAt = new Date();
-        await t.save();
+        topic.items = reordered;
+        topic.meta.updatedAt = new Date();
+        await topic.save();
         return res.json({ success: true });
-    } catch (err) {
-        console.error("reorderItems", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "reorderItems");
     }
 };
 
 exports.toggleItemStatus = async (req, res) => {
     try {
-        const { topicId, itemId } = req.params;
-        if (!isValidId(topicId) || !isValidId(itemId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const t = await Topic.findById(topicId);
-        if (!t) return res.status(404).json({ success: false, message: "Topic not found" });
-        const it = t.items.id(itemId);
-        if (!it) return res.status(404).json({ success: false, message: "Item not found" });
-        it.status = it.status === "published" ? "draft" : "published";
-        it.meta = it.meta || {};
-        it.meta.updatedAt = new Date();
-        t.meta.updatedAt = new Date();
-        await t.save();
-        return res.json({ success: true, data: it });
-    } catch (err) {
-        console.error("toggleItemStatus", err);
-        return res.status(500).json({ success: false, message: err.message });
+        assertValidId(req.params.itemId, "item id");
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const item = topic.items.id(req.params.itemId);
+        if (!item) throw new HttpError(404, "Item not found");
+        item.status = item.status === "published" ? "draft" : "published";
+        item.meta.updatedAt = new Date();
+        topic.meta.updatedAt = new Date();
+        await topic.save();
+        return res.json({ success: true, data: item });
+    } catch (error) {
+        return sendError(res, error, "toggleItemStatus");
     }
 };
 
 exports.copyItem = async (req, res) => {
     try {
-        const { topicId, itemId } = req.params;
-        const { destTopicId } = req.body;
-        if (!isValidId(topicId) || !isValidId(itemId) || !isValidId(destTopicId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const srcTopic = await Topic.findById(topicId);
-        const destTopic = await Topic.findById(destTopicId);
-        if (!srcTopic || !destTopic) return res.status(404).json({ success: false, message: "Topic(s) not found" });
-        const it = srcTopic.items.id(itemId);
-        if (!it) return res.status(404).json({ success: false, message: "Item not found" });
-        const newItem = {
-            type: it.type,
-            title: `${it.title} (copy)`,
-            content: it.content,
-            link: it.link,
-            refId: it.refId || null,
+        assertValidId(req.params.itemId, "item id");
+        const destTopicId = req.body && req.body.destTopicId;
+        assertValidId(destTopicId, "destination topic id");
+        const source = await loadTopicContext(req.params.topicId);
+        assertStaff(source.classroom, req.user);
+        const destination = await loadTopicContext(destTopicId);
+        assertStaff(destination.classroom, req.user);
+
+        const item = source.topic.items.id(req.params.itemId);
+        if (!item) throw new HttpError(404, "Item not found");
+
+        const destTopic = destination.topic;
+        destTopic.items.push({
+            type: item.type,
+            title: `${item.title} (copy)`,
+            content: item.content,
+            link: item.link,
+            refId: item.refId || null,
             status: "draft",
-            position: (destTopic.items && destTopic.items.length > 0) ? Math.max(...destTopic.items.map(i => i.position || 0)) + 1 : 1,
-            meta: { createdAt: new Date(), updatedAt: new Date() },
-        };
-        destTopic.items.push(newItem);
-        destTopic.meta = destTopic.meta || {};
+            position: destTopic.items.length > 0 ? Math.max(...destTopic.items.map((entry) => entry.position || 0)) + 1 : 1,
+        });
         destTopic.meta.updatedAt = new Date();
         await destTopic.save();
-        const created = destTopic.items[destTopic.items.length - 1];
-        return res.json({ success: true, data: created });
-    } catch (err) {
-        console.error("copyItem", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return res.json({ success: true, data: destTopic.items[destTopic.items.length - 1] });
+    } catch (error) {
+        return sendError(res, error, "copyItem");
     }
 };
 
 exports.createAssignment = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
 
-        let { title, description, dueDate, maxScore, resources, assigneeType, references, publish, lockSubmissions } = req.body || {};
-        title = title || req.body?.title;
-        description = description || req.body?.description || req.body?.instructions || "";
-        const points = Number(maxScore ?? req.body?.points) || 100;
-        if (!title) return res.status(400).json({ success: false, message: "title required" });
+        const body = req.body || {};
+        const title = requireText(body.title, "title");
+        const instructions = optionalText(body.description ?? body.instructions, "description");
+        const points = parsePoints(body.maxScore ?? body.points, 100);
+        const dueDate = parseOptionalDate(body.dueDate, "dueDate");
+        const references = optionalText(body.references, "references");
+        const targeting = await resolveAssignees(classroom, body.assigneeType, body.assignees);
+        const extraClasses = parseIdList(body.classesAssigned ?? body.otherClasses, "classesAssigned");
+        const classesAssigned = Array.from(new Set([String(topic.classroom), ...extraClasses]));
 
-        const topic = await Topic.findById(topicId).select("classroom").lean();
-        const topicClassroom = topic?.classroom ? String(topic.classroom) : null;
+        const files = pickMany(req.files, "attachments");
+        if (files.length > MAX_SUBMISSION_FILES) throw new HttpError(400, "Too many attachments");
+        const attachments = await uploadAttachments(files, process.env.FOLDER_NAME || "assignments");
 
-        let classesAssignedRaw = req.body?.classesAssigned ?? req.body?.otherClasses ?? [];
-        if (!classesAssignedRaw) classesAssignedRaw = [];
-        if (typeof classesAssignedRaw === "string") {
-            try {
-                const parsed = JSON.parse(classesAssignedRaw);
-                classesAssignedRaw = Array.isArray(parsed) ? parsed : [parsed];
-            } catch (e) {
-                classesAssignedRaw = [classesAssignedRaw];
-            }
-        }
-        if (!Array.isArray(classesAssignedRaw)) {
-            classesAssignedRaw = [classesAssignedRaw];
-        }
-        classesAssignedRaw = classesAssignedRaw.map(String).filter(Boolean);
-        if (topicClassroom && !classesAssignedRaw.includes(topicClassroom)) {
-            classesAssignedRaw.unshift(topicClassroom);
-        }
-        const classesAssigned = Array.from(new Set(classesAssignedRaw));
-
-        const supportFiles = pickMany(req.files, "attachments");
-        const attachments = [];
-        if (supportFiles && supportFiles.length) {
-            for (const f of supportFiles) {
-                const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "assignments");
-                attachments.push({
-                    url: uploaded.secure_url || null,
-                    publicId: uploaded.public_id || null,
-                    originalName: f.name || f.originalname || f.name,
-                    mimeType: f.mimetype || null,
-                    size: f.size || null,
-                    resourceType: uploaded.resource_type || uploaded._resource_type || null,
-                });
-            }
-        }
-
-        const a = await Assignment.create({
-            topic: topicId,
+        const assignment = await Assignment.create({
+            topic: topic._id,
             title,
-            instructions: description,
-            dueDate: dueDate ? new Date(dueDate) : null,
+            instructions,
+            dueDate: dueDate || null,
             points,
             createdBy: req.user.id,
             attachments,
-            publish: !!(publish === "1" || publish === true || publish === "true"),
-            assigneeType: assigneeType || "all",
-            assignees: Array.isArray(req.body?.assignees) ? req.body.assignees : (req.body?.assignees ? [req.body.assignees] : []),
+            publish: parseBoolean(body.publish),
             classesAssigned,
-            references: references || "",
-            resources: resources || [],
-            lockSubmissions: !!(lockSubmissions === "1" || lockSubmissions === true || lockSubmissions === "true"),
+            references,
+            lockSubmissions: parseBoolean(body.lockSubmissions),
+            ...targeting,
         });
 
-        await Topic.findByIdAndUpdate(topicId, { $inc: { assignmentsCount: 1 } });
-        return res.json({ success: true, data: a });
-    } catch (err) {
-        console.error("createAssignment", err);
-        return res.status(500).json({ success: false, message: err.message });
+        await Topic.updateOne({ _id: topic._id }, { $inc: { assignmentsCount: 1 } });
+        return res.json({ success: true, data: assignment });
+    } catch (error) {
+        return sendError(res, error, "createAssignment");
     }
 };
 
+async function listAssignmentsForViewer(req, res, { publishedOnly }) {
+    const { topic, classroom } = await loadTopicContext(req.params.topicId);
+    const isStaff = isStaffRole(assertMember(classroom, req.user));
+    const filter = { topic: topic._id };
+    if (publishedOnly || !isStaff) filter.publish = true;
+    const assignments = await Assignment.find(filter).sort({ createdAt: -1 }).lean();
+    const visible = isStaff ? assignments : assignments.filter((assignment) => isAssignmentTargetedAt(assignment, req.user.id));
+    return res.json({ success: true, data: visible });
+}
+
 exports.listAssignmentsByTopic = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        const assignments = await Assignment.find({ topic: topicId }).sort({ createdAt: -1 }).lean();
-        return res.json({ success: true, data: assignments });
-    } catch (err) {
-        console.error("listAssignmentsByTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return await listAssignmentsForViewer(req, res, { publishedOnly: false });
+    } catch (error) {
+        return sendError(res, error, "listAssignmentsByTopic");
     }
 };
 
 exports.listPublishedAssignmentsByTopic = async (req, res) => {
     try {
-        const { topicId } = req.params;
-        if (!isValidId(topicId)) {
-            return res.status(400).json({ success: false, message: "Invalid topic id" });
-        }
-
-        // Load all published assignments for the topic
-        const assignments = await Assignment.find({ topic: topicId, publish: true })
-            .sort({ createdAt: -1 })
-            .lean();
-
-        // If no user info (shouldn't happen because route is protected), just return what we have
-        const user = req.user || {};
-        const userIdStr = user.id ? String(user.id) : null;
-        const acct = (user.accountType || user.role || "").toString().toLowerCase();
-
-        // Treat instructors/admins as privileged: return all published assignments
-        const isInstructorLike =
-            acct === "instructor" || acct === "admin" || !!user.isInstructor || !!user.isAdmin;
-
-        if (isInstructorLike) {
-            return res.json({ success: true, data: assignments });
-        }
-
-        // Non-instructor user (student/guest/etc.) -> filter assignments to only those relevant to the user
-
-        // 1) find classrooms where the user is a member (to match against classesAssigned)
-        const userClassroomIds = await Classroom.find({ "members.user": user.id }).distinct("_id");
-        const userClassIdsStr = (userClassroomIds || []).map((c) => String(c));
-
-        // 2) filter assignments:
-        // - if assigneeType === 'selected' => include only if assignees includes the user
-        // - if assigneeType !== 'selected' (treat as 'all') => include if classesAssigned intersects user's classrooms
-        //   - if classesAssigned is empty, treat it as global and include
-        const filtered = (assignments || []).filter((a) => {
-            const assigneeType = (a.assigneeType || "all").toString().toLowerCase();
-
-            // selected explicit students
-            if (assigneeType === "selected") {
-                const explicit = (a.assignees || []).map(String);
-                if (!userIdStr) return false;
-                return explicit.includes(userIdStr);
-            }
-
-            // 'all' case: match by classesAssigned intersection
-            const assignedClasses = (a.classesAssigned || []).map(String);
-            // If no classes assigned, treat as global (accessible to everyone)
-            if (!assignedClasses || assignedClasses.length === 0) return true;
-            // otherwise require intersection
-            return assignedClasses.some((cid) => userClassIdsStr.includes(cid));
-        });
-
-        return res.json({ success: true, data: filtered });
-    } catch (err) {
-        console.error("listPublishedAssignmentsByTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return await listAssignmentsForViewer(req, res, { publishedOnly: true });
+    } catch (error) {
+        return sendError(res, error, "listPublishedAssignmentsByTopic");
     }
 };
 
 exports.getAssignment = async (req, res) => {
     try {
-        const { assignmentId } = req.params;
-        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const a = await Assignment.findById(assignmentId).lean();
-        if (!a) return res.status(404).json({ success: false, message: "Assignment not found" });
-        return res.json({ success: true, data: a });
-    } catch (err) {
-        console.error("getAssignment", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        const isStaff = isStaffRole(assertMember(classroom, req.user));
+        if (!isStaff) {
+            if (!assignment.publish) throw new HttpError(404, "Assignment not found");
+            if (!isAssignmentTargetedAt(assignment, req.user.id)) throw new HttpError(403, "This assignment is not assigned to you");
+        }
+        return res.json({ success: true, data: assignment });
+    } catch (error) {
+        return sendError(res, error, "getAssignment");
     }
 };
 
 exports.updateAssignment = async (req, res) => {
     try {
-        const { assignmentId } = req.params;
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        assertStaff(classroom, req.user);
         const payload = req.body || {};
-        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        const a = await Assignment.findById(assignmentId);
-        if (!a) return res.status(404).json({ success: false, message: "Assignment not found" });
 
-        if (payload.title !== undefined) a.title = payload.title;
-        if (payload.description !== undefined) a.instructions = payload.description;
-        if (payload.instructions !== undefined) a.instructions = payload.instructions;
-        if (payload.dueDate !== undefined) a.dueDate = payload.dueDate ? new Date(payload.dueDate) : null;
-        if (payload.maxScore !== undefined) a.points = Number(payload.maxScore);
-        if (payload.points !== undefined) a.points = Number(payload.points);
-        if (payload.references !== undefined) a.references = payload.references;
-        if (payload.publish !== undefined) a.publish = !!payload.publish;
-        if (payload.assigneeType !== undefined) a.assigneeType = payload.assigneeType;
-        if (Array.isArray(payload.assignees)) a.assignees = payload.assignees;
+        if (payload.title !== undefined) assignment.title = requireText(payload.title, "title");
+        const instructions = payload.description ?? payload.instructions;
+        if (instructions !== undefined) assignment.instructions = optionalText(instructions, "description");
+        const dueDate = parseOptionalDate(payload.dueDate, "dueDate");
+        if (dueDate !== undefined) assignment.dueDate = dueDate;
+        const rawPoints = payload.maxScore ?? payload.points;
+        if (rawPoints !== undefined) assignment.points = parsePoints(rawPoints, assignment.points);
+        if (payload.references !== undefined) assignment.references = optionalText(payload.references, "references");
+        if (payload.publish !== undefined) assignment.publish = parseBoolean(payload.publish);
+        if (payload.lockSubmissions !== undefined) assignment.lockSubmissions = parseBoolean(payload.lockSubmissions);
 
-        // NEW: lockSubmissions handling (instructor can toggle)
-        if (payload.lockSubmissions !== undefined) {
-            a.lockSubmissions = !!payload.lockSubmissions;
+        const targeting = await resolveAssignees(classroom, payload.assigneeType, payload.assignees);
+        if (targeting.assigneeType !== undefined) assignment.assigneeType = targeting.assigneeType;
+        if (targeting.assignees !== undefined) assignment.assignees = targeting.assignees;
+
+        if (payload.classesAssigned !== undefined) {
+            assignment.classesAssigned = parseIdList(payload.classesAssigned, "classesAssigned");
         }
 
-        if (Array.isArray(payload.classesAssigned)) {
-            a.classesAssigned = payload.classesAssigned;
-        } else if (payload.classesAssigned !== undefined) {
-            let list = payload.classesAssigned;
-            if (typeof list === "string") {
-                try { list = JSON.parse(list); } catch (e) { list = [list]; }
-            }
-            if (!Array.isArray(list)) list = [list];
-            a.classesAssigned = list.map(String).filter(Boolean);
-        }
-
-        let removeList = payload.removeAttachments || payload.removeAttachments || [];
-        if (typeof removeList === "string") {
-            try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
-        }
-        if (Array.isArray(removeList) && removeList.length) {
-            a.attachments = (a.attachments || []).filter(att => {
-                const match = removeList.includes(att.publicId) || removeList.includes(att.url) || removeList.includes(att.originalName) || removeList.includes(att._id?.toString?.());
-                if (match) {
-                    try { deleteResourceFromCloudinary(att.publicId || att.url, att.resourceType); }
-                    catch (e) { console.warn("Failed to delete assignment attachment:", e.message); }
-                }
-                return !match;
-            });
-        }
-
+        const removeList = parseStringList(payload.removeAttachments, "removeAttachments");
+        const { kept, removed } = applyAttachmentRemoval(assignment.attachments, removeList);
         const newFiles = pickMany(req.files, "attachments");
-        if (newFiles && newFiles.length) {
-            for (const f of newFiles) {
-                const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "assignments");
-                a.attachments.push({
-                    url: uploaded.secure_url || null,
-                    publicId: uploaded.public_id || null,
-                    originalName: f.name || f.name,
-                    mimeType: f.mimetype || null,
-                    size: f.size || null,
-                    resourceType: uploaded.resource_type || uploaded._resource_type || null,
-                });
-            }
-        }
+        if (newFiles.length > MAX_SUBMISSION_FILES) throw new HttpError(400, "Too many attachments");
+        const uploaded = await uploadAttachments(newFiles, process.env.FOLDER_NAME || "assignments");
+        assignment.attachments = [...kept, ...uploaded];
 
-        a.updatedAt = new Date();
-        await a.save();
-        return res.json({ success: true, data: a });
-    } catch (err) {
-        console.error("updateAssignment", err);
-        return res.status(500).json({ success: false, message: err.message });
+        assignment.updatedAt = new Date();
+        await assignment.save();
+        await discardCloudFiles(removed);
+        return res.json({ success: true, data: assignment });
+    } catch (error) {
+        return sendError(res, error, "updateAssignment");
+    }
+};
+
+exports.deleteAssignment = async (req, res) => {
+    try {
+        const { assignment, topic, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        assertStaff(classroom, req.user);
+        await deleteAssignmentsCascade([assignment._id]);
+        await Topic.updateOne({ _id: topic._id, assignmentsCount: { $gt: 0 } }, { $inc: { assignmentsCount: -1 } });
+        await Topic.updateOne({ _id: topic._id }, { $pull: { items: { refId: assignment._id } } });
+        return res.json({ success: true, data: { _id: String(assignment._id) } });
+    } catch (error) {
+        return sendError(res, error, "deleteAssignment");
     }
 };
 
 exports.submitAssignment = async (req, res) => {
     try {
-        const { assignmentId } = req.params;
-        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid assignment id" });
-
-        const assignment = await Assignment.findById(assignmentId).lean();
-        if (!assignment) return res.status(404).json({ success: false, message: "Assignment not found" });
-
-        // Check lock or due date
-        const now = new Date();
-        if (assignment.lockSubmissions) {
-            return res.status(403).json({ success: false, message: "Submissions have been locked by the instructor" });
-        }
-        if (assignment.dueDate && now > new Date(assignment.dueDate)) {
-            return res.status(403).json({ success: false, message: "Submission window has closed (due date passed)" });
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        const role = assertMember(classroom, req.user);
+        if (role !== "member") throw new HttpError(403, "Only students of this classroom can submit");
+        if (!assignment.publish) throw new HttpError(404, "Assignment not found");
+        if (!isAssignmentTargetedAt(assignment, req.user.id)) throw new HttpError(403, "This assignment is not assigned to you");
+        if (assignment.lockSubmissions) throw new HttpError(403, "Submissions have been locked by the instructor");
+        if (assignment.dueDate && new Date() > new Date(assignment.dueDate)) {
+            throw new HttpError(403, "Submission window has closed (due date passed)");
         }
 
-        // parse body fields
-        const content = req.body.content || "";
-        let removeList = req.body.removeAttachments || req.body.remove || [];
-        if (typeof removeList === "string") {
-            try { removeList = JSON.parse(removeList); } catch (e) { removeList = [removeList]; }
-        }
-        if (!Array.isArray(removeList)) removeList = [];
-
-        // handle uploaded files
+        const body = req.body || {};
+        const content = optionalText(body.content, "content");
+        const removeList = parseStringList(body.removeAttachments ?? body.remove, "removeAttachments");
         const newFiles = pickMany(req.files, "attachments");
-        const uploadedAttachments = [];
-        if (newFiles && newFiles.length) {
-            for (const f of newFiles) {
-                try {
-                    const uploaded = await uploadFileToCloudinary(f, process.env.FOLDER_NAME || "submissions");
-                    uploadedAttachments.push({
-                        url: uploaded.secure_url || null,
-                        publicId: uploaded.public_id || null,
-                        originalName: f.originalname || f.name,
-                        mimeType: f.mimetype || null,
-                        size: f.size || null,
-                        resourceType: uploaded.resource_type || uploaded._resource_type || null,
-                    });
-                } catch (uerr) {
-                    console.warn("upload for submission file failed", uerr);
-                }
-            }
-        }
+        if (newFiles.length > MAX_SUBMISSION_FILES) throw new HttpError(400, "Too many attachments");
 
-        // find existing submission for this student
-        let sub = await Submission.findOne({ assignment: assignmentId, student: req.user.id });
+        const existing = await Submission.findOne({ assignment: assignment._id, student: req.user.id });
+        if (existing && existing.grade !== null) throw new HttpError(409, "A graded submission can no longer be changed");
+        if (!existing && !content.trim() && newFiles.length === 0) throw new HttpError(400, "Submission is empty");
 
-        if (!sub) {
-            // create new submission
-            sub = new Submission({
-                assignment: assignmentId,
+        const uploaded = await uploadAttachments(newFiles, process.env.FOLDER_NAME || "submissions");
+
+        if (!existing) {
+            const created = await Submission.create({
+                assignment: assignment._id,
                 student: req.user.id,
                 content,
-                attachments: uploadedAttachments,
-                submittedAt: new Date(),
+                attachments: uploaded,
             });
-            await sub.save();
-            return res.json({ success: true, data: sub });
+            return res.json({ success: true, data: created });
         }
 
-        // existing submission -> revise if allowed (we already checked lock/dueDate)
-        // remove attachments listed in removeList (if any)
-        if (Array.isArray(removeList) && removeList.length) {
-            const kept = [];
-            for (const att of sub.attachments || []) {
-                const match = removeList.includes(att.publicId) || removeList.includes(att.url) || removeList.includes(att.originalName) || removeList.includes(att._id?.toString?.());
-                if (match) {
-                    try {
-                        if (att.publicId) await deleteResourceFromCloudinary(att.publicId, att.resourceType);
-                    } catch (e) {
-                        console.warn("failed to delete old submission file:", e);
-                    }
-                    // skip
-                } else {
-                    kept.push(att);
-                }
-            }
-            sub.attachments = kept;
-        }
-
-        // append new uploaded files (do not delete old ones unless requested)
-        if (uploadedAttachments.length) {
-            sub.attachments = (sub.attachments || []).concat(uploadedAttachments);
-        }
-
-        // update content and timestamp
-        sub.content = content || sub.content;
-        sub.submittedAt = new Date();
-        await sub.save();
-
-        return res.json({ success: true, data: sub });
-    } catch (err) {
-        console.error("submitAssignment", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { kept, removed } = applyAttachmentRemoval(existing.attachments, removeList);
+        existing.attachments = [...kept, ...uploaded];
+        existing.content = content || existing.content;
+        existing.submittedAt = new Date();
+        await existing.save();
+        await discardCloudFiles(removed);
+        return res.json({ success: true, data: existing });
+    } catch (error) {
+        return sendError(res, error, "submitAssignment");
     }
 };
 
 exports.getMySubmission = async (req, res) => {
     try {
-        const { assignmentId } = req.params;
-        if (!isValidId(assignmentId)) return res.status(400).json({ success: false, message: "Invalid assignment id" });
-        const sub = await Submission.findOne({ assignment: assignmentId, student: req.user.id }).lean();
-        if (!sub) return res.json({ success: true, data: null });
-        return res.json({ success: true, data: sub });
-    } catch (err) {
-        console.error("getMySubmission", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        assertMember(classroom, req.user);
+        const submission = await Submission.findOne({ assignment: assignment._id, student: req.user.id }).lean();
+        return res.json({ success: true, data: submission || null });
+    } catch (error) {
+        return sendError(res, error, "getMySubmission");
     }
 };
 
 exports.getSubmissions = async (req, res) => {
     try {
-        const { assignmentId } = req.params;
-        const subs = await Submission.find({ assignment: assignmentId }).populate("student", "firstName lastName email image").sort({ submittedAt: -1 }).lean();
-        return res.json({ success: true, data: subs });
-    } catch (err) {
-        console.error("getSubmissions", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.createQuiz = async (req, res) => {
-    try {
-        const { topicId } = req.params;
-        let { title, description, timeLimit, shuffle } = req.body || {};
-        if (!title) return res.status(400).json({ success: false, message: "title required" });
-        const q = await Quiz.create({ topic: topicId, title: title.trim(), description: description || "", timeLimit: Number(timeLimit) || 0, shuffle: !!shuffle, createdBy: req.user.id });
-        return res.json({ success: true, data: q });
-    } catch (err) {
-        console.error("createQuiz", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.getQuiz = async (req, res) => {
-    try {
-        const { quizId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
-        const q = await Quiz.findById(quizId).lean();
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-        return res.json({ success: true, data: q });
-    } catch (err) {
-        console.error("getQuiz", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.updateQuiz = async (req, res) => {
-    try {
-        const { quizId } = req.params;
-        const payload = req.body || {};
-        if (!mongoose.Types.ObjectId.isValid(String(quizId))) return res.status(400).json({ success: false, message: "Invalid id" });
-        const q = await Quiz.findById(quizId);
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-        ["title", "description"].forEach((f) => { if (payload[f] !== undefined) q[f] = payload[f]; });
-        if (payload.timeLimit !== undefined) q.timeLimit = Number(payload.timeLimit) || 0;
-        if (payload.shuffle !== undefined) q.shuffle = !!payload.shuffle;
-        if (payload.publish !== undefined) q.publish = !!payload.publish;
-        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-        await q.save();
-        return res.json({ success: true, data: q });
-    } catch (err) {
-        console.error("updateQuiz", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.listQuizzesByTopic = async (req, res) => {
-    try {
-        const { topicId } = req.params;
-        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
-        const quizzes = await Quiz.find({ topic: topicId }).sort({ createdAt: -1 }).lean();
-        return res.json({ success: true, data: quizzes });
-    } catch (err) {
-        console.error("listQuizzesByTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.listPublishedQuizzesByTopic = async (req, res) => {
-    try {
-        const { topicId } = req.params;
-        if (!isValidId(topicId)) return res.status(400).json({ success: false, message: "Invalid topic id" });
-        const quizzes = await Quiz.find({ topic: topicId, publish: true }).sort({ createdAt: -1 }).lean();
-        return res.json({ success: true, data: quizzes });
-    } catch (err) {
-        console.error("listPublishedQuizzesByTopic", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.deleteQuiz = async (req, res) => {
-    try {
-        const { quizId } = req.params;
-        if (!isValidId(quizId)) return res.status(400).json({ success: false, message: "Invalid quiz id" });
-
-        const q = await Quiz.findByIdAndDelete(quizId);
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-
-        return res.json({ success: true, data: { _id: quizId } });
-    } catch (err) {
-        console.error("deleteQuiz", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.createScreen = async (req, res) => {
-    try {
-        const { quizId } = req.params;
-        const { type, body = "", options = [], properties = {} } = req.body;
-        if (!type) return res.status(400).json({ success: false, message: "type required" });
-        const q = await Quiz.findById(quizId);
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-        const nextPos = (q.screens && q.screens.length > 0) ? Math.max(...q.screens.map((s) => s.position || 0)) + 1 : 1;
-        const screen = { type, body, options, properties, position: nextPos, status: "draft" };
-        q.screens.push(screen);
-        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-        await q.save();
-        const created = q.screens[q.screens.length - 1];
-        return res.json({ success: true, data: created });
-    } catch (err) {
-        console.error("createScreen", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.updateScreen = async (req, res) => {
-    try {
-        const { screenId } = req.params;
-        const payload = req.body || {};
-        const q = await Quiz.findOne({ "screens._id": screenId });
-        if (!q) return res.status(404).json({ success: false, message: "Screen not found" });
-        const sc = q.screens.id(screenId);
-        if (!sc) return res.status(404).json({ success: false, message: "Screen not found" });
-        ["body", "type", "status"].forEach((f) => { if (payload[f] !== undefined) sc[f] = payload[f]; });
-        if (payload.options !== undefined) sc.options = payload.options;
-        if (payload.properties !== undefined) sc.properties = payload.properties;
-        sc.meta = sc.meta || {}; sc.meta.updatedAt = new Date();
-        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-        await q.save();
-        return res.json({ success: true, data: sc });
-    } catch (err) {
-        console.error("updateScreen", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.deleteScreen = async (req, res) => {
-    try {
-        const { quizId, screenId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(String(quizId)) || !mongoose.Types.ObjectId.isValid(String(screenId))) return res.status(400).json({ success: false, message: "Invalid id" });
-        const q = await Quiz.findById(quizId);
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-        q.screens = q.screens.filter((s) => String(s._id) !== String(screenId));
-        q.screens.forEach((s, idx) => { s.position = idx + 1; });
-        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-        await q.save();
-        return res.json({ success: true, data: q });
-    } catch (err) {
-        console.error("deleteScreen", err);
-        return res.status(500).json({ success: false, message: err.message });
-    }
-};
-
-exports.reorderScreens = async (req, res) => {
-    try {
-        const { quizId } = req.params;
-        const { order } = req.body;
-        if (!Array.isArray(order)) return res.status(400).json({ success: false, message: "order must be array" });
-        const q = await Quiz.findById(quizId);
-        if (!q) return res.status(404).json({ success: false, message: "Quiz not found" });
-        const map = {};
-        (q.screens || []).forEach((s) => { map[String(s._id)] = s; });
-        const newScreens = [];
-        order.forEach((id, idx) => {
-            const found = map[String(id)];
-            if (found) {
-                found.position = idx + 1;
-                newScreens.push(found);
-                delete map[String(id)];
-            }
-        });
-        Object.keys(map).forEach((k) => {
-            const s = map[k];
-            s.position = newScreens.length + 1;
-            newScreens.push(s);
-        });
-        q.screens = newScreens;
-        q.meta = q.meta || {}; q.meta.updatedAt = new Date();
-        await q.save();
-        return res.json({ success: true });
-    } catch (err) {
-        console.error("reorderScreens", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        assertStaff(classroom, req.user);
+        const submissions = await Submission.find({ assignment: assignment._id })
+            .populate("student", USER_PUBLIC_FIELDS)
+            .sort({ submittedAt: -1 })
+            .lean();
+        return res.json({ success: true, data: submissions });
+    } catch (error) {
+        return sendError(res, error, "getSubmissions");
     }
 };
 
 exports.updateSubmission = async (req, res) => {
     try {
-        const { assignmentId, submissionId } = req.params;
+        assertValidId(req.params.submissionId, "submission id");
+        const { assignment, classroom } = await loadAssignmentContext(req.params.assignmentId);
+        assertStaff(classroom, req.user);
+
+        const submission = await Submission.findOne({ _id: req.params.submissionId, assignment: assignment._id });
+        if (!submission) throw new HttpError(404, "Submission not found");
+
         const payload = req.body || {};
-        if (!isValidId(assignmentId) || !isValidId(submissionId)) return res.status(400).json({ success: false, message: "Invalid id" });
-
-        const sub = await Submission.findOne({ _id: submissionId, assignment: assignmentId });
-        if (!sub) return res.status(404).json({ success: false, message: "Submission not found" });
-
         let changed = false;
         if (payload.grade !== undefined) {
-            sub.grade = payload.grade === "" || payload.grade === null ? null : Number(payload.grade);
+            const { grade } = payload;
+            if (grade === null || grade === "") {
+                submission.grade = null;
+            } else {
+                const isNumeric = typeof grade === "number" || (typeof grade === "string" && grade.trim() !== "");
+                const numericGrade = isNumeric ? Number(grade) : NaN;
+                if (!Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > assignment.points) {
+                    throw new HttpError(400, `grade must be a number between 0 and ${assignment.points}`);
+                }
+                submission.grade = numericGrade;
+            }
             changed = true;
         }
         if (payload.feedback !== undefined) {
-            sub.feedback = payload.feedback;
+            submission.feedback = optionalText(payload.feedback, "feedback", 5000);
             changed = true;
         }
         if (changed) {
-            sub.gradedBy = req.user.id;
-            sub.gradedAt = new Date();
-            await sub.save();
+            submission.gradedBy = req.user.id;
+            submission.gradedAt = new Date();
+            await submission.save();
         }
 
-        const populated = await Submission.findById(sub._id).populate("student", "firstName lastName email image").populate("gradedBy", "firstName lastName email").lean();
-
+        const populated = await Submission.findById(submission._id)
+            .populate("student", USER_PUBLIC_FIELDS)
+            .populate("gradedBy", "firstName lastName email")
+            .lean();
         return res.json({ success: true, data: populated });
-    } catch (err) {
-        console.error("updateSubmission", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "updateSubmission");
     }
 };
 
+exports.createQuiz = async (req, res) => {
+    try {
+        const { topic, classroom } = await loadTopicContext(req.params.topicId);
+        assertStaff(classroom, req.user);
+        const { title, description, timeLimit, shuffle } = req.body || {};
+        const quiz = await Quiz.create({
+            topic: topic._id,
+            title: requireText(title, "title"),
+            description: optionalText(description, "description"),
+            timeLimit: parsePoints(timeLimit, 0),
+            shuffle: parseBoolean(shuffle),
+            createdBy: req.user.id,
+        });
+        return res.json({ success: true, data: quiz });
+    } catch (error) {
+        return sendError(res, error, "createQuiz");
+    }
+};
+
+exports.getQuiz = async (req, res) => {
+    try {
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        const isStaff = isStaffRole(assertMember(classroom, req.user));
+        if (!isStaff && !quiz.publish) throw new HttpError(404, "Quiz not found");
+        return res.json({ success: true, data: await viewQuizForUser(quiz, req.user.id, isStaff) });
+    } catch (error) {
+        return sendError(res, error, "getQuiz");
+    }
+};
+
+exports.updateQuiz = async (req, res) => {
+    try {
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        assertStaff(classroom, req.user);
+        const payload = req.body || {};
+        if (payload.title !== undefined) quiz.title = requireText(payload.title, "title");
+        if (payload.description !== undefined) quiz.description = optionalText(payload.description, "description");
+        if (payload.timeLimit !== undefined) quiz.timeLimit = parsePoints(payload.timeLimit, 0);
+        if (payload.shuffle !== undefined) quiz.shuffle = parseBoolean(payload.shuffle);
+        if (payload.publish !== undefined) quiz.publish = parseBoolean(payload.publish);
+        quiz.meta.updatedAt = new Date();
+        await quiz.save();
+        return res.json({ success: true, data: quiz });
+    } catch (error) {
+        return sendError(res, error, "updateQuiz");
+    }
+};
+
+async function listQuizzesForViewer(req, res, { publishedOnly }) {
+    const { topic, classroom } = await loadTopicContext(req.params.topicId);
+    const isStaff = isStaffRole(assertMember(classroom, req.user));
+    const filter = { topic: topic._id };
+    if (publishedOnly || !isStaff) filter.publish = true;
+    const quizzes = await Quiz.find(filter).sort({ "meta.createdAt": -1 }).lean();
+    const data = isStaff ? quizzes : quizzes.map(stripQuizAnswerKeys);
+    return res.json({ success: true, data });
+}
+
+exports.listQuizzesByTopic = async (req, res) => {
+    try {
+        return await listQuizzesForViewer(req, res, { publishedOnly: false });
+    } catch (error) {
+        return sendError(res, error, "listQuizzesByTopic");
+    }
+};
+
+exports.listPublishedQuizzesByTopic = async (req, res) => {
+    try {
+        return await listQuizzesForViewer(req, res, { publishedOnly: true });
+    } catch (error) {
+        return sendError(res, error, "listPublishedQuizzesByTopic");
+    }
+};
+
+exports.deleteQuiz = async (req, res) => {
+    try {
+        const { quiz, topic, classroom } = await loadQuizContext(req.params.quizId);
+        assertStaff(classroom, req.user);
+        await deleteQuizzesCascade([quiz._id]);
+        await Topic.updateOne({ _id: topic._id }, { $pull: { items: { refId: quiz._id } } });
+        return res.json({ success: true, data: { _id: String(quiz._id) } });
+    } catch (error) {
+        return sendError(res, error, "deleteQuiz");
+    }
+};
+
+function parseScreenOptions(options) {
+    if (!Array.isArray(options) || options.length > 100) throw new HttpError(400, "Invalid options");
+    return options.map((option) => {
+        if (!option || typeof option !== "object") throw new HttpError(400, "Invalid options");
+        return { text: optionalText(option.text === undefined ? "" : String(option.text), "option text", 2000), correct: parseBoolean(option.correct) };
+    });
+}
+
+function parseScreenProperties(properties) {
+    if (!properties || typeof properties !== "object" || Array.isArray(properties)) throw new HttpError(400, "Invalid properties");
+    const parsed = {};
+    if (properties.timeLimit !== undefined) parsed.timeLimit = parsePoints(properties.timeLimit, 0);
+    if (properties.points !== undefined) parsed.points = parsePoints(properties.points, 1);
+    if (properties.answerMode !== undefined) parsed.answerMode = properties.answerMode;
+    return parsed;
+}
+
+exports.createScreen = async (req, res) => {
+    try {
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        assertStaff(classroom, req.user);
+        const { type, body, options, properties } = req.body || {};
+        if (!isNonEmptyString(type)) throw new HttpError(400, "type required");
+        const nextPosition = quiz.screens.length > 0 ? Math.max(...quiz.screens.map((screen) => screen.position || 0)) + 1 : 1;
+        quiz.screens.push({
+            type,
+            body: optionalText(body, "body"),
+            options: options === undefined ? [] : parseScreenOptions(options),
+            properties: properties === undefined ? {} : parseScreenProperties(properties),
+            position: nextPosition,
+            status: "draft",
+        });
+        quiz.meta.updatedAt = new Date();
+        await quiz.save();
+        return res.json({ success: true, data: quiz.screens[quiz.screens.length - 1] });
+    } catch (error) {
+        return sendError(res, error, "createScreen");
+    }
+};
+
+exports.updateScreen = async (req, res) => {
+    try {
+        const { quiz, classroom } = await loadScreenContext(req.params.screenId);
+        assertStaff(classroom, req.user);
+        const screen = quiz.screens.id(req.params.screenId);
+        if (!screen) throw new HttpError(404, "Screen not found");
+        const payload = req.body || {};
+        if (payload.body !== undefined) screen.body = optionalText(payload.body, "body");
+        if (payload.type !== undefined) screen.type = payload.type;
+        if (payload.status !== undefined) screen.status = payload.status;
+        if (payload.options !== undefined) screen.options = parseScreenOptions(payload.options);
+        if (payload.properties !== undefined) {
+            Object.entries(parseScreenProperties(payload.properties)).forEach(([key, value]) => {
+                screen.set(`properties.${key}`, value);
+            });
+        }
+        screen.meta.updatedAt = new Date();
+        quiz.meta.updatedAt = new Date();
+        await quiz.save();
+        return res.json({ success: true, data: screen });
+    } catch (error) {
+        return sendError(res, error, "updateScreen");
+    }
+};
+
+exports.deleteScreen = async (req, res) => {
+    try {
+        assertValidId(req.params.screenId, "screen id");
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        assertStaff(classroom, req.user);
+        if (!quiz.screens.id(req.params.screenId)) throw new HttpError(404, "Screen not found");
+        quiz.screens.pull({ _id: req.params.screenId });
+        quiz.screens.forEach((screen, index) => {
+            screen.position = index + 1;
+        });
+        quiz.meta.updatedAt = new Date();
+        await quiz.save();
+        return res.json({ success: true, data: quiz });
+    } catch (error) {
+        return sendError(res, error, "deleteScreen");
+    }
+};
+
+exports.reorderScreens = async (req, res) => {
+    try {
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        assertStaff(classroom, req.user);
+        const order = req.body && req.body.order;
+        if (!Array.isArray(order) || order.length > MAX_LIST_LENGTH || !order.every(isValidId)) {
+            throw new HttpError(400, "order must be an array of screen ids");
+        }
+        const remaining = new Map(quiz.screens.map((screen) => [String(screen._id), screen]));
+        const reordered = [];
+        order.forEach((screenId) => {
+            const found = remaining.get(screenId);
+            if (found) {
+                reordered.push(found);
+                remaining.delete(screenId);
+            }
+        });
+        remaining.forEach((screen) => reordered.push(screen));
+        reordered.forEach((screen, index) => {
+            screen.position = index + 1;
+        });
+        quiz.screens = reordered;
+        quiz.meta.updatedAt = new Date();
+        await quiz.save();
+        return res.json({ success: true });
+    } catch (error) {
+        return sendError(res, error, "reorderScreens");
+    }
+};
+
+function isValidProvidedAnswer(provided) {
+    if (provided === undefined || provided === null) return true;
+    if (typeof provided === "string") return provided.length <= 2000;
+    if (typeof provided === "number" || typeof provided === "boolean") return true;
+    return Array.isArray(provided) && provided.length <= 100 && provided.every((entry) => typeof entry === "string" || typeof entry === "number");
+}
+
 exports.submitAttempt = async (req, res) => {
     try {
-        const { quizId } = req.params;
-        const userId = req.user.id;
-        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
-            return res.status(400).json({ success: false, message: "Invalid quiz id" });
-        }
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        const role = assertMember(classroom, req.user);
+        if (!quiz.publish && !isStaffRole(role)) throw new HttpError(403, "Quiz is not published");
 
         const payload = req.body || {};
-        const incoming = Array.isArray(payload.answers) ? payload.answers : [];
-        const finishNow = !!payload.finish;
-
-        const quiz = await Quiz.findById(quizId).lean();
-        if (!quiz) return res.status(404).json({ success: false, message: "Quiz not found" });
-
-        let attempt = await Attempt.findOne({ quiz: quizId, user: userId });
-        if (!attempt) {
-            attempt = new Attempt({ quiz: quizId, user: userId, answers: [], totalPoints: 0 });
+        if (payload.answers !== undefined && (!Array.isArray(payload.answers) || payload.answers.length > MAX_ANSWERS_PER_REQUEST)) {
+            throw new HttpError(400, "answers must be an array");
+        }
+        const incoming = payload.answers || [];
+        for (const answer of incoming) {
+            if (!answer || typeof answer !== "object" || !isValidId(answer.screenId) || !isValidProvidedAnswer(answer.provided)) {
+                throw new HttpError(400, "Invalid answer payload");
+            }
         }
 
-        const screenMap = {};
-        (quiz.screens || []).forEach(s => { screenMap[String(s._id)] = s; });
+        let attempt = await Attempt.findOne({ quiz: quiz._id, user: req.user.id });
+        if (attempt && attempt.finishedAt) throw new HttpError(409, "Attempt already finished");
+        const isFirstSubmission = !attempt;
+        if (!attempt) attempt = new Attempt({ quiz: quiz._id, user: req.user.id });
 
-        for (const ans of incoming) {
-            const sid = String(ans.screenId);
-            if (!screenMap[sid]) continue;
-            const timeTaken = Number(ans.timeTaken || 0);
-            const provided = ans.provided;
-            const evalRes = evaluateScreenAnswer(screenMap[sid], provided, timeTaken);
+        const now = new Date();
+        const lastActivity = isFirstSubmission ? now : new Date(attempt.meta.updatedAt || attempt.startedAt);
+        const screensById = new Map(quiz.screens.map((screen) => [String(screen._id), screen.toObject()]));
+        const answeredIds = new Set(attempt.answers.map((answer) => String(answer.screenId)));
 
-            const idx = attempt.answers.findIndex(a => String(a.screenId) === sid);
-            const entry = {
-                screenId: new mongoose.Types.ObjectId(sid),
-                provided,
-                correct: !!evalRes.correct,
-                points: evalRes.pointsEarned,
-                basePoints: evalRes.base,
-                timeTaken: evalRes.timeTaken,
-                timeBonus: evalRes.timeBonus
-            };
-
-            if (idx === -1) attempt.answers.push(entry);
-            else attempt.answers[idx] = entry;
+        const newAnswers = [];
+        for (const answer of incoming) {
+            const screenId = String(answer.screenId);
+            if (!screensById.has(screenId) || answeredIds.has(screenId)) continue;
+            answeredIds.add(screenId);
+            newAnswers.push(answer);
         }
 
-        attempt.totalPoints = (attempt.answers || []).reduce((s, a) => s + (a.points || 0), 0);
-        if (finishNow) attempt.finishedAt = new Date();
-        attempt.meta = attempt.meta || {};
-        attempt.meta.updatedAt = new Date();
+        const elapsedSeconds = Math.max(0, (now - lastActivity) / 1000);
+        const sharedElapsed = newAnswers.length > 0 ? elapsedSeconds / newAnswers.length : 0;
+        for (const answer of newAnswers) {
+            const screen = screensById.get(String(answer.screenId));
+            const screenLimit = Number(screen.properties?.timeLimit) || quiz.timeLimit || Infinity;
+            const claimedSeconds = Math.max(0, Number(answer.timeTaken) || 0);
+            const timeTaken = Math.min(isFirstSubmission ? claimedSeconds : sharedElapsed, screenLimit);
+            const evaluation = evaluateScreenAnswer(screen, answer.provided, timeTaken);
+            attempt.answers.push({
+                screenId: new mongoose.Types.ObjectId(String(answer.screenId)),
+                provided: answer.provided,
+                correct: evaluation.correct,
+                points: evaluation.pointsEarned,
+                basePoints: evaluation.base,
+                timeTaken: evaluation.timeTaken,
+                timeBonus: evaluation.timeBonus,
+            });
+        }
+
+        attempt.totalPoints = attempt.answers.reduce((sum, answer) => sum + (answer.points || 0), 0);
+        if (parseBoolean(payload.finish)) attempt.finishedAt = now;
+        attempt.meta.updatedAt = now;
         await attempt.save();
 
         return res.json({ success: true, data: attempt });
-    } catch (err) {
-        console.error("submitAttempt", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "submitAttempt");
     }
 };
 
 exports.getLeaderboard = async (req, res) => {
     try {
-        const { quizId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(String(quizId))) {
-            return res.status(400).json({ success: false, message: "Invalid quiz id" });
-        }
+        const { quiz, classroom } = await loadQuizContext(req.params.quizId);
+        const isStaff = isStaffRole(assertMember(classroom, req.user));
+        if (!isStaff && !quiz.publish) throw new HttpError(404, "Quiz not found");
 
-        const pipeline = [
-            { $match: { quiz: new mongoose.Types.ObjectId(quizId) } },
+        const rows = await Attempt.aggregate([
+            { $match: { quiz: quiz._id } },
             { $sort: { totalPoints: -1, finishedAt: 1 } },
-            {
-                $group: {
-                    _id: "$user",
-                    bestScore: { $max: "$totalPoints" },
-                    lastAttemptAt: { $first: "$finishedAt" }
-                }
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "user"
-                }
-            },
+            { $group: { _id: "$user", bestScore: { $max: "$totalPoints" }, lastAttemptAt: { $first: "$finishedAt" } } },
+            { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user" } },
             { $unwind: "$user" },
             {
                 $project: {
@@ -1029,28 +1057,22 @@ exports.getLeaderboard = async (req, res) => {
                     userId: "$_id",
                     name: { $concat: ["$user.firstName", " ", "$user.lastName"] },
                     score: "$bestScore",
-                    lastAttemptAt: 1
-                }
+                    lastAttemptAt: 1,
+                },
             },
-            { $sort: { score: -1, lastAttemptAt: 1 } }
-        ];
+            { $sort: { score: -1, lastAttemptAt: 1 } },
+        ]).allowDiskUse(true);
 
-        const rows = await Attempt.aggregate(pipeline).allowDiskUse(true);
-
-        const board = (rows || []).map((r, i) => ({
-            id: String(r.userId),
-            name: r.name || "Unknown",
-            score: r.score || 0,
-            rank: i + 1
+        const board = rows.map((row, index) => ({
+            id: String(row.userId),
+            name: row.name || "Unknown",
+            score: row.score || 0,
+            rank: index + 1,
         }));
+        const me = board.find((entry) => entry.id === String(req.user.id)) || null;
 
-        const userIdStr = String(req.user.id);
-        const meRow = board.find(b => b.id === userIdStr) || null;
-
-        return res.json({ success: true, data: { board, me: meRow } });
-    } catch (err) {
-        console.error("getLeaderboard", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return res.json({ success: true, data: { board, me } });
+    } catch (error) {
+        return sendError(res, error, "getLeaderboard");
     }
 };
-

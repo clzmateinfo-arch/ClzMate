@@ -1,4 +1,3 @@
-// ManageLinkCourse.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useLocation } from "react-router-dom";

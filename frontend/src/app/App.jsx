@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import AppRoutes from "@/app/routes/router";
 import Loading from "@/shared/components/navigation/Loading";
 import ErrorBoundary from "@/shared/components/feedback/ErrorBoundary";
+import ServerStatusIndicator from "@/shared/components/feedback/ServerStatusIndicator";
 import bgImage from "@/shared/assets/images/background.png";
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <AppRoutes />
         </Suspense>
       </ErrorBoundary>
+      <ServerStatusIndicator />
     </div>
   );
 }

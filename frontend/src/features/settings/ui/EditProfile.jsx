@@ -1,4 +1,3 @@
-// frontend/src/features/settings/ui/EditProfile.jsx
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";

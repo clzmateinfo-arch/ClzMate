@@ -11,7 +11,7 @@ import MultiUpload from "@/shared/components/ui/MultiUpload";
 import { useLocation } from "react-router-dom";
 import Input from "@/shared/components/ui/Input";
 import Textarea from "../../../../shared/components/ui/Textarea";
-import ExternalVideo from "@/shared/components/ui/ExternalVideo";
+import ExternalVideo from "@/shared/components/app/ExternalVideo";
 
 export default function SubSectionModal({ modalData, setModalData, add = false, view = false, edit = false, _disabled = false }) {
   const { register, control, handleSubmit, setValue, reset, formState: { errors }, getValues, watch } = useForm({

@@ -1,4 +1,3 @@
-// frontend/src/pages/user/PublicProfile.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { apiConnector } from "@/shared/services/api/apiConnector";
@@ -105,9 +104,6 @@ export default function PublicProfile() {
                             <p className="text-xl font-semibold text-richblack-900 truncate">
                                 {displayName}
                             </p>
-                            {!isProtected && profile?.email && (
-                                <p className="text-sm text-richblack-400">{profile.email}</p>
-                            )}
                             {!isProtected && profile?.createdAt && (
                                 <p className="text-xs text-richblack-400 mt-1">
                                     Member since {formattedDate(profile.createdAt)}
@@ -158,24 +154,6 @@ export default function PublicProfile() {
                                             {profile?.firstName ?? "-"}
                                         </p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-richblack-400 mb-1">Phone Number</p>
-                                        <p className="text-sm font-semibold text-richblack-900">
-                                            {profile?.additionalDetails?.contactNumber ?? "Not set"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-richblack-400 mb-1">Date Of Birth</p>
-                                        <p className="text-sm font-semibold text-richblack-900">
-                                            {formattedDate(profile?.additionalDetails?.dateOfBirth) ?? "Not set"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-richblack-400 mb-1">Account Type</p>
-                                        <p className="text-sm font-semibold text-richblack-900 capitalize">
-                                            {profile?.accountType ?? "-"}
-                                        </p>
-                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-4">
@@ -183,18 +161,6 @@ export default function PublicProfile() {
                                         <p className="text-xs text-richblack-400 mb-1">Last Name</p>
                                         <p className="text-sm font-semibold text-richblack-900 capitalize">
                                             {profile?.lastName ?? "-"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-richblack-400 mb-1">Email</p>
-                                        <p className="text-sm font-semibold text-richblack-900">
-                                            {profile?.email ?? "-"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-richblack-400 mb-1">Gender</p>
-                                        <p className="text-sm font-semibold text-richblack-900">
-                                            {profile?.additionalDetails?.gender ?? "Not set"}
                                         </p>
                                     </div>
                                 </div>

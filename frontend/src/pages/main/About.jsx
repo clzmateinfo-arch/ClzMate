@@ -120,12 +120,6 @@ const About = () => {
                 twitter="twitter"
                 bio="Computer Science & ICT Lecture, Software Engineer, Web Developer, BSc (Hons) Information Technology & Management - University of Moratuwa"
               />
-              {/* <TeamMember
-            name="Nimantha Hennayake"
-            role="Developer"
-            avatar={NimanthaImg}
-            bio="Web developer who support to maintain this :)"
-          /> */}
             </div>
           </div>
         </div>

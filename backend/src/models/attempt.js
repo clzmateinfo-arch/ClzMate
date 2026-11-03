@@ -24,4 +24,6 @@ const attemptSchema = new mongoose.Schema({
     }
 });
 
+attemptSchema.index({ quiz: 1, user: 1 }, { unique: true });
+
 module.exports = createModel("Attempt", attemptSchema);

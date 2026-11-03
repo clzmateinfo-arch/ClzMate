@@ -6,8 +6,10 @@ export default function MultipleScreen({
   onSubmitMultiple = () => {},
   showCorrect = false,
   answerMode = "single",
+  result = null,
 }) {
   const opts = screen.options || [];
+  const hasAnswerKey = opts.some((o) => o.correct === true);
 
   const isSelected = (i) => {
     if (Array.isArray(selected)) return selected.map(String).includes(String(i));
@@ -18,9 +20,8 @@ export default function MultipleScreen({
     <div className="grid grid-cols-1 gap-4">
       {opts.map((opt, i) => {
         const selectedNow = isSelected(i);
-        const correct = !!opt.correct;
-        const revealCorrect = showCorrect && correct;
-        const revealWrong = showCorrect && selectedNow && !correct;
+        const revealCorrect = showCorrect && (hasAnswerKey ? opt.correct === true : selectedNow && result?.correct === true);
+        const revealWrong = showCorrect && selectedNow && (hasAnswerKey ? opt.correct !== true : result?.correct === false);
 
         const baseClasses =
           "w-full text-left p-4 rounded-xl transition transform border shadow-sm flex items-center gap-4 focus:outline-none";

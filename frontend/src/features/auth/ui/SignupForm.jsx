@@ -10,6 +10,8 @@ import SocialAuthButton from "@/shared/components/helpers/SocialAuthButton";
 import FieldsetRadio from "@/shared/components/ui/FieldsetRadio";
 import { ACCOUNT_TYPE_PUBLIC } from "@/utils/constants";
 
+const MIN_PASSWORD_LENGTH = 8;
+
 export default function SignupForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -32,7 +34,10 @@ export default function SignupForm() {
       setErrors((prev) => ({ ...prev, accountType: "Please select a accountType" }));
       hasError = true;
     }
-    if (password !== confirmPassword) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setErrors((prev) => ({ ...prev, password: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` }));
+      hasError = true;
+    } else if (password !== confirmPassword) {
       setErrors((prev) => ({ ...prev, password: "Passwords do not match" }));
       hasError = true;
     }
@@ -40,7 +45,7 @@ export default function SignupForm() {
 
     dispatch(
       register(
-        { preferredName, firstName: "", lastName: "", email, password, confirmPassword, contactNumber: "", accountType, otp: 0 },
+        { preferredName, firstName: "", lastName: "", email, password, confirmPassword, contactNumber: "", accountType },
         navigate
       )
     );
@@ -90,7 +95,7 @@ export default function SignupForm() {
           onChange={(val) => setRole(val)}
           required
           error={errors.accountType}
-          helpText="Choose the role that best describes you"
+          helpText={accountType === ACCOUNT_TYPE_PUBLIC.INSTRUCTOR ? "Instructor accounts need admin approval before you can use instructor features" : "Choose the role that best describes you"}
           orientation="row"
         />
 
@@ -129,7 +134,7 @@ export default function SignupForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder="At least 8 characters"
             required
             error={errors.password}
             showPasswordToggle={true}

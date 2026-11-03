@@ -1,33 +1,55 @@
 const crypto = require("crypto");
-const mongoose = require("mongoose");
 const Classroom = require("../models/classroom");
 const User = require("../models/user");
+const { escapeRegex, isNonEmptyString } = require("../middleware/sanitize");
+const {
+    HttpError,
+    isValidId,
+    assertValidId,
+    sendError,
+    getRoleInClassroom,
+    resolveRole,
+    assertMember,
+    assertStaff,
+    isStaffRole,
+    loadClassroomOrFail,
+    serializeClassroomForViewer,
+} = require("../utils/classroomAccess");
 
-function makeInviteCode() {
-    return crypto.randomBytes(4).toString("hex");
-}
+const MAX_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 5000;
+const USER_PUBLIC_FIELDS = "firstName lastName email image";
+
+const makeInviteCode = () => crypto.randomBytes(8).toString("hex");
+
+const parsePositiveInt = (value, fallback) => {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
 
 exports.createClassroom = async (req, res) => {
     try {
-        const { title, description } = req.body;
-        if (!title) return res.status(400).json({ success: false, message: "Title required" });
+        const { title, description } = req.body || {};
+        if (!isNonEmptyString(title) || title.trim().length > MAX_TITLE_LENGTH) {
+            return res.status(400).json({ success: false, message: "Title required" });
+        }
+        if (description !== undefined && (typeof description !== "string" || description.length > MAX_DESCRIPTION_LENGTH)) {
+            return res.status(400).json({ success: false, message: "Invalid description" });
+        }
 
         const owner = req.user.id;
-        const inviteCode = makeInviteCode();
-
         const classroom = await Classroom.create({
-            title,
+            title: title.trim(),
             description: description || "",
             owner,
-            inviteCode,
+            inviteCode: makeInviteCode(),
             members: [{ user: owner, role: "Instructor" }],
             coInstructors: [],
         });
 
         return res.status(200).json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("createClassroom", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "createClassroom");
     }
 };
 
@@ -35,178 +57,155 @@ exports.getMyClassrooms = async (req, res) => {
     try {
         const userId = req.user.id;
         const type = String(req.query.type || "all").toLowerCase();
-        const page = Math.max(1, parseInt(req.query.page || "1", 10));
-        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit || "6", 10)));
-        const search = (req.query.search || "").trim();
+        const page = parsePositiveInt(req.query.page, 1);
+        const limit = Math.min(100, parsePositiveInt(req.query.limit, 6));
+        const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
 
+        const involvement = [
+            { owner: userId },
+            { "members.user": userId },
+            { coInstructors: userId },
+            { guests: userId },
+        ];
         const match = {};
         if (type === "owned") {
             match.owner = userId;
         } else if (type === "joined") {
-            match.$and = [
-                { owner: { $ne: userId } },
-                {
-                    $or: [
-                        { "members.user": userId },
-                        { coInstructors: userId },
-                        { guests: userId },
-                    ],
-                },
-            ];
+            match.$and = [{ owner: { $ne: userId } }, { $or: involvement.slice(1) }];
         } else {
-            match.$or = [
-                { owner: userId },
-                { "members.user": userId },
-                { coInstructors: userId },
-                { guests: userId },
-            ];
+            match.$or = involvement;
         }
-
-        if (search) {
-            match.title = { $regex: search, $options: "i" };
-        }
+        if (search) match.title = { $regex: escapeRegex(search), $options: "i" };
 
         const total = await Classroom.countDocuments(match);
-        const skip = (page - 1) * limit;
-
         const classrooms = await Classroom.find(match)
             .sort({ "meta.updatedAt": -1, "meta.createdAt": -1 })
-            .skip(skip)
+            .skip((page - 1) * limit)
             .limit(limit)
-            .populate("owner", "firstName lastName email image")
-            .populate("members.user", "firstName lastName email image")
+            .populate("owner", USER_PUBLIC_FIELDS)
+            .populate("members.user", USER_PUBLIC_FIELDS)
             .lean();
 
-        return res.status(200).json({
-            success: true,
-            data: classrooms,
-            total,
-            page,
-            limit,
-        });
-    } catch (err) {
-        console.error("getMyClassrooms", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const data = classrooms.map((classroom) =>
+            serializeClassroomForViewer(classroom, isStaffRole(resolveRole(classroom, req.user)))
+        );
+
+        return res.status(200).json({ success: true, data, total, page, limit });
+    } catch (error) {
+        return sendError(res, error, "getMyClassrooms");
     }
 };
 
 exports.getClassroom = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ success: false, message: "Invalid id" });
-
-        const classroom = await Classroom.findById(id)
-            .populate("owner", "firstName lastName email image")
-            .populate("members.user", "firstName lastName email image")
-            .lean();
-
-        if (!classroom) return res.status(404).json({ success: false, message: "Not found" });
-        return res.status(200).json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("getClassroom", err);
-        return res.status(500).json({ success: false, message: err.message });
+        const classroom = await loadClassroomOrFail(req.params.id);
+        const role = assertMember(classroom, req.user);
+        await classroom.populate([
+            { path: "owner", select: USER_PUBLIC_FIELDS },
+            { path: "members.user", select: USER_PUBLIC_FIELDS },
+        ]);
+        return res.status(200).json({ success: true, data: serializeClassroomForViewer(classroom, isStaffRole(role)) });
+    } catch (error) {
+        return sendError(res, error, "getClassroom");
     }
 };
 
 exports.joinByInviteCode = async (req, res) => {
     try {
-        const { inviteCode } = req.body;
-        if (!inviteCode) return res.status(400).json({ success: false, message: "inviteCode required" });
+        const { inviteCode } = req.body || {};
+        if (!isNonEmptyString(inviteCode)) {
+            return res.status(400).json({ success: false, message: "inviteCode required" });
+        }
         const userId = req.user.id;
 
-        const classroom = await Classroom.findOne({ inviteCode });
+        const classroom = await Classroom.findOne({ inviteCode: inviteCode.trim() });
         if (!classroom) return res.status(404).json({ success: false, message: "Invalid invite code" });
 
-        const already = classroom.members.find(m => String(m.user) === String(userId));
-        if (already) return res.status(200).json({ success: true, message: "Already a member", data: classroom });
-
-        const user = await User.findById(userId).lean();
-        let roleToAssign = "Student";
-
-        if (user && user.accountType === "Instructor") {
-            if (String(classroom.owner) !== String(userId)) {
-                roleToAssign = "CoInstructor";
-            } else {
-                roleToAssign = "Instructor";
-            }
-        } else {
-            roleToAssign = "Student";
+        if (getRoleInClassroom(classroom, userId)) {
+            return res.status(200).json({
+                success: true,
+                message: "Already a member",
+                data: serializeClassroomForViewer(classroom, false),
+            });
         }
 
-        classroom.members.push({ user: userId, role: roleToAssign });
+        const updated = await Classroom.findOneAndUpdate(
+            { _id: classroom._id, "members.user": { $ne: userId } },
+            { $push: { members: { user: userId, role: "Student" } }, $set: { "meta.updatedAt": new Date() } },
+            { new: true }
+        );
 
-        if (roleToAssign === "CoInstructor") {
-            const existsInCo = classroom.coInstructors && classroom.coInstructors.find(ci => String(ci) === String(userId));
-            if (!existsInCo) classroom.coInstructors.push(userId);
-        }
-
-        await classroom.save();
-
-        return res.status(200).json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("joinByInviteCode", err);
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(200).json({
+            success: true,
+            data: serializeClassroomForViewer(updated || classroom, false),
+        });
+    } catch (error) {
+        return sendError(res, error, "joinByInviteCode");
     }
 };
 
 exports.addMember = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const { userIdToAdd } = req.body;
-        if (!mongoose.Types.ObjectId.isValid(classroomId)) return res.status(400).json({ success: false, message: "Invalid id" });
-        if (!mongoose.Types.ObjectId.isValid(userIdToAdd)) return res.status(400).json({ success: false, message: "Invalid userId" });
+        const { userIdToAdd } = req.body || {};
+        const classroom = await loadClassroomOrFail(req.params.id);
+        const actorRole = assertStaff(classroom, req.user);
+        if (!isValidId(userIdToAdd)) return res.status(400).json({ success: false, message: "Invalid userId" });
 
-        const classroom = await Classroom.findById(classroomId);
-        if (!classroom) return res.status(404).json({ success: false, message: "Not found" });
+        const userToAdd = await User.findById(userIdToAdd).select("accountType").lean();
+        if (!userToAdd) return res.status(404).json({ success: false, message: "User not found" });
 
-        if (String(req.user.id) !== String(classroom.owner) && classroom.members.every(m => String(m.user) !== String(req.user.id) || m.role === "Student")) {
-            return res.status(403).json({ success: false, message: "Forbidden" });
+        const isOwnerLevelActor = actorRole === "owner" || actorRole === "admin";
+        const shouldBeCoInstructor = isOwnerLevelActor && userToAdd.accountType === "Instructor";
+
+        const existing = classroom.members.find((entry) => String(entry.user) === String(userIdToAdd));
+        if (String(classroom.owner) === String(userIdToAdd)) {
+            return res.status(200).json({ success: true, message: "Already a member", data: classroom });
+        }
+        if (existing && !(shouldBeCoInstructor && existing.role !== "CoInstructor")) {
+            return res.status(200).json({ success: true, message: "Already a member", data: classroom });
         }
 
-        const exists = classroom.members.find(m => String(m.user) === String(userIdToAdd));
-        if (exists) return res.status(200).json({ success: true, message: "Already a member", data: classroom });
-
-        const userToAdd = await User.findById(userIdToAdd).lean();
-        let role = "Student";
-        if (userToAdd && userToAdd.accountType === "Instructor") {
-            if (String(classroom.owner) !== String(userIdToAdd)) role = "CoInstructor";
-            else role = "Instructor";
+        if (existing) {
+            existing.role = "CoInstructor";
+        } else {
+            classroom.members.push({ user: userIdToAdd, role: shouldBeCoInstructor ? "CoInstructor" : "Student" });
         }
-
-        classroom.members.push({ user: userIdToAdd, role });
-        if (role === "CoInstructor") {
-            const existsInCo = classroom.coInstructors && classroom.coInstructors.find(ci => String(ci) === String(userIdToAdd));
-            if (!existsInCo) classroom.coInstructors.push(userIdToAdd);
+        if (shouldBeCoInstructor && !classroom.coInstructors.some((id) => String(id) === String(userIdToAdd))) {
+            classroom.coInstructors.push(userIdToAdd);
         }
-
+        classroom.meta.updatedAt = new Date();
         await classroom.save();
 
         return res.status(200).json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("addMember", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "addMember");
     }
 };
 
 exports.removeMember = async (req, res) => {
     try {
-        const { classroomId } = req.params;
-        const { userIdToRemove } = req.body;
-        if (!mongoose.Types.ObjectId.isValid(classroomId)) return res.status(400).json({ success: false, message: "Invalid id" });
+        const { userIdToRemove } = req.body || {};
+        const classroom = await loadClassroomOrFail(req.params.id);
+        const actorRole = assertStaff(classroom, req.user);
+        assertValidId(userIdToRemove, "userId");
 
-        const classroom = await Classroom.findById(classroomId);
-        if (!classroom) return res.status(404).json({ success: false, message: "Not found" });
+        if (String(classroom.owner) === String(userIdToRemove)) {
+            throw new HttpError(400, "The classroom owner cannot be removed");
+        }
+        const targetRole = getRoleInClassroom(classroom, userIdToRemove);
+        if (!targetRole) throw new HttpError(404, "User is not part of this classroom");
+        if (targetRole === "coInstructor" && actorRole !== "owner" && actorRole !== "admin") {
+            throw new HttpError(403, "Only the owner can remove a co-instructor");
+        }
 
-        if (String(req.user.id) !== String(classroom.owner)) return res.status(403).json({ success: false, message: "Forbidden" });
-
-        classroom.members = classroom.members.filter(m => String(m.user) !== String(userIdToRemove));
-        classroom.coInstructors = classroom.coInstructors.filter(c => String(c) !== String(userIdToRemove));
-        classroom.guests = classroom.guests.filter(g => String(g) !== String(userIdToRemove));
+        classroom.members = classroom.members.filter((entry) => String(entry.user) !== String(userIdToRemove));
+        classroom.coInstructors = classroom.coInstructors.filter((id) => String(id) !== String(userIdToRemove));
+        classroom.guests = classroom.guests.filter((id) => String(id) !== String(userIdToRemove));
+        classroom.meta.updatedAt = new Date();
         await classroom.save();
 
         return res.status(200).json({ success: true, data: classroom });
-    } catch (err) {
-        console.error("removeMember", err);
-        return res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+        return sendError(res, error, "removeMember");
     }
 };

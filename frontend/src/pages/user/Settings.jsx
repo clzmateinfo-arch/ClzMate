@@ -16,15 +16,9 @@ export default function Settings() {
       />
       <div className="mx-auto w-11/12 max-w-maxContent mt-8 xl:max-w-[60%] lg:max-w-[85%] md:max-w-[95%] sm:max-w-[100%]">
         <ChangeProfilePicture />
-        {/* <div className="flex flex-col gap-5 lg:flex-row">
-          <div className="relative flex flex-col gap-2 lg:w-1/2"> */}
             <EditProfile />
-          {/* </div>
-          <div className="relative flex flex-col gap-2 lg:w-1/2"> */}
             <UpdatePassword />
             <DeleteAccount />
-          {/* </div>
-        </div> */}
       </div>
     </div>
   );

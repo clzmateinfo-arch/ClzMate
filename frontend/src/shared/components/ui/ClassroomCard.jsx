@@ -16,15 +16,10 @@ export default function ClassroomCard({ classroom = {}, onOpen = () => { }, onMe
     const updatedAt = meta?.updatedAt || meta?.createdAt || classroom?.meta?.createdAt || new Date().toISOString();
     const formattedDate = new Date(updatedAt).toLocaleString();
 
-    const ownerName = owner?.firstName ? `${owner.firstName} ${owner.lastName || ""}` : (owner?.email || ",");
+    const ownerName = owner?.firstName ? `${owner.firstName} ${owner.lastName || ""}` : "-";
 
     const copyInviteCode = (inviteCode) => {
         if (inviteCode) {
-            try {
-                navigator.clipboard?.writeText(inviteCode);
-            } catch (e) {
-                console.warn("ClassroomCard: Clipboard copy failed", e);
-            }
             onCopyInvite(inviteCode);
         }
     }
@@ -68,16 +63,21 @@ export default function ClassroomCard({ classroom = {}, onOpen = () => { }, onMe
 
             <div className="mt-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <div
-                        className="px-2 py-1 bg-white/6 rounded text-xs font-mono text-slate-500"
-                        onClick={() => copyInviteCode(inviteCode)}
-                    >{inviteCode || ","}</div>
-                    <button
-                        onClick={() => copyInviteCode(inviteCode)}
-                        type="button"
-                    >
-                        <MdContentCopy />
-                    </button>
+                    {inviteCode && (
+                        <>
+                            <div
+                                className="px-2 py-1 bg-white/6 rounded text-xs font-mono text-slate-500"
+                                onClick={() => copyInviteCode(inviteCode)}
+                            >{inviteCode}</div>
+                            <button
+                                onClick={() => copyInviteCode(inviteCode)}
+                                type="button"
+                                aria-label="Copy invite code"
+                            >
+                                <MdContentCopy />
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2">
