@@ -37,11 +37,13 @@ Never commit `.env*` files (only `.env.example` is tracked). Templates: `backend
 | `APP_DOMAIN` | no | Only used for the fallback sender `no-reply@<APP_DOMAIN>` when `MAIL_FROM_EMAIL` and `MAIL_USER` are unset |
 | `CLOUD_NAME`, `API_KEY`, `API_SECRET` | yes | Cloudinary credentials |
 | `FOLDER_NAME` | yes | Cloudinary folder prefix |
-| `MAIL_SERVICE` | no | `gmail` selects the Gmail service; otherwise custom SMTP |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE` | for custom SMTP | Defaults: `smtp.gmail.com`, 587, `false` |
-| `MAIL_USER`, `MAIL_PASS` | yes | SMTP credentials |
+| `MAIL_TRANSPORT` | no | `gmail-api` or `smtp`. Default: `gmail-api` when all three `GMAIL_*` vars are set, else `smtp` |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | yes on Render free | Gmail API over HTTPS (see 3.4). Required on Render free instances, which block SMTP ports 25/465/587 |
+| `MAIL_SERVICE` | SMTP only | `gmail` selects the Gmail SMTP service; otherwise custom SMTP |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE` | SMTP only | Defaults: `smtp.gmail.com`, 587, `false` |
+| `MAIL_USER`, `MAIL_PASS` | SMTP only | SMTP credentials (Gmail needs an App Password) |
 | `MAIL_TLS_REJECT_UNAUTHORIZED` | no | `false` disables TLS cert verification |
-| `MAIL_FROM_NAME`, `MAIL_FROM_EMAIL` | no | Sender display name and address (defaults: `Up Dev Team`, `MAIL_USER`) |
+| `MAIL_FROM_NAME`, `MAIL_FROM_EMAIL` | no | Sender display name and address (defaults: `ClzMate`, `MAIL_USER`). With the Gmail API the address must be the authorized Gmail account or one of its verified aliases |
 | `RAZORPAY_KEY`, `RAZORPAY_SECRET` | `RAZORPAY_SECRET` for paid courses | With the secret set, `verifyPayment` for paid courses requires a valid signature, otherwise it returns 402. `RAZORPAY_KEY` is unused by the backend |
 
 ### 3.2 Frontend (`frontend/.env`)
@@ -62,6 +64,19 @@ Template: `backup/.env.example` (details in `backup/README.md`):
 `MONGO_URI` (required), `DRIVE_FOLDER_ID` (required), `BACKUP_API_KEY` (required to start the HTTP API, at least 24 characters), `HOST` (bind address, default `127.0.0.1`), `PORT` (default 3500), `MONGO_DBS`, `BACKUP_DIR`, `GOOGLE_SERVICE_ACCOUNT_KEY_PATH`, `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`, `TOKEN_FILE_PATH`, `RETENTION_COUNT` (default 10), `RESTORE_BATCH_SIZE` (default 1000), `SKIP_INITIAL_BACKUP` (`true` skips the backup at startup).
 
 Credential JSON files and `drive_access_token.json` must stay out of git and be permission-restricted.
+
+### 3.4 Email through the Gmail API (one-time setup)
+
+Render free web services cannot open outbound SMTP connections (ports 25, 465, 587), so SMTP sends fail there with `Connection timeout`. The backend sends through the Gmail API over HTTPS instead.
+
+1. Google Cloud Console, using the project that owns the sending account (e.g. `clzmate.info@gmail.com`): enable the **Gmail API**.
+2. OAuth consent screen: user type External, add the scope `https://www.googleapis.com/auth/gmail.send`, then set the publishing status to **In production**. In "Testing" status Google expires refresh tokens after 7 days. Google may show an "unverified app" warning when you approve; that is expected for your own account.
+3. Credentials -> Create OAuth client ID -> **Desktop app**. Put its ID and secret in `backend/.env` as `GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET`.
+4. `cd backend && node scripts/get-gmail-refresh-token.js`, open the printed URL, sign in as the sending account, approve. It prints `GMAIL_REFRESH_TOKEN=...`.
+5. On Render (API service) set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `MAIL_FROM_EMAIL` (the same Gmail address) and `MAIL_FROM_NAME`, then redeploy. The old `MAIL_PASS` is no longer used there.
+6. Check: request an OTP from the signup page; the API log must not show `Error while sending mail (gmail-api)`. A log containing `invalid_grant` means the refresh token was revoked or expired: repeat step 4.
+
+Gmail API quota for a regular account is about 500 recipients per day.
 
 ## 4. Backend Deployment
 
