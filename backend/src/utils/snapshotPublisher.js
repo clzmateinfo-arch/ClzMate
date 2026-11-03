@@ -64,6 +64,24 @@ async function requireData(handler, input, label) {
   return payload.data;
 }
 
+const BUILD_CONCURRENCY = Number(process.env.SNAPSHOT_BUILD_CONCURRENCY) || 6;
+
+const sortedIds = (ids) => ids.map(String).sort();
+
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const lanes = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await worker(items[index], index);
+    }
+  });
+  await Promise.all(lanes);
+  return results;
+}
+
 async function optionalData(handler, input, label) {
   const { status, payload } = await runController(handler, input);
   if (status === 200 && payload?.success === true) return payload;
@@ -87,17 +105,24 @@ async function buildSnapshot() {
     Category.find({}).distinct("_id"),
   ]);
 
+  const [coursePayloads, catalogPayloads] = await Promise.all([
+    mapWithConcurrency(sortedIds(publishedCourseIds), BUILD_CONCURRENCY, (courseId) =>
+      optionalData(getCourseDetails, { body: { courseId } }, `course ${courseId}`)
+    ),
+    mapWithConcurrency(sortedIds(categoryIds), BUILD_CONCURRENCY, (categoryId) =>
+      optionalData(getCategoryPageDetails, { body: { categoryId } }, `catalog ${categoryId}`)
+    ),
+  ]);
+
   const course = {};
-  for (const courseId of publishedCourseIds) {
-    const payload = await optionalData(getCourseDetails, { body: { courseId: String(courseId) } }, `course ${courseId}`);
-    if (payload) course[String(courseId)] = payload;
-  }
+  sortedIds(publishedCourseIds).forEach((courseId, index) => {
+    if (coursePayloads[index]) course[courseId] = coursePayloads[index];
+  });
 
   const catalog = {};
-  for (const categoryId of categoryIds) {
-    const payload = await optionalData(getCategoryPageDetails, { body: { categoryId: String(categoryId) } }, `catalog ${categoryId}`);
-    if (payload) catalog[String(categoryId)] = { selectedCategory: payload.data.selectedCategory };
-  }
+  sortedIds(categoryIds).forEach((categoryId, index) => {
+    if (catalogPayloads[index]) catalog[categoryId] = { selectedCategory: catalogPayloads[index].data.selectedCategory };
+  });
 
   const resources = {
     categories,
@@ -307,6 +332,7 @@ module.exports = {
   buildSnapshot,
   createSnapshotPublisher,
   hashResources,
+  mapWithConcurrency,
   isContentMutation,
   publishedSnapshotUrl,
   republishOnContentMutation,

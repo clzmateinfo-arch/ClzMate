@@ -10,6 +10,7 @@ const {
   buildSnapshot,
   createSnapshotPublisher,
   hashResources,
+  mapWithConcurrency,
   isContentMutation,
   republishOnContentMutation,
   snapshotPublisher,
@@ -92,6 +93,15 @@ describe("public snapshot", () => {
     assert.deepEqual(Object.keys(first.resources.catalog[String(category._id)]), ["selectedCategory"]);
   });
 
+  it("orders course and catalog entries by id so the hash is stable", async () => {
+    for (const name of ["Zeta", "Alpha", "Mid", "Beta"]) await seed.createCourse({ instructor, category, courseName: name });
+    const first = await buildSnapshot();
+    const courseKeys = Object.keys(first.resources.course);
+    assert.equal(courseKeys.length, 4);
+    assert.deepEqual(courseKeys, [...courseKeys].sort());
+    assert.equal((await buildSnapshot()).hash, first.hash);
+  });
+
   it("works on an empty database", async () => {
     await h.resetDatabase();
     snapshotPublisher.invalidate();
@@ -138,6 +148,42 @@ describe("public snapshot", () => {
     } finally {
       snapshotPublisher.schedule = original;
     }
+  });
+});
+
+describe("snapshot build concurrency", () => {
+  it("keeps result order even when workers finish out of order", async () => {
+    const delays = [40, 5, 25, 1, 30];
+    const results = await mapWithConcurrency(delays, 3, async (delay, index) => {
+      await wait(delay);
+      return `item-${index}`;
+    });
+    assert.deepEqual(results, ["item-0", "item-1", "item-2", "item-3", "item-4"]);
+  });
+
+  it("never runs more workers than the limit and handles empty and small inputs", async () => {
+    let running = 0;
+    let peak = 0;
+    const work = async () => {
+      running += 1;
+      peak = Math.max(peak, running);
+      await wait(8);
+      running -= 1;
+    };
+    await mapWithConcurrency(Array.from({ length: 12 }, (_, i) => i), 4, work);
+    assert.equal(peak, 4);
+    assert.deepEqual(await mapWithConcurrency([], 4, work), []);
+    assert.deepEqual(await mapWithConcurrency([7], 4, async (value) => value * 2), [14]);
+  });
+
+  it("propagates a worker failure so a partial snapshot is never published", async () => {
+    await assert.rejects(
+      mapWithConcurrency([1, 2, 3], 2, async (value) => {
+        if (value === 2) throw new Error("source failed");
+        return value;
+      }),
+      /source failed/
+    );
   });
 });
 
