@@ -2,9 +2,9 @@ const crypto = require("crypto");
 const User = require("../models/user");
 const Course = require("../models/course");
 const mailSender = require("../utils/mailSender");
-const { paymentSuccessEmail } = require("../mail/templates/paymentSuccessEmail");
+const { paymentReceiptEmail } = require("../mail/templates");
 const { enrollStudentInCourses } = require("../utils/enrollment");
-const { isObjectIdArray, escapeHtml } = require("../utils/validators");
+const { isObjectIdArray } = require("../utils/validators");
 
 const CURRENCY = "USD";
 const MAX_IDENTIFIER_LENGTH = 100;
@@ -87,8 +87,9 @@ exports.verifyPayment = async (req, res) => {
       return res.status(404).json({ success: false, message: "One or more courses were not found or are unavailable" });
     }
 
+    let authorization = "free";
     if (!courses.every(isFreeCourse)) {
-      const authorization = resolvePaymentAuthorization(body);
+      authorization = resolvePaymentAuthorization(body);
       if (authorization === "invalid") {
         return res.status(400).json({ success: false, message: "Payment signature verification failed" });
       }
@@ -98,6 +99,7 @@ exports.verifyPayment = async (req, res) => {
     }
 
     const results = await enrollStudentInCourses(uniqueIds, userId);
+    if (authorization === "verified") await sendPaymentReceipt(userId, courses, results, body);
     return res.status(200).json({ success: true, results, message: "Payment Verified" });
   } catch (error) {
     console.error("verifyPayment error", error);
@@ -105,36 +107,26 @@ exports.verifyPayment = async (req, res) => {
   }
 };
 
-exports.sendPaymentSuccessEmail = async (req, res) => {
+async function sendPaymentReceipt(userId, courses, results, body) {
   try {
-    const { orderId, paymentId, coursesId } = req.body || {};
-    const userId = req.user.id;
+    const paidCourseIds = new Set(results.filter((result) => result.success).map((result) => String(result.courseId)));
+    const items = courses
+      .filter((course) => !isFreeCourse(course) && paidCourseIds.has(String(course._id)))
+      .map((course) => ({ courseName: course.courseName, price: course.price }));
+    if (items.length === 0) return;
 
-    if (!isShortString(orderId) || !isShortString(paymentId) || !isObjectIdArray(coursesId)) {
-      return res.status(400).json({ success: false, message: "Please provide orderId, paymentId and coursesId" });
-    }
-
-    const student = await User.findById(userId).select("email firstName");
-    if (!student) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    const uniqueIds = [...new Set(coursesId)];
-    const enrolledCourses = await Course.find({ _id: { $in: uniqueIds }, studentsEnrolled: userId }).select("price");
-    if (enrolledCourses.length !== uniqueIds.length) {
-      return res.status(403).json({ success: false, message: "Student is not enrolled in one or more of the courses" });
-    }
-
-    const amount = enrolledCourses.reduce((sum, course) => sum + (Number(course.price) || 0), 0);
-
-    await mailSender(
+    const student = await User.findById(userId).select("email firstName preferredName");
+    if (!student) return;
+    await mailSender.sendTemplate(
       student.email,
-      "Payment Received",
-      paymentSuccessEmail(escapeHtml(student.firstName), amount, escapeHtml(orderId), escapeHtml(paymentId))
+      paymentReceiptEmail({
+        name: student.preferredName || student.firstName,
+        items,
+        orderId: body.razorpay_order_id,
+        paymentId: body.razorpay_payment_id,
+      })
     );
-    return res.status(200).json({ success: true, message: "Email sent" });
   } catch (error) {
-    console.error("sendPaymentSuccessEmail error", error);
-    return res.status(500).json({ success: false, message: "Could not send email" });
+    console.error("Failed to send payment receipt:", error.message);
   }
-};
+}

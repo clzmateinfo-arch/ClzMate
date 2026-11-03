@@ -166,25 +166,50 @@ describe("payment, enrollment and cart endpoints", () => {
     });
   });
 
-  describe("sendPaymentSuccessEmail", () => {
-    const send = (user, body) => h.asUser(user).post("/api/v1/payment/sendPaymentSuccessEmail").send(body);
+  describe("payment receipt", () => {
+    const receipts = () => h.sentMails.filter((mail) => /^Payment receipt/.test(mail.subject));
 
-    it("computes the amount server side and refuses courses the student is not enrolled in", async () => {
+    it("is sent server side only after a verified payment, with server-computed amounts", async () => {
+      process.env.RAZORPAY_SECRET = "gateway-secret";
+      const signature = crypto.createHmac("sha256", "gateway-secret").update("order<x>|pay_9").digest("hex");
+      const res = await verify(student, {
+        coursesId: [String(paidCourse._id), String(freeCourse._id)],
+        razorpay_order_id: "order<x>",
+        razorpay_payment_id: "pay_9",
+        razorpay_signature: signature,
+        amount: 1,
+      });
+      assert.equal(res.status, 200, JSON.stringify(res.body));
+      assert.equal(receipts().length, 1);
+      const [receipt] = receipts();
+      assert.equal(receipt.to, student.email);
+      assert.ok(receipt.text.includes("Total paid: Rs. 50"));
+      assert.equal(receipt.text.includes(freeCourse.courseName + ":"), false);
+      assert.ok(receipt.body.includes("order&lt;x&gt;"));
+      assert.equal(receipt.body.includes("order<x>"), false);
+      assert.ok(h.sentMails.some((mail) => mail.to === student.email && /^You're enrolled in /.test(mail.subject) && /payment was received/.test(mail.text)));
+    });
+
+    it("is not sent for free enrollments, stubbed payments or failed verification", async () => {
+      await verify(student, { coursesId: [String(freeCourse._id)] });
       process.env.ALLOW_STUBBED_PAYMENT = "true";
       await verify(student, { coursesId: [String(paidCourse._id)] });
-      h.sentMails.length = 0;
+      delete process.env.ALLOW_STUBBED_PAYMENT;
+      process.env.RAZORPAY_SECRET = "gateway-secret";
+      const otherStudent = await h.createUser({ accountType: "Student" });
+      const forged = await verify(otherStudent, {
+        coursesId: [String(paidCourse._id)],
+        razorpay_order_id: "order_1",
+        razorpay_payment_id: "pay_1",
+        razorpay_signature: "deadbeef",
+      });
+      assert.equal(forged.status, 400);
+      assert.equal(receipts().length, 0);
+    });
 
-      const ok = await send(student, { orderId: "order<script>", paymentId: "pay_1", coursesId: [String(paidCourse._id)], amount: 1 });
-      assert.equal(ok.status, 200, JSON.stringify(ok.body));
-      const mail = h.sentMails.find((entry) => entry.subject === "Payment Received");
-      assert.ok(mail.body.includes("$50"));
-      assert.equal(mail.body.includes("<script>"), false);
-
-      assert.equal((await send(student, { orderId: "o", paymentId: "p", coursesId: [String(freeCourse._id)] })).status, 403);
-      assert.equal((await send(student, { orderId: "o", paymentId: "p" })).status, 400);
-      assert.equal((await send(student, { orderId: { $ne: 1 }, paymentId: "p", coursesId: [String(paidCourse._id)] })).status, 400);
-      assert.equal((await send(instructor, { orderId: "o", paymentId: "p", coursesId: [String(paidCourse._id)] })).status, 403);
-      assert.equal((await h.api().post("/api/v1/payment/sendPaymentSuccessEmail").send({})).status, 401);
+    it("no longer exposes the client-triggered receipt endpoint", async () => {
+      const res = await h.asUser(student).post("/api/v1/payment/sendPaymentSuccessEmail").send({});
+      assert.equal(res.status, 404);
     });
   });
 

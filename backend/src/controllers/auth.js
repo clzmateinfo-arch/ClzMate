@@ -2,8 +2,7 @@ require("dotenv-flow").config();
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const mailSender = require("../utils/mailSender");
-const otpTemplate = require("../mail/templates/emailVerificationTemplate");
-const { passwordUpdated } = require("../mail/templates/passwordUpdate");
+const { otpEmail, welcomeEmail, passwordChangedEmail } = require("../mail/templates");
 const User = require("../models/user");
 const Profile = require("../models/profile");
 const OTP = require("../models/OTP");
@@ -14,6 +13,7 @@ const { isNonEmptyString } = require("../middleware/sanitize");
 const JWT_EXPIRES = process.env.JWT_EXPIRES || "24h";
 const PUBLIC_SIGNUP_ROLES = ["Student", "Instructor"];
 const OTP_MAX_ATTEMPTS = 5;
+const OTP_TTL_MINUTES = Math.round(OTP.OTP_TTL_SECONDS / 60);
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INVALID_CREDENTIALS_MESSAGE = "Invalid credentials";
@@ -147,7 +147,7 @@ exports.sendOTP = async (req, res) => {
             return res.status(400).json({ success: false, message: "Email is invalid" });
         }
 
-        const existingUser = await User.findOne({ email: emailNormalized }).select("verified");
+        const existingUser = await User.findOne({ email: emailNormalized }).select("verified preferredName firstName");
         if (existingUser?.verified) {
             return res.status(409).json({ success: false, message: "User is already registered" });
         }
@@ -161,9 +161,9 @@ exports.sendOTP = async (req, res) => {
         }
 
         const otp = generateOtp();
-        const name = emailNormalized.split("@")[0].replace(/[^a-zA-Z]+/g, " ").trim() || "there";
+        const name = existingUser?.preferredName || existingUser?.firstName || "";
 
-        const mailResult = await mailSender(emailNormalized, "OTP Verification Email", otpTemplate(otp, name));
+        const mailResult = await mailSender.sendTemplate(emailNormalized, otpEmail({ name, otp, ttlMinutes: OTP_TTL_MINUTES }));
         if (!mailResult) {
             return res.status(502).json({ success: false, message: "Could not send the OTP email. Please try again" });
         }
@@ -210,6 +210,15 @@ exports.verifyOTP = async (req, res) => {
 
         await User.updateOne({ _id: user._id }, { $set: { verified: true } });
         await OTP.deleteMany({ email: emailNormalized });
+
+        await mailSender.sendTemplate(
+            user.email,
+            welcomeEmail({
+                name: user.preferredName || user.firstName,
+                accountType: user.accountType,
+                isPendingApproval: user.accountType === "Instructor" && !user.approved,
+            })
+        );
 
         return res.status(200).json({
             success: true,
@@ -307,10 +316,9 @@ exports.changePassword = async (req, res) => {
         userDetails.passwordChangedAt = new Date();
         await userDetails.save();
 
-        await mailSender(
+        await mailSender.sendTemplate(
             userDetails.email,
-            "Password for your account has been updated",
-            passwordUpdated(userDetails.email, `Password updated successfully for ${userDetails.firstName} ${userDetails.lastName}`)
+            passwordChangedEmail({ name: userDetails.preferredName || userDetails.firstName, at: userDetails.passwordChangedAt })
         );
 
         return res.status(200).json({ success: true, message: "Password changed successfully" });
