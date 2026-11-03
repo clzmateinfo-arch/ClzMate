@@ -11,6 +11,7 @@ import { setupAxiosInterceptors } from "@/shared/services/api/apiConnector";
 import { setToken } from "@/entities/auth/model/authSlice";
 import { setUser } from "@/entities/user/model/userSlice";
 import { resetCart } from "@/entities/cart/model/cartSlice";
+import { recoverFromStaleDeploy, removeCacheBusterFromAddressBar } from "@/shared/utils/staleDeploy";
 
 const store = configureStore({
   reducer: rootReducer,
@@ -18,6 +19,11 @@ const store = configureStore({
 });
 
 setupAxiosInterceptors();
+
+removeCacheBusterFromAddressBar();
+window.addEventListener('vite:preloadError', (event) => {
+  if (recoverFromStaleDeploy()) event.preventDefault();
+});
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
